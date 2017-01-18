@@ -1,0 +1,7 @@
+rootProject.name = 'korau-root'
+
+include(
+        'korau',
+        'korau-core',
+        'korau-android',
+)

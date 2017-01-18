@@ -1,0 +1,2 @@
+com.soywiz.korau.awt.AwtNativeSoundProvider # <target=jvm>
+com.soywiz.korau.js.HtmlNativeSoundProvider # <target=js>
