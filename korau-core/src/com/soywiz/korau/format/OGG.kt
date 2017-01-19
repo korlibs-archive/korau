@@ -1,21 +1,18 @@
 package com.soywiz.korau.format
 
-import com.soywiz.korio.async.asyncFun
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.extract
 
 class OGG : AudioFormat() {
-	suspend override fun tryReadInfo(data: AsyncStream): Info? = asyncFun {
-		try {
-			parse(data)
-		} catch (e: Throwable) {
-			//e.printStackTrace()
-			null
-		}
+	suspend override fun tryReadInfo(data: AsyncStream): Info? = try {
+		parse(data)
+	} catch (e: Throwable) {
+		//e.printStackTrace()
+		null
 	}
 
-	suspend fun parse(s: AsyncStream): Info = asyncFun {
+	suspend fun parse(s: AsyncStream): Info {
 		var channels = 2
 		var sampleRate = 44100
 		var brnom = 160000
@@ -23,7 +20,9 @@ class OGG : AudioFormat() {
 			val magic = s.readString(5)
 			if (magic != "OggS\u0000") invalidOp("Not an OGG file")
 			val type = s.readS8()
-			val cont = type.extract(0) ; val bos = type.extract(1)  ; val eos = type.extract(2)
+			val cont = type.extract(0);
+			val bos = type.extract(1);
+			val eos = type.extract(2)
 			val gpos = s.readS64_le()
 			val sn = s.readS32_le()
 			val psn = s.readS32_le()
@@ -50,7 +49,7 @@ class OGG : AudioFormat() {
 					PacketTypes.SETUP_HEADER -> Unit
 				}
 			}
-			if (eos) return@asyncFun Info(
+			if (eos) return Info(
 				lengthInMicroseconds = ((gpos.toDouble() * 1_000_000.0 / sampleRate.toDouble())).toLong(),
 				channels = channels
 			)

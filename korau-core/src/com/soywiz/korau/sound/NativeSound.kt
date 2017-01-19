@@ -1,6 +1,5 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.korio.async.asyncFun
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.vfs.VfsFile
 import java.util.*
@@ -14,7 +13,7 @@ open class NativeSoundProvider {
 	open val available: Boolean = true
 	open val priority: Int = 2000
 	open fun createSound(data: ByteArray): NativeSound = NativeSound()
-	open suspend fun createSound(file: VfsFile): NativeSound = asyncFun { createSound(file.read()) }
+	open suspend fun createSound(file: VfsFile): NativeSound = createSound(file.read())
 }
 
 class DummyNativeSoundProvider : NativeSoundProvider() {

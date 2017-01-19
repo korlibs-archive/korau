@@ -2,7 +2,6 @@
 
 package com.soywiz.korau.format
 
-import com.soywiz.korio.async.asyncFun
 import com.soywiz.korio.async.await
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.stream.*
@@ -10,15 +9,13 @@ import com.soywiz.korio.stream.*
 class WAV : AudioFormat() {
 	data class Chunk(val type: String, val data: AsyncStream)
 
-	suspend override fun tryReadInfo(data: AsyncStream): Info? = asyncFun {
-		try {
-			parse(data)
-		} catch (e: Throwable) {
-			null
-		}
+	suspend override fun tryReadInfo(data: AsyncStream): Info? = try {
+		parse(data)
+	} catch (e: Throwable) {
+		null
 	}
 
-	suspend fun parse(data: AsyncStream): Info = asyncFun {
+	suspend fun parse(data: AsyncStream): Info {
 		var formatTag: Int = -1
 		var channels: Int = 2
 		var samplesPerSec: Int = 0
@@ -41,20 +38,18 @@ class WAV : AudioFormat() {
 				"data" -> {
 					dataSize += d.getLength()
 				}
-				else -> {
-
-				}
+				else -> Unit
 			}
 		}
 		if (formatTag < 0) invalidOp("Couldn't find RIFF 'fmt ' chunk")
 
-		Info(
+		return Info(
 			lengthInMicroseconds = (dataSize * 1000 * 1000) / avgBytesPerSec,
 			channels = channels
 		)
 	}
 
-	suspend fun riff(data: AsyncStream, handler: suspend Chunk.() -> Unit) = asyncFun {
+	suspend fun riff(data: AsyncStream, handler: suspend Chunk.() -> Unit) {
 		val s2 = data.clone()
 		val magic = s2.readString(4)
 		val length = s2.readS32_le()
