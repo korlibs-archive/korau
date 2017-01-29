@@ -4,5 +4,5 @@ apply plugin: 'kotlin'
 
 dependencies {
 	//compile project(":korio")
-    testCompile "com.soywiz:korio:$korioVersion"
+    testCompile "com.soywiz:korio:$korVersion"
 }

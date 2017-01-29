@@ -4,5 +4,5 @@ apply plugin: 'kotlin'
 
 dependencies {
     compile project(":korau-core")
-    compile "com.soywiz:korio-android:$korioVersion"
+    compile "com.soywiz:korio-android:$korVersion"
 }
