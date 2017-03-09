@@ -111,7 +111,7 @@ class WAV : AudioFormat("wav") {
         val magic = s2.readString(4)
         val length = s2.readS32_le()
         val magic2 = s2.readString(4)
-        if (magic != "RIFF") invalidOp("Not a RIFF file")
+        if (magic != "RIFF") invalidOp("Not a RIFF file but '$magic'")
         if (magic2 != "WAVE") invalidOp("Not a RIFF + WAVE file")
         val s = s2.readStream(length - 4)
         while (!s.eof()) {

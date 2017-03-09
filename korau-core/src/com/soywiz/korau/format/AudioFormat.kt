@@ -20,26 +20,13 @@ open class AudioFormat(vararg exts: String) {
     }
 
     suspend open fun tryReadInfo(data: AsyncStream): Info? = null
-
     suspend open fun decodeStream(data: AsyncStream): AudioStream? = null
-
-    suspend fun decode(data: AsyncStream): AudioData? {
-        val s = decodeStream(data) ?: return null
-        val out = AudioBuffer()
-        val buffer = ShortArray(1024)
-        while (true) {
-            val read = s.read(buffer, 0, buffer.size)
-            if (read <= 0) break
-            out.write(buffer, 0, read)
-        }
-        return AudioData(s.rate, s.channels, out.toShortArray())
-    }
-
+    suspend fun decode(data: AsyncStream): AudioData? = decodeStream(data)?.toData()
     suspend open fun encode(data: AudioData, out: AsyncOutputStream, filename: String): Unit = TODO()
 
-    suspend fun encodeToByteArray(data: AudioData, filename: String): ByteArray {
+    suspend fun encodeToByteArray(data: AudioData, filename: String = "out.wav", format: AudioFormat = this): ByteArray {
         val out = MemorySyncStream()
-        encode(data, out.toAsync(), filename)
+        format.encode(data, out.toAsync(), filename)
         return out.toByteArray()
     }
 }
@@ -59,8 +46,10 @@ object AudioFormats : AudioFormat() {
     }
 
     suspend override fun decodeStream(data: AsyncStream): AudioStream? {
+        //println(formats)
         for (format in formats) {
             try {
+                if (format.tryReadInfo(data.clone()) == null) continue
                 return format.decodeStream(data.clone()) ?: continue
             } catch (e: Throwable) {
                 e.printStackTrace()
