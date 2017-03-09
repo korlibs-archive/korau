@@ -4,7 +4,7 @@ import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.extract
 
-class OGG : AudioFormat() {
+open class OGG : AudioFormat("ogg") {
 	suspend override fun tryReadInfo(data: AsyncStream): Info? = try {
 		parse(data)
 	} catch (e: Throwable) {

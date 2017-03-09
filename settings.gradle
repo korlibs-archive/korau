@@ -4,4 +4,6 @@ include(
         'korau',
         'korau-core',
         'korau-android',
+        'korau-ogg-vorbis',
+        'korau-midi',
 )

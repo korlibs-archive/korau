@@ -27,4 +27,4 @@ open class NativeSound {
 	}
 }
 
-suspend fun VfsFile.readSound() = nativeSoundProvider.createSound(this)
+suspend fun VfsFile.readNativeSound() = nativeSoundProvider.createSound(this)
