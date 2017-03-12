@@ -25,6 +25,8 @@
 package net.sourceforge.lame.mp3;
 
 import net.sourceforge.lame.mp3.GetAudio.SoundFileFormat;
+import net.sourceforge.lame.util.FileRandomReader;
+import net.sourceforge.lame.util.RandomReader;
 
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -313,7 +315,7 @@ public class Main {
     ((Closeable) outf).close();
 		/* if outf is seekable, rewind and adjust length */
     if (!lame.getParser().disable_wav_header) {
-      RandomAccessFile rf = new RandomAccessFile(outPath, "rw");
+      RandomReader rf = new FileRandomReader(outPath, "rw");
       lame.getAudio().WriteWaveHeader(rf, (int) wavsize, lame.getFlags().getInSampleRate(),
           tmp_num_channels, 16);
       rf.close();
@@ -395,7 +397,7 @@ public class Main {
 
   }
 
-  private int write_xing_frame(final RandomAccessFile outf) {
+  private int write_xing_frame(final RandomReader outf) {
     byte mp3buffer[] = new byte[Lame.LAME_MAXMP3BUFFER];
 
     int imp3 = lame.getVbr().getLameTagFrame(lame.getFlags(), mp3buffer);
@@ -528,7 +530,7 @@ public class Main {
     }
     try {
       ((Closeable) outf).close();
-      RandomAccessFile rf = new RandomAccessFile(outPath, "rw");
+      RandomReader rf = new FileRandomReader(outPath, "rw");
       rf.seek(id3v2_size);
       write_xing_frame(rf);
       rf.close();

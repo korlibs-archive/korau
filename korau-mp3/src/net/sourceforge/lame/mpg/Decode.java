@@ -27,6 +27,7 @@ package net.sourceforge.lame.mpg;
 import net.sourceforge.lame.mpg.MPGLib.ProcessedBytes;
 import net.sourceforge.lame.mpg.MPGLib.mpstr_tag;
 
+@SuppressWarnings("PointlessArithmeticExpression")
 public class Decode {
 
   private TabInit tab = new TabInit();
@@ -110,8 +111,8 @@ public class Decode {
 
       int b0Pos = 0;
       for (int j = 16; j != 0; j--, b0Pos += 0x10, window += 0x20, pnt.pb += 2) {
-        float sum;
-        sum = tab.decwin[window + 0x0] * b0[b0Pos + 0x0];
+        float sum = 0f;
+        sum += tab.decwin[window + 0x0] * b0[b0Pos + 0x0];
         sum -= tab.decwin[window + 0x1] * b0[b0Pos + 0x1];
         sum += tab.decwin[window + 0x2] * b0[b0Pos + 0x2];
         sum -= tab.decwin[window + 0x3] * b0[b0Pos + 0x3];
@@ -131,8 +132,8 @@ public class Decode {
       }
 
       {
-        float sum;
-        sum = tab.decwin[window + 0x0] * b0[b0Pos + 0x0];
+        float sum = 0f;
+        sum += tab.decwin[window + 0x0] * b0[b0Pos + 0x0];
         sum += tab.decwin[window + 0x2] * b0[b0Pos + 0x2];
         sum += tab.decwin[window + 0x4] * b0[b0Pos + 0x4];
         sum += tab.decwin[window + 0x6] * b0[b0Pos + 0x6];

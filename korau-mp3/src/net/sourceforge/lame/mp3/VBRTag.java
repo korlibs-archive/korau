@@ -21,6 +21,8 @@
  */
 package net.sourceforge.lame.mp3;
 
+import net.sourceforge.lame.util.RandomReader;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
@@ -793,7 +795,7 @@ public class VBRTag {
     return bytesWritten;
   }
 
-  private int skipId3v2(final RandomAccessFile fpStream) throws IOException {
+  private int skipId3v2(final RandomReader fpStream) throws IOException {
     // seek to the beginning of the stream
     fpStream.seek(0);
     // read 10 bytes in case there's an ID3 version 2 header here
@@ -917,7 +919,7 @@ public class VBRTag {
    * @throws java.io.IOException I/O error
    */
   public final int putVbrTag(final LameGlobalFlags gfp,
-                             final RandomAccessFile stream) throws IOException {
+                             final RandomReader stream) throws IOException {
     final LameInternalFlags gfc = gfp.internal_flags;
 
     if (gfc.VBR_seek_table.pos <= 0)

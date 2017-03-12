@@ -1,4 +1,4 @@
-package com.soywiz.korag.format
+package com.soywiz.korau.format
 
 import com.soywiz.korau.format.AudioFormats
 import com.soywiz.korau.format.readAudioData

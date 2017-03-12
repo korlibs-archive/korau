@@ -24,6 +24,8 @@
 package net.sourceforge.lame.mp3;
 
 import net.sourceforge.lame.mpg.MPGLib;
+import net.sourceforge.lame.util.FileRandomReader;
+import net.sourceforge.lame.util.RandomReader;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -95,7 +97,7 @@ public class GetAudio {
 
 	/* AIFF Definitions */
   private int num_samples_read;
-  private RandomAccessFile musicin;
+  private RandomReader musicin;
   private MPGLib.mpstr_tag hip;
 
   public void setModules(Parse parse2, MPGLib mpg2) {
@@ -111,7 +113,26 @@ public class GetAudio {
     pcmbitwidth = parse.in_bitwidth;
     pcmswapbytes = parse.swapbytes;
     pcm_is_unsigned_8bit = !parse.in_signed;
-    musicin = OpenSndFile(gfp, inPath, enc);
+    try {
+      musicin = OpenSndFile(gfp, inPath, enc);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public final void initInFile(final LameGlobalFlags gfp,
+                               final RandomReader inPath, final FrameSkip enc) {
+    /* open the input file */
+    count_samples_carefully = false;
+    num_samples_read = 0;
+    pcmbitwidth = parse.in_bitwidth;
+    pcmswapbytes = parse.swapbytes;
+    pcm_is_unsigned_8bit = !parse.in_signed;
+    try {
+      musicin = OpenSndFile(gfp, inPath, enc);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public final void close_infile() {
@@ -266,7 +287,7 @@ public class GetAudio {
     return samples_read;
   }
 
-  int read_samples_mp3(final LameGlobalFlags gfp, RandomAccessFile musicin,
+  int read_samples_mp3(final LameGlobalFlags gfp, RandomReader musicin,
                        float mpg123pcm[][]) {
     int out;
 
@@ -348,7 +369,7 @@ public class GetAudio {
    */
   private int unpack_read_samples(final int samples_to_read,
                                   final int bytes_per_sample, final boolean swap_order,
-                                  final int[] sample_buffer, final RandomAccessFile pcm_in)
+                                  final int[] sample_buffer, final RandomReader pcm_in)
       throws IOException {
     byte[] bytes = new byte[bytes_per_sample * samples_to_read];
     pcm_in.readFully(bytes);
@@ -404,7 +425,7 @@ public class GetAudio {
    * SEMANTICS: Reads #samples_read# number of shorts from #musicin#
    * filepointer into #sample_buffer[]#. Returns the number of samples read.
    */
-  private int read_samples_pcm(final RandomAccessFile musicin,
+  private int read_samples_pcm(final RandomReader musicin,
                                final int sample_buffer[], final int samples_to_read) {
     int samples_read = 0;
     boolean swap_byte_order;
@@ -454,7 +475,7 @@ public class GetAudio {
    * read, and we're pretty sure that we're looking at a WAV file.
    */
   private int parse_wave_header(final LameGlobalFlags gfp,
-                                final RandomAccessFile sf) {
+                                final RandomReader sf) {
     int format_tag = 0;
     int channels = 0;
     int bits_per_sample = 0;
@@ -612,7 +633,7 @@ public class GetAudio {
    * read, and we're pretty sure that we're looking at an AIFF file.
    */
   private int parse_aiff_header(final LameGlobalFlags gfp,
-                                final RandomAccessFile sf) {
+                                final RandomReader sf) {
     int subSize = 0, dataType = IFF_ID_NONE;
     IFF_AIFF aiff_info = new IFF_AIFF();
     int seen_comm_chunk = 0, seen_ssnd_chunk = 0;
@@ -759,7 +780,7 @@ public class GetAudio {
    * beginning of the sound data.
    */
   private SoundFileFormat parse_file_header(final LameGlobalFlags gfp,
-                                            final RandomAccessFile sf) {
+                                            final RandomReader sf) {
 
     int type = Read32BitsHighLow(sf);
     count_samples_carefully = false;
@@ -804,21 +825,22 @@ public class GetAudio {
     return SoundFileFormat.sf_unknown;
   }
 
-  private RandomAccessFile OpenSndFile(final LameGlobalFlags gfp,
-                                       final String inPath, final FrameSkip enc) {
+  private RandomReader OpenSndFile(final LameGlobalFlags gfp,
+                                   final String inPath, final FrameSkip enc) throws IOException {
+    return OpenSndFile(gfp, new FileRandomReader(inPath, "r"), enc);
+  }
+
+  private RandomReader OpenSndFile(final LameGlobalFlags gfp,
+                                       final RandomReader musicin2, final FrameSkip enc) throws IOException {
 
 		/* set the defaults from info in case we cannot determine them from file */
     gfp.num_samples = -1;
 
-    try {
-      musicin = new RandomAccessFile(inPath, "r");
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(String.format("Could not find \"%s\".", inPath), e);
-    }
+    musicin = musicin2;
 
     if (is_mpeg_file_format(parse.getInputFormat())) {
       if (-1 == lame_decode_initfile(musicin, parse.getMp3InputData(), enc)) {
-        throw new RuntimeException(String.format("Error reading headers in mp3 input file %s.", inPath));
+        throw new RuntimeException(String.format("Error reading headers in mp3 input file %s.", musicin2));
       }
       gfp.setInNumChannels(parse.getMp3InputData().stereo);
       gfp.setInSampleRate(parse.getMp3InputData().samplerate);
@@ -844,7 +866,7 @@ public class GetAudio {
 
     if (gfp.num_samples == -1) {
 
-      double flen = new File(inPath).length();
+      double flen = musicin2.length();
 			/* try to figure out num_samples */
       if (flen >= 0) {
 				/* try file size, assume 2 bytes per sample */
@@ -944,7 +966,7 @@ public class GetAudio {
     return true;
   }
 
-  private int lame_decode_initfile(final RandomAccessFile fd,
+  private int lame_decode_initfile(final RandomReader fd,
                                    final MP3Data mp3data, final FrameSkip enc) {
     byte buf[] = new byte[100];
     float[] pcm_l = new float[1152], pcm_r = new float[1152];
@@ -1090,7 +1112,7 @@ public class GetAudio {
    * @return -1 error n number of samples output. either 576 or 1152 depending
    * on MP3 file.
    */
-  private int lame_decode_fromfile(final RandomAccessFile fd,
+  private int lame_decode_fromfile(final RandomReader fd,
                                    final float[] pcm_l, final float[] pcm_r, final MP3Data mp3data) {
     int ret = 0;
     int len = 0;
@@ -1150,7 +1172,7 @@ public class GetAudio {
     return false;
   }
 
-  private int Read32BitsLowHigh(final RandomAccessFile fp) {
+  private int Read32BitsLowHigh(final RandomReader fp) {
     int first = 0xffff & Read16BitsLowHigh(fp);
     int second = 0xffff & Read16BitsLowHigh(fp);
 
@@ -1158,7 +1180,7 @@ public class GetAudio {
     return (result);
   }
 
-  private int Read16BitsLowHigh(final RandomAccessFile fp) {
+  private int Read16BitsLowHigh(final RandomReader fp) {
     try {
       int first = 0xff & fp.read();
       int second = 0xff & fp.read();
@@ -1171,7 +1193,7 @@ public class GetAudio {
     }
   }
 
-  private int Read16BitsHighLow(final RandomAccessFile fp) {
+  private int Read16BitsHighLow(final RandomReader fp) {
     try {
       int high = fp.readUnsignedByte();
       int low = fp.readUnsignedByte();
@@ -1185,7 +1207,7 @@ public class GetAudio {
 
   // Rest of portableio.c:
 
-  private int Read32BitsHighLow(final RandomAccessFile fp) {
+  private int Read32BitsHighLow(final RandomReader fp) {
     int first = 0xffff & Read16BitsHighLow(fp);
     int second = 0xffff & Read16BitsHighLow(fp);
 
@@ -1242,7 +1264,7 @@ public class GetAudio {
       return f;
   }
 
-  private double readIeeeExtendedHighLow(final RandomAccessFile fp)
+  private double readIeeeExtendedHighLow(final RandomReader fp)
       throws IOException {
     byte bytes[] = new byte[10];
 

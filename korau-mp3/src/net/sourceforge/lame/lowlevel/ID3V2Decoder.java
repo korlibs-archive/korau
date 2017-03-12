@@ -1,5 +1,8 @@
 package net.sourceforge.lame.lowlevel;
 
+import net.sourceforge.lame.util.FileRandomReader;
+import net.sourceforge.lame.util.RandomReader;
+
 import java.io.*;
 
 /**
@@ -24,7 +27,7 @@ public class ID3V2Decoder {
   public static void main(String[] args) {
     try {
       ID3V2Decoder id3v2Decoder = new ID3V2Decoder();
-      id3v2Decoder.read(new RandomAccessFile(args[0], "r"));
+      id3v2Decoder.read(new FileRandomReader(args[0], "r"));
       System.out.println();
       FileOutputStream os = new FileOutputStream(new File("d:/out.jpg"));
       os.write(id3v2Decoder.getImageBytes());
@@ -138,7 +141,7 @@ public class ID3V2Decoder {
     this.year = year;
   }
 
-  public final void read(RandomAccessFile is) throws IOException {
+  public final void read(RandomReader is) throws IOException {
     byte[] type = new byte[4];
     is.readFully(type);
     if (type[0] == 'I' && type[1] == 'D' && type[2] == '3') {
@@ -154,7 +157,7 @@ public class ID3V2Decoder {
     }
   }
 
-  private void readTags(final RandomAccessFile is, int len)
+  private void readTags(final RandomReader is, int len)
       throws IOException {
     while (is.getFilePointer() < len) {
       if (readTag(is)) {
@@ -163,7 +166,7 @@ public class ID3V2Decoder {
     }
   }
 
-  private boolean readTag(final RandomAccessFile is) throws IOException {
+  private boolean readTag(final RandomReader is) throws IOException {
 
     // currently unsupported
     byte[] type = new byte[4];
@@ -218,7 +221,7 @@ public class ID3V2Decoder {
     return val;
   }
 
-  private String readField(final RandomAccessFile is, String type, int len,
+  private String readField(final RandomReader is, String type, int len,
                            int enc) throws IOException {
     byte[] field = new byte[len];
     is.readFully(field, 0, len - 1);
@@ -232,7 +235,7 @@ public class ID3V2Decoder {
     return "";
   }
 
-  private void readImage(final RandomAccessFile is, long len)
+  private void readImage(final RandomReader is, long len)
       throws IOException, FileNotFoundException {
     is.read();
     int ch;
