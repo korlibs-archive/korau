@@ -7,7 +7,7 @@ import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.extract
 import com.soywiz.korio.util.getu
 
-class MP3 : AudioFormat("mp3") {
+open class MP3 : AudioFormat("mp3") {
 	suspend override fun tryReadInfo(data: AsyncStream): Info? = try {
 		val parser = Parser(data)
 		val duration = parser.getDurationEstimate()

@@ -5,5 +5,7 @@ include(
         'korau-core',
         'korau-android',
         'korau-ogg-vorbis',
+        'korau-mp3',
         'korau-midi',
+        'korau-mod',
 )
