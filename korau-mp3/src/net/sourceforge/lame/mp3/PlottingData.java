@@ -24,69 +24,69 @@ package net.sourceforge.lame.mp3;
  * used by the frame analyzer
  */
 public class PlottingData {
-  public double mpg123xr[][][] = new double[2][2][576];
-  public double sfb[][][] = new double[2][2][Encoder.SBMAX_l];
-  public double sfb_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
-  public int qss[][] = new int[2][2];
-  public int big_values[][] = new int[2][2];
-  public int sub_gain[][][] = new int[2][2][3];
-  public int scalefac_scale[][] = new int[2][2];
-  public int preflag[][] = new int[2][2];
-  public int mpg123blocktype[][] = new int[2][2];
-  public int mixed[][] = new int[2][2];
+    public double mpg123xr[][][] = new double[2][2][576];
+    public double sfb[][][] = new double[2][2][Encoder.SBMAX_l];
+    public double sfb_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
+    public int qss[][] = new int[2][2];
+    public int big_values[][] = new int[2][2];
+    public int sub_gain[][][] = new int[2][2][3];
+    public int scalefac_scale[][] = new int[2][2];
+    public int preflag[][] = new int[2][2];
+    public int mpg123blocktype[][] = new int[2][2];
+    public int mixed[][] = new int[2][2];
 
-	/* L,R, M and S values */
-  public int mainbits[][] = new int[2][2];
-  public int sfbits[][] = new int[2][2];
-  public int framesize, stereo, js, ms_stereo, i_stereo, emph, bitrate,
-      sampfreq, maindata;
-  public int crc, padding;
-  public int scfsi[] = new int[2], mean_bits, resvsize;
-  /**
-   * current frame number
-   */
-  int frameNum;
-  int frameNum123;
-  /**
-   * number of pcm samples read for this frame
-   */
-  int num_samples;
-  /**
-   * starting time of frame, in seconds
-   */
-  double frametime;
-  double pcmdata[][] = new double[2][1600];
-  double pcmdata2[][] = new double[2][1152 + 1152 - Encoder.DECDELAY];
-  double xr[][][] = new double[2][2][576];
-  double ms_ratio[] = new double[2];
-  double ms_ener_ratio[] = new double[2];
-  /**
-   * psymodel is one ahead
-   */
-  double energy_save[][] = new double[4][Encoder.BLKSIZE];
-  double energy[][][] = new double[2][4][Encoder.BLKSIZE];
-  double pe[][] = new double[2][4];
-  double thr[][][] = new double[2][4][Encoder.SBMAX_l];
-  double en[][][] = new double[2][4][Encoder.SBMAX_l];
-  double thr_s[][][] = new double[2][4][3 * Encoder.SBMAX_s];
-  double en_s[][][] = new double[2][4][3 * Encoder.SBMAX_s];
-  /**
-   * psymodel is one ahead
-   */
-  double ers_save[] = new double[4];
-  double ers[][] = new double[2][4];
-  double LAMEsfb[][][] = new double[2][2][Encoder.SBMAX_l];
-  double LAMEsfb_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
-  int LAMEqss[][] = new int[2][2];
-  double xfsf[][][] = new double[2][2][Encoder.SBMAX_l];
-  double xfsf_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
-  int over[][] = new int[2][2];
-  double tot_noise[][] = new double[2][2];
-  double max_noise[][] = new double[2][2];
-  double over_noise[][] = new double[2][2];
-  int over_SSD[][] = new int[2][2];
-  int blocktype[][] = new int[2][2];
-  int LAMEmainbits[][] = new int[2][2];
-  int LAMEsfbits[][] = new int[2][2];
-  int totbits;
+    /* L,R, M and S values */
+    public int mainbits[][] = new int[2][2];
+    public int sfbits[][] = new int[2][2];
+    public int framesize, stereo, js, ms_stereo, i_stereo, emph, bitrate,
+            sampfreq, maindata;
+    public int crc, padding;
+    public int scfsi[] = new int[2], mean_bits, resvsize;
+    /**
+     * current frame number
+     */
+    int frameNum;
+    int frameNum123;
+    /**
+     * number of pcm samples read for this frame
+     */
+    int num_samples;
+    /**
+     * starting time of frame, in seconds
+     */
+    double frametime;
+    double pcmdata[][] = new double[2][1600];
+    double pcmdata2[][] = new double[2][1152 + 1152 - Encoder.DECDELAY];
+    double xr[][][] = new double[2][2][576];
+    double ms_ratio[] = new double[2];
+    double ms_ener_ratio[] = new double[2];
+    /**
+     * psymodel is one ahead
+     */
+    double energy_save[][] = new double[4][Encoder.BLKSIZE];
+    double energy[][][] = new double[2][4][Encoder.BLKSIZE];
+    double pe[][] = new double[2][4];
+    double thr[][][] = new double[2][4][Encoder.SBMAX_l];
+    double en[][][] = new double[2][4][Encoder.SBMAX_l];
+    double thr_s[][][] = new double[2][4][3 * Encoder.SBMAX_s];
+    double en_s[][][] = new double[2][4][3 * Encoder.SBMAX_s];
+    /**
+     * psymodel is one ahead
+     */
+    double ers_save[] = new double[4];
+    double ers[][] = new double[2][4];
+    double LAMEsfb[][][] = new double[2][2][Encoder.SBMAX_l];
+    double LAMEsfb_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
+    int LAMEqss[][] = new int[2][2];
+    double xfsf[][][] = new double[2][2][Encoder.SBMAX_l];
+    double xfsf_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
+    int over[][] = new int[2][2];
+    double tot_noise[][] = new double[2][2];
+    double max_noise[][] = new double[2][2];
+    double over_noise[][] = new double[2][2];
+    int over_SSD[][] = new int[2][2];
+    int blocktype[][] = new int[2][2];
+    int LAMEmainbits[][] = new int[2][2];
+    int LAMEsfbits[][] = new int[2][2];
+    int totbits;
 }

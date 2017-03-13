@@ -1,9 +1,9 @@
 package net.sourceforge.lame.mp3;
 
 public class MeanBits {
-  int bits;
+    int bits;
 
-  public MeanBits(final int meanBits) {
-    bits = meanBits;
-  }
+    public MeanBits(final int meanBits) {
+        bits = meanBits;
+    }
 }

@@ -30,10 +30,10 @@ public class FileRandomReader extends RandomReader {
         raf.seek(position);
     }
 
-    @Override
-    public void write(byte[] buffer, int pos, int len) throws IOException {
-        raf.write(buffer, pos, len);
-    }
+    //@Override
+    //public void write(byte[] buffer, int pos, int len) throws IOException {
+    //    raf.write(buffer, pos, len);
+    //}
 
     @Override
     public int read(byte[] buffer, int pos, int len) throws IOException {

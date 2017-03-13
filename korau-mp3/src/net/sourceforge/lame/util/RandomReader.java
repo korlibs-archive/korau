@@ -4,13 +4,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 
-abstract public class RandomReader implements DataOutput, DataInput, Closeable {
+abstract public class RandomReader implements DataInput, Closeable {
     abstract public long length() throws IOException;
 
     abstract public long getFilePointer() throws IOException;
 
     abstract public void seek(long position) throws IOException;
 
+    /*
     @Override
     public void write(int b) throws IOException {
         byte[] bytes = {(byte) b};
@@ -106,6 +107,7 @@ abstract public class RandomReader implements DataOutput, DataInput, Closeable {
         //DataOutputStream.writeUTF(s, this);
         write(s.getBytes("UTF-8"));
     }
+    */
 
     abstract public int read(byte[] buffer, int pos, int len) throws IOException;
 

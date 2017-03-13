@@ -29,9 +29,9 @@ fun AsyncStreamToRandomReader(s: AsyncStream): RandomReader {
             s.setPosition(position)
         }
 
-        override fun write(buffer: ByteArray, pos: Int, len: Int) = syncTest {
-            s.write(buffer, pos, len)
-        }
+        //override fun write(buffer: ByteArray, pos: Int, len: Int) = syncTest {
+        //    s.write(buffer, pos, len)
+        //}
 
         override fun read(buffer: ByteArray, pos: Int, len: Int): Int {
             var out = 0

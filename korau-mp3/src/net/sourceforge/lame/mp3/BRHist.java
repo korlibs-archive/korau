@@ -27,16 +27,16 @@ package net.sourceforge.lame.mp3;
 // Console features like cursor-up etc. are missing!
 public class BRHist {
 
-  int brhist_init(final LameGlobalFlags gf, final int bitrate_kbps_min,
-                  final int bitrate_kbps_max) {
-    return 0;
-  }
+    int brhist_init(final LameGlobalFlags gf, final int bitrate_kbps_min,
+                    final int bitrate_kbps_max) {
+        return 0;
+    }
 
-  public void brhist_jump_back() {
+    public void brhist_jump_back() {
 
-  }
+    }
 
-  public void brhist_disp(LameGlobalFlags gf) {
-  }
+    public void brhist_disp(LameGlobalFlags gf) {
+    }
 
 }

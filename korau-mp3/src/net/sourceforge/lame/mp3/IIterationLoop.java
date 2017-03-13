@@ -6,6 +6,6 @@ package net.sourceforge.lame.mp3;
  * @author Ken
  */
 public interface IIterationLoop {
-  void iteration_loop(final LameGlobalFlags gfp, float pe[][],
-                      float ms_ratio[], III_psy_ratio ratio[][]);
+    void iteration_loop(final LameGlobalFlags gfp, float pe[][],
+                        float ms_ratio[], III_psy_ratio ratio[][]);
 }

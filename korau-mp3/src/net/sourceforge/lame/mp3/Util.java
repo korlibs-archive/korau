@@ -26,14 +26,14 @@ package net.sourceforge.lame.mp3;
 
 public class Util {
 
-  public static final float SQRT2 = 1.41421356237309504880f;
+    public static final float SQRT2 = 1.41421356237309504880f;
 
-  public static float FAST_LOG10(float x) {
-    return (float) Math.log10(x);
-  }
+    public static float FAST_LOG10(float x) {
+        return (float) Math.log10(x);
+    }
 
-  public static float FAST_LOG10_X(float x, float y) {
-    return (float) Math.log10(x) * y;
-  }
+    public static float FAST_LOG10_X(float x, float y) {
+        return (float) Math.log10(x) * y;
+    }
 
 }
