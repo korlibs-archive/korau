@@ -73,29 +73,29 @@ public class MPGLib {
             IDecoder decodeMP3_ptr
     ) {
 
-        mp3data.header_parsed = false;
+        mp3data.setHeader_parsed(false);
 
         ProcessedBytes pb = new ProcessedBytes();
         int ret = decodeMP3_ptr.decode(pmp, buffer, bufferPos, len, p, psize, pb);
         int processed_samples = pb.pb;
         if (pmp.header_parsed || pmp.fsizeold > 0 || pmp.framesize > 0) {
-            mp3data.header_parsed = true;
-            mp3data.stereo = pmp.fr.stereo;
-            mp3data.samplerate = Common.freqs[pmp.fr.sampling_frequency];
-            mp3data.mode = pmp.fr.mode;
-            mp3data.mode_ext = pmp.fr.mode_ext;
+            mp3data.setHeader_parsed(true);
+            mp3data.setStereo(pmp.fr.stereo);
+            mp3data.setSamplerate(Common.freqs[pmp.fr.sampling_frequency]);
+            mp3data.setMode(pmp.fr.mode);
+            mp3data.setMode_ext(pmp.fr.mode_ext);
             mp3data.setFrameSize(smpls[pmp.fr.lsf][pmp.fr.lay]);
 
             /* free format, we need the entire frame before we can determine
              * the bitrate.  If we haven't gotten the entire frame, bitrate=0 */
             if (pmp.fsizeold > 0) /* works for free format and fixed, no overrun, temporal results are < 400.e6 */
-                mp3data.bitrate = (int) (8 * (4 + pmp.fsizeold) * mp3data.samplerate /
-                        (1.e3 * mp3data.getFrameSize()) + 0.5);
+                mp3data.setBitrate((int) (8 * (4 + pmp.fsizeold) * mp3data.getSamplerate() /
+                        (1.e3 * mp3data.getFrameSize()) + 0.5));
             else if (pmp.framesize > 0)
-                mp3data.bitrate = (int) (8 * (4 + pmp.framesize) * mp3data.samplerate /
-                        (1.e3 * mp3data.getFrameSize()) + 0.5);
+                mp3data.setBitrate((int) (8 * (4 + pmp.framesize) * mp3data.getSamplerate() /
+                        (1.e3 * mp3data.getFrameSize()) + 0.5));
             else
-                mp3data.bitrate = Common.tabsel_123[pmp.fr.lsf][pmp.fr.lay - 1][pmp.fr.bitrate_index];
+                mp3data.setBitrate(Common.tabsel_123[pmp.fr.lsf][pmp.fr.lay - 1][pmp.fr.bitrate_index]);
 
 
             if (pmp.num_frames > 0) {

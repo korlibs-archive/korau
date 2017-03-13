@@ -33,8 +33,7 @@ public class Decode {
     private TabInit tab = new TabInit();
     private DCT64 dct64 = new DCT64();
 
-    private int writeSampleClipped(final float sum, int clip,
-                                   final float[] out, final int outPos) {
+    private int writeSampleClipped(final float sum, int clip, final float[] out, final int outPos) {
         if (sum > 32767.0) {
             out[outPos] = 32767;
             clip++;

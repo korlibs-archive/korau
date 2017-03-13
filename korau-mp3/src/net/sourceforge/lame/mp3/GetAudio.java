@@ -68,9 +68,9 @@ public class GetAudio {
     /* open the input file */
         count_samples_carefully = false;
         num_samples_read = 0;
-        pcmbitwidth = parse.in_bitwidth;
+        pcmbitwidth = parse.getIn_bitwidth();
         pcmswapbytes = false;
-        pcm_is_unsigned_8bit = !parse.in_signed;
+        pcm_is_unsigned_8bit = !parse.getIn_signed();
         try {
             musicin = OpenSndFile(gfp, inPath, enc);
         } catch (IOException e) {
@@ -197,11 +197,11 @@ public class GetAudio {
             return 0;
         }
 
-        if (gfp.getInNumChannels() != parse.getMp3InputData().stereo) {
+        if (gfp.getInNumChannels() != parse.getMp3InputData().getStereo()) {
             //System.err.printf("Error: number of channels has changed in %s - not supported\n", type_name);
             out = -1;
         }
-        if (gfp.getInSampleRate() != parse.getMp3InputData().samplerate) {
+        if (gfp.getInSampleRate() != parse.getMp3InputData().getSamplerate()) {
             //System.err.printf("Error: sample frequency has changed in %s - not supported\n", type_name);
             out = -1;
         }
@@ -277,7 +277,7 @@ public class GetAudio {
                 case 32:
                 case 24:
                 case 16: {
-                    if (!parse.in_signed) throw new RuntimeException("Unsigned input only supported with bitwidth 8");
+                    if (!parse.getIn_signed()) throw new RuntimeException("Unsigned input only supported with bitwidth 8");
                     swap_byte_order = pcmswapbytes;
                     samples_read = unpack_read_samples(samples_to_read, pcmbitwidth / 8, swap_byte_order, sample_buffer, musicin);
                 }
@@ -591,7 +591,7 @@ public class GetAudio {
 
         int type = Read32BitsHighLow(sf);
         count_samples_carefully = false;
-        pcm_is_unsigned_8bit = !parse.in_signed;
+        pcm_is_unsigned_8bit = !parse.getIn_signed();
         /*
          * input_format = sf_raw; commented out, because it is better to fail
 		 * here as to encode some hundreds of input files not supported by LAME
@@ -638,8 +638,8 @@ public class GetAudio {
             if (-1 == lame_decode_initfile(musicin, parse.getMp3InputData(), enc)) {
                 throw new RuntimeException(String.format("Error reading headers in mp3 input file %s.", musicin2));
             }
-            gfp.setInNumChannels(parse.getMp3InputData().stereo);
-            gfp.setInSampleRate(parse.getMp3InputData().samplerate);
+            gfp.setInNumChannels(parse.getMp3InputData().getStereo());
+            gfp.setInSampleRate(parse.getMp3InputData().getSamplerate());
             gfp.setNum_samples(parse.getMp3InputData().getNumSamples());
         } else if (parse.getInputFormat() == SoundFileFormat.sf_ogg) {
             throw new RuntimeException("sorry, vorbis support in LAME is deprecated.");
@@ -662,8 +662,8 @@ public class GetAudio {
             if (flen >= 0) {
 				/* try file size, assume 2 bytes per sample */
                 if (is_mpeg_file_format(parse.getInputFormat())) {
-                    if (parse.getMp3InputData().bitrate > 0) {
-                        double totalseconds = (flen * 8.0 / (1000.0 * parse.getMp3InputData().bitrate));
+                    if (parse.getMp3InputData().getBitrate() > 0) {
+                        double totalseconds = (flen * 8.0 / (1000.0 * parse.getMp3InputData().getBitrate()));
                         int tmp_num_samples = (int) (totalseconds * gfp.getInSampleRate());
 
                         gfp.setNum_samples(tmp_num_samples);
@@ -833,7 +833,7 @@ public class GetAudio {
             return -1;
 
 		/* repeat until we decode a valid mp3 header. */
-        while (!mp3data.header_parsed) {
+        while (!mp3data.getHeader_parsed()) {
             try {
                 fd.readFully(buf);
             } catch (IOException e) {
@@ -846,7 +846,7 @@ public class GetAudio {
                 return -1;
         }
 
-        if (mp3data.bitrate == 0 && !freeformat) {
+        if (mp3data.getBitrate() == 0 && !freeformat) {
             //System.err.println("fail to sync...");
             return lame_decode_initfile(fd, mp3data, enc);
         }

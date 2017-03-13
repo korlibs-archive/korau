@@ -198,13 +198,13 @@ public class Interface {
         VBRTagData pTagData = vbr.getVbrTag(xing);
         mp.vbr_header = pTagData != null;
         if (mp.vbr_header) {
-            mp.num_frames = pTagData.frames;
-            mp.enc_delay = pTagData.encDelay;
-            mp.enc_padding = pTagData.encPadding;
+            mp.num_frames = pTagData.getFrames();
+            mp.enc_delay = pTagData.getEncDelay();
+            mp.enc_padding = pTagData.getEncPadding();
 
-            if (pTagData.headersize < 1)
+            if (pTagData.getHeadersize() < 1)
                 return 1;
-            return pTagData.headersize;
+            return pTagData.getHeadersize();
         }
         return 0;
     }

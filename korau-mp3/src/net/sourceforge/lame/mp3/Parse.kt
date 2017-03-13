@@ -21,24 +21,12 @@
 
 /* $Id: Parse.java,v 1.33 2012/03/23 10:02:29 kenchis Exp $ */
 
-package net.sourceforge.lame.mp3;
+package net.sourceforge.lame.mp3
 
-public class Parse {
+class Parse {
     //public int silent;
-    public boolean in_signed = true;
-    public int in_bitwidth = 16;
-    private GetAudio.SoundFileFormat inputFormat = GetAudio.SoundFileFormat.sf_unknown;
-    private MP3Data mp3InputData = new MP3Data();
-
-    public GetAudio.SoundFileFormat getInputFormat() {
-        return inputFormat;
-    }
-
-    public void setInputFormat(GetAudio.SoundFileFormat inputFormat) {
-        this.inputFormat = inputFormat;
-    }
-
-    public MP3Data getMp3InputData() {
-        return mp3InputData;
-    }
+    var in_signed = true
+    var in_bitwidth = 16
+    var inputFormat = GetAudio.SoundFileFormat.sf_unknown
+    val mp3InputData = MP3Data()
 }
