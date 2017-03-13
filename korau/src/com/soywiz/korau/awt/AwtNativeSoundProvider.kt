@@ -3,14 +3,12 @@ package com.soywiz.korau.awt
 import com.soywiz.korau.format.AudioStream
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
-import com.soywiz.korio.async.executeInWorker
-import com.soywiz.korio.async.sleep
+import com.soywiz.korio.async.executeInNewThread
 import com.soywiz.korio.async.spawn
 import com.soywiz.korio.async.suspendCancellableCoroutine
 import com.soywiz.korio.coroutine.korioSuspendCoroutine
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.*
-
 
 class AwtNativeSoundProvider : NativeSoundProvider() {
     override val priority: Int = 1000
@@ -19,10 +17,9 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
         return AwtNativeSound(data)
     }
 
-    // @TODO: Execute in thread
     suspend override fun play(stream: AudioStream): Unit = suspendCancellableCoroutine { c ->
         spawn {
-            executeInWorker {
+            executeInNewThread {
                 val af = AudioFormat(stream.rate.toFloat(), 16, stream.channels, true, false)
                 val info = DataLine.Info(SourceDataLine::class.java, af)
                 val line = AudioSystem.getLine(info) as SourceDataLine
@@ -35,7 +32,7 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
                 //var writtenLength = 0L
 
                 while (!c.cancelled) {
-                //while (true) {
+                    //while (true) {
                     //println(c.cancelled)
                     //println(line.microsecondPosition)
                     //println("" + line.longFramePosition + "/" + writtenLength + "/" + cancelled)

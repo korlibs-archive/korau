@@ -10,7 +10,7 @@ class MP3DecoderTest {
     @Test
     fun testDecodeWav() = syncTest {
         //LocalVfs("c:/temp/test.mp3").readAudioStream()!!.play()
-        LocalVfs("c:/temp/test2.mp3").readAudioStream()!!.play()
+        //LocalVfs("c:/temp/test2.mp3").readAudioStream()!!.play()
         //LocalVfs("c:/temp/test3.mp3").readAudioStream()!!.play()
 
         val output = ResourcesVfs["mp31.mp3"].readAudioData()

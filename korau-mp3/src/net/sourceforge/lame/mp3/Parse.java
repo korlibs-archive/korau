@@ -31,7 +31,7 @@ public class Parse {
     public boolean in_signed = true;
     public ByteOrder in_endian = ByteOrder.LITTLE_ENDIAN;
     public int in_bitwidth = 16;
-    private GetAudio.SoundFileFormat inputFormat;
+    private GetAudio.SoundFileFormat inputFormat = GetAudio.SoundFileFormat.sf_unknown;
     private MP3Data mp3InputData = new MP3Data();
 
     public GetAudio.SoundFileFormat getInputFormat() {

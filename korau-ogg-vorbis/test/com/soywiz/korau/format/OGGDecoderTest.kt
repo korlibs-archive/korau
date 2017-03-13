@@ -10,6 +10,8 @@ import org.junit.Test
 class OGGDecoderTest {
     @Test
     fun testDecodeWav() = syncTest {
+        //ResourcesVfs["ogg1.ogg"].readAudioData().play()
+        //ResourcesVfs["ogg1.ogg"].readAudioStream()!!.play()
         val expected = ResourcesVfs["ogg1.ogg.wav"].readAudioData()
         val output = ResourcesVfs["ogg1.ogg"].readAudioData()
 
