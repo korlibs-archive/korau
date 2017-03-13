@@ -35,7 +35,6 @@ public class BitStream {
      */
     private static final int MAX_LENGTH = 32;
 
-    GainAnalysis ga;
     MPGLib mpg;
     VBRTag vbr;
     /**
@@ -57,32 +56,10 @@ public class BitStream {
                 : (Math.abs((a) - (b)) <= (Math.abs(b) * 1e-6f));
     }
 
-    public final void setModules(GainAnalysis ga, MPGLib mpg,
-                                 VBRTag vbr) {
-        this.ga = ga;
+    public final void setModules(MPGLib mpg, VBRTag vbr) {
         this.mpg = mpg;
         this.vbr = vbr;
     }
-
-    /**
-     * compute bitsperframe and mean_bits for a layer III frame
-     */
-    public final int getframebits(final LameGlobalFlags gfp) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        int bit_rate;
-
-		/* get bitrate in kbps [?] */
-        if (gfc.bitrate_index != 0)
-            bit_rate = Tables.bitrate_table[gfp.getMpegVersion()][gfc.bitrate_index];
-        else
-            bit_rate = gfp.getBitRate();
-        assert (8 <= bit_rate && bit_rate <= 640);
-
-		/* main encoding routine toggles padding on and off */
-    /* one Layer3 Slot consists of 8 bits */
-        return 8 * ((gfp.getMpegVersion() + 1) * 72000 * bit_rate / gfp.getOutSampleRate() + gfc.padding);
-    }
-
 
     /**
      * write j bits into the bit stream, ignoring frame headers
@@ -112,45 +89,13 @@ public class BitStream {
         }
     }
 
-
-    private int CRC_update(int value, int crc) {
-        value <<= 8;
-        for (int i = 0; i < 8; i++) {
-            value <<= 1;
-            crc <<= 1;
-
-            if ((((crc ^ value) & 0x10000) != 0))
-                crc ^= CRC16_POLYNOMIAL;
-        }
-        return crc;
-    }
-
-    public final void CRC_writeheader(final LameInternalFlags gfc,
-                                      final byte[] header) {
-        int crc = 0xffff;
-        /* (jo) init crc16 for error_protection */
-
-        crc = CRC_update(header[2] & 0xff, crc);
-        crc = CRC_update(header[3] & 0xff, crc);
-        for (int i = 6; i < gfc.sideinfo_len; i++) {
-            crc = CRC_update(header[i] & 0xff, crc);
-        }
-
-        header[4] = (byte) (crc >> 8);
-        header[5] = (byte) (crc & 255);
-    }
-
-
-    public final void add_dummy_byte(final LameGlobalFlags gfp, final int val,
-                                     int n) {
+    public final void add_dummy_byte(final LameGlobalFlags gfp, final int val, int n) {
         final LameInternalFlags gfc = gfp.internal_flags;
         int i;
 
         while (n-- > 0) {
             putbits_noheaders(gfc, val, 8);
-
-            for (i = 0; i < LameInternalFlags.MAX_HEADER_BUF; ++i)
-                gfc.header[i].write_timing += 8;
+            for (i = 0; i < LameInternalFlags.MAX_HEADER_BUF; ++i) gfc.header[i].write_timing += 8;
         }
     }
 

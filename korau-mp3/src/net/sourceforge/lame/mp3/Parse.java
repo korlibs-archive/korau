@@ -27,7 +27,7 @@ import java.nio.ByteOrder;
 
 public class Parse {
     public boolean swapbytes = false;
-    public int silent;
+    //public int silent;
     public boolean in_signed = true;
     public ByteOrder in_endian = ByteOrder.LITTLE_ENDIAN;
     public int in_bitwidth = 16;

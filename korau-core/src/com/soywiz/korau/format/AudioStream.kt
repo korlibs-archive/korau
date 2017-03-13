@@ -1,5 +1,6 @@
 package com.soywiz.korau.format
 
+import com.soywiz.korau.sound.nativeSoundProvider
 import com.soywiz.korio.vfs.VfsFile
 import java.util.*
 
@@ -46,6 +47,7 @@ open class AudioStream(
     }
 }
 
+suspend fun AudioStream.play() = nativeSoundProvider.play(this)
 
 suspend fun VfsFile.readAudioStream() = AudioFormats.decodeStream(this.open())
 

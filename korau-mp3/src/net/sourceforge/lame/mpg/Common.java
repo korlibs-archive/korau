@@ -43,19 +43,9 @@ public class Common {
 
     public static final int freqs[] = {44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000};
     private static final int MAX_INPUT_FRAMESIZE = 4096;
-    private static final String modes[] = {"Stereo", "Joint-Stereo", "Dual-Channel", "Single-Channel"};
-    private static final String layers[] = {"Unknown", "I", "II", "III"};
     public float muls[][] = new float[27][64];
 
     public final boolean head_check(final long head, final int check_layer) {
-        /**
-         * <PRE>
-         * look for a valid header.
-         * if check_layer > 0, then require that
-         * nLayer = check_layer.
-         * </PRE>
-         */
-
 		/* bits 13-14 = layer 3 */
         int nLayer = (int) (4 - ((head >> 17) & 3));
 

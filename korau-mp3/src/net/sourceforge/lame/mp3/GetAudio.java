@@ -69,23 +69,7 @@ public class GetAudio {
         mpg = mpg2;
     }
 
-    public final void initInFile(final LameGlobalFlags gfp,
-                                 final String inPath, final FrameSkip enc) {
-    /* open the input file */
-        count_samples_carefully = false;
-        num_samples_read = 0;
-        pcmbitwidth = parse.in_bitwidth;
-        pcmswapbytes = parse.swapbytes;
-        pcm_is_unsigned_8bit = !parse.in_signed;
-        try {
-            musicin = OpenSndFile(gfp, inPath, enc);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public final void initInFile(final LameGlobalFlags gfp,
-                                 final RandomReader inPath, final FrameSkip enc) {
+    public final void initInFile(final LameGlobalFlags gfp, final RandomReader inPath, final FrameSkip enc) {
     /* open the input file */
         count_samples_carefully = false;
         num_samples_read = 0;
@@ -268,19 +252,11 @@ public class GetAudio {
         }
 
         if (gfp.getInNumChannels() != parse.getMp3InputData().stereo) {
-            if (parse.silent < 10) {
-                System.err
-                        .printf("Error: number of channels has changed in %s - not supported\n",
-                                type_name);
-            }
+            //System.err.printf("Error: number of channels has changed in %s - not supported\n", type_name);
             out = -1;
         }
         if (gfp.getInSampleRate() != parse.getMp3InputData().samplerate) {
-            if (parse.silent < 10) {
-                System.err
-                        .printf("Error: sample frequency has changed in %s - not supported\n",
-                                type_name);
-            }
+            //System.err.printf("Error: sample frequency has changed in %s - not supported\n", type_name);
             out = -1;
         }
         return out;
@@ -422,7 +398,7 @@ public class GetAudio {
                 subSize -= 2;
                 samples_per_sec = Read32BitsLowHigh(sf);
                 subSize -= 4;
-				/* avg_bytes_per_sec = */
+                /* avg_bytes_per_sec = */
                 Read32BitsLowHigh(sf);
                 subSize -= 4;
 				/* block_align = */
@@ -468,10 +444,7 @@ public class GetAudio {
 
         if (is_wav) {
             if (format_tag != WAVE_FORMAT_PCM) {
-                if (parse.silent < 10) {
-                    System.err.printf("Unsupported data format: 0x%04X\n",
-                            format_tag);
-                }
+                //System.err.printf("Unsupported data format: 0x%04X\n", format_tag);
 				/* oh no! non-supported format */
                 return 0;
             }
@@ -479,10 +452,7 @@ public class GetAudio {
 			/* make sure the header is sane */
             gfp.setInNumChannels(channels);
             if (-1 == gfp.getInNumChannels()) {
-                if (parse.silent < 10) {
-                    System.err.printf("Unsupported number of channels: %d\n",
-                            channels);
-                }
+                //System.err.printf("Unsupported number of channels: %d\n", channels);
                 return 0;
             }
             gfp.setInSampleRate(samples_per_sec);
@@ -501,9 +471,7 @@ public class GetAudio {
      */
     private int aiff_check2(final IFF_AIFF pcm_aiff_data) {
         if (pcm_aiff_data.sampleType != IFF_ID_SSND) {
-            if (parse.silent < 10) {
-                System.err.printf("ERROR: input sound data is not PCM\n");
-            }
+            //System.err.printf("ERROR: input sound data is not PCM\n");
             return 1;
         }
         switch (pcm_aiff_data.sampleSize) {
@@ -513,24 +481,15 @@ public class GetAudio {
             case 8:
                 break;
             default:
-                if (parse.silent < 10) {
-                    System.err
-                            .printf("ERROR: input sound data is not 8, 16, 24 or 32 bits\n");
-                }
+                //System.err.printf("ERROR: input sound data is not 8, 16, 24 or 32 bits\n");
                 return 1;
         }
         if (pcm_aiff_data.numChannels != 1 && pcm_aiff_data.numChannels != 2) {
-            if (parse.silent < 10) {
-                System.err
-                        .printf("ERROR: input sound data is not mono or stereo\n");
-            }
+            //System.err.printf("ERROR: input sound data is not mono or stereo\n");
             return 1;
         }
         if (pcm_aiff_data.blkAlgn.blockSize != 0) {
-            if (parse.silent < 10) {
-                System.err
-                        .printf("ERROR: block size of input sound data is not 0 bytes\n");
-            }
+            //System.err.printf("ERROR: block size of input sound data is not 0 bytes\n");
             return 1;
         }
         return 0;
@@ -659,10 +618,7 @@ public class GetAudio {
                 return 0;
             gfp.setInNumChannels(aiff_info.numChannels);
             if (-1 == gfp.getInNumChannels()) {
-                if (parse.silent < 10) {
-                    System.err.printf("Unsupported number of channels: %u\n",
-                            aiff_info.numChannels);
-                }
+                //System.err.printf("Unsupported number of channels: %u\n", aiff_info.numChannels);
                 return 0;
             }
             gfp.setInSampleRate((int) aiff_info.sampleRate);
@@ -674,10 +630,7 @@ public class GetAudio {
                 try {
                     sf.seek(pcm_data_pos);
                 } catch (IOException e) {
-                    if (parse.silent < 10) {
-                        System.err
-                                .printf("Can't rewind stream to audio data position\n");
-                    }
+                    //System.err.printf("Can't rewind stream to audio data position\n");
                     return 0;
                 }
             }
@@ -716,10 +669,7 @@ public class GetAudio {
                 return SoundFileFormat.sf_wave;
             }
             if (ret < 0) {
-                if (parse.silent < 10) {
-                    System.err
-                            .println("Warning: corrupt or unsupported WAVE format");
-                }
+                //System.err.println("Warning: corrupt or unsupported WAVE format");
             }
         } else if (type == IFF_ID_FORM) {
 			/* It's probably an AIFF file */
@@ -729,15 +679,10 @@ public class GetAudio {
                 return SoundFileFormat.sf_aiff;
             }
             if (ret < 0) {
-                if (parse.silent < 10) {
-                    System.err
-                            .printf("Warning: corrupt or unsupported AIFF format\n");
-                }
+                //System.err.printf("Warning: corrupt or unsupported AIFF format\n");
             }
         } else {
-            if (parse.silent < 10) {
-                System.err.println("Warning: unsupported audio format\n");
-            }
+            //System.err.println("Warning: unsupported audio format\n");
         }
         return SoundFileFormat.sf_unknown;
     }
@@ -766,13 +711,8 @@ public class GetAudio {
             throw new RuntimeException("sorry, vorbis support in LAME is deprecated.");
         } else if (parse.getInputFormat() == SoundFileFormat.sf_raw) {
 			/* assume raw PCM */
-            if (parse.silent < 10) {
-                System.out.println("Assuming raw pcm input file");
-                if (parse.swapbytes)
-                    System.out.printf(" : Forcing byte-swapping\n");
-                else
-                    System.out.printf("\n");
-            }
+            //System.out.println("Assuming raw pcm input file");
+            //if (parse.swapbytes) System.out.printf(" : Forcing byte-swapping\n");else System.out.printf("\n");
             pcmswapbytes = parse.swapbytes;
         } else {
             parse.setInputFormat(parse_file_header(gfp, musicin));
@@ -902,11 +842,7 @@ public class GetAudio {
             return -1; /* failed */
         }
         if (buf[0] == 'I' && buf[1] == 'D' && buf[2] == '3') {
-            if (parse.silent < 10) {
-                System.out
-                        .println("ID3v2 found. "
-                                + "Be aware that the ID3 tag is currently lost when transcoding.");
-            }
+            //System.out.println("ID3v2 found. Be aware that the ID3 tag is currently lost when transcoding.");
             len = 6;
             try {
                 fd.readFully(buf, 0, len);
@@ -941,9 +877,7 @@ public class GetAudio {
                 return -1; /* failed */
             }
             int aid_header = (buf[0] & 0xff) + 256 * (buf[1] & 0xff);
-            if (parse.silent < 10) {
-                System.out.printf("Album ID found.  length=%d \n", aid_header);
-            }
+            //System.out.printf("Album ID found.  length=%d \n", aid_header);
 			/* skip rest of AID, except for 6 bytes we have already read */
             try {
                 fd.skipBytes(aid_header - 6);
@@ -974,9 +908,7 @@ public class GetAudio {
         }
 
         if ((buf[2] & 0xf0) == 0) {
-            if (parse.silent < 10) {
-                System.out.println("Input file is freeformat.");
-            }
+            //System.out.println("Input file is freeformat.");
             freeformat = true;
         }
 		/* now parse the current buffer looking for MP3 headers. */
@@ -1006,9 +938,7 @@ public class GetAudio {
         }
 
         if (mp3data.bitrate == 0 && !freeformat) {
-            if (parse.silent < 10) {
-                System.err.println("fail to sync...");
-            }
+            //System.err.println("fail to sync...");
             return lame_decode_initfile(fd, mp3data, enc);
         }
 

@@ -72,10 +72,8 @@ public class Lame {
     public static final int LAME_MAXMP3BUFFER = (16384 + LAME_MAXALBUMART);
     private static final int QUALITY_DEFAULT = 3;
     private LameGlobalFlags gfp;
-    private GainAnalysis ga;
     private BitStream bs;
     private Presets p;
-    private QuantizePVT qupvt;
 
     /* presets */
   /* values from 8 to 320 should be reserved for abr bitrates */
@@ -94,10 +92,8 @@ public class Lame {
     public Lame() {
         gfp = new LameGlobalFlags();
         gaud = new GetAudio();
-        ga = new GainAnalysis();
         bs = new BitStream();
         p = new Presets();
-        qupvt = new QuantizePVT();
         vbr = new VBRTag();
         id3 = new ID3Tag();
         parse = new Parse();
@@ -106,8 +102,8 @@ public class Lame {
         mpg = new MPGLib();
         intf = new Interface();
 
-        enc.setModules(bs, qupvt, vbr);
-        bs.setModules(ga, mpg, vbr);
+        enc.setModules(bs, vbr);
+        bs.setModules(mpg, vbr);
         id3.setModules(bs);
         p.setModules(this);
         vbr.setModules(this, bs);
@@ -209,7 +205,7 @@ public class Lame {
                     maxband = Math.max(maxband, band);
                 }
             }
-			/*
+            /*
 			 * compute the *actual* transition band implemented by the polyphase
 			 * filter
 			 */
@@ -251,7 +247,8 @@ public class Lame {
          *      upperlimit: best highpass frequency limit for input filter in Hz
          * </PRE>
          */
-        final BandPass freq_map[] = new BandPass[]{new BandPass(8, 2000),
+        final BandPass freq_map[] = new BandPass[]{
+                new BandPass(8, 2000),
                 new BandPass(16, 3700), new BandPass(24, 3900),
                 new BandPass(32, 5500), new BandPass(40, 7000),
                 new BandPass(48, 7500), new BandPass(56, 10000),
@@ -259,7 +256,8 @@ public class Lame {
                 new BandPass(96, 15100), new BandPass(112, 15600),
                 new BandPass(128, 17000), new BandPass(160, 17500),
                 new BandPass(192, 18600), new BandPass(224, 19400),
-                new BandPass(256, 19700), new BandPass(320, 20500)};
+                new BandPass(256, 19700), new BandPass(320, 20500)
+        };
 
         int table_index = nearestBitrateFullIndex(bitrate);
         lh.lowerlimit = freq_map[table_index].lowpass;
@@ -677,27 +675,22 @@ public class Lame {
         LameInternalFlags gfc = gfp.internal_flags;
 
         gfc.Class_ID = 0;
-        if (gfc.ATH == null)
-            gfc.ATH = new ATH();
-        if (gfc.PSY == null)
-            gfc.PSY = new PSY();
-        if (gfc.rgdata == null)
-            gfc.rgdata = new ReplayGain();
+        if (gfc.ATH == null) gfc.ATH = new ATH();
 
         gfc.channels_in = gfp.getInNumChannels();
-        if (gfc.channels_in == 1)
-            gfp.setMode(MPEGMode.MONO);
+        if (gfc.channels_in == 1) gfp.setMode(MPEGMode.MONO);
         gfc.channels_out = (gfp.getMode() == MPEGMode.MONO) ? 1 : 2;
         gfc.mode_ext = Encoder.MPG_MD_MS_LR;
-        if (gfp.getMode() == MPEGMode.MONO)
+        if (gfp.getMode() == MPEGMode.MONO) {
             gfp.force_ms = false;
+        }
 		/*
 		 * don't allow forced mid/side stereo for mono output
 		 */
 
-        if (gfp.getVBR() == VbrMode.vbr_off && gfp.VBR_mean_bitrate_kbps != 128
-                && gfp.getBitRate() == 0)
+        if (gfp.getVBR() == VbrMode.vbr_off && gfp.VBR_mean_bitrate_kbps != 128 && gfp.getBitRate() == 0) {
             gfp.setBitRate(gfp.VBR_mean_bitrate_kbps);
+        }
 
         if (gfp.getVBR() == VbrMode.vbr_off || gfp.getVBR() == VbrMode.vbr_mtrh
                 || gfp.getVBR() == VbrMode.vbr_mt) {
@@ -720,43 +713,24 @@ public class Lame {
 
             if (gfp.getOutSampleRate() == 0)
                 gfp.setOutSampleRate(map2MP3Frequency((int) (0.97 * gfp.getInSampleRate())));
-			/*
-			 * round up with a margin of 3 %
-			 */
-
-			/*
-			 * choose a bitrate for the output samplerate which achieves
-			 * specified compression ratio
-			 */
             gfp.setBitRate((int) (gfp.getOutSampleRate() * 16 * gfc.channels_out / (1.e3f * gfp.compression_ratio)));
 
-			/* we need the version for the bitrate table look up */
             gfc.samplerate_index = SmpFrqIndex(gfp.getOutSampleRate());
 
-            if (!gfp.free_format) /*
-								 * for non Free Format find the nearest allowed
-								 * bitrate
-								 */
-                gfp.setBitRate(FindNearestBitrate(gfp.getBitRate(), gfp.getMpegVersion(),
-                        gfp.getOutSampleRate()));
+            if (!gfp.free_format)
+                gfp.setBitRate(FindNearestBitrate(gfp.getBitRate(), gfp.getMpegVersion(), gfp.getOutSampleRate()));
         }
 
         if (gfp.getOutSampleRate() != 0) {
             if (gfp.getOutSampleRate() < 16000) {
-                gfp.VBR_mean_bitrate_kbps = Math.max(gfp.VBR_mean_bitrate_kbps,
-                        8);
-                gfp.VBR_mean_bitrate_kbps = Math.min(gfp.VBR_mean_bitrate_kbps,
-                        64);
+                gfp.VBR_mean_bitrate_kbps = Math.max(gfp.VBR_mean_bitrate_kbps, 8);
+                gfp.VBR_mean_bitrate_kbps = Math.min(gfp.VBR_mean_bitrate_kbps, 64);
             } else if (gfp.getOutSampleRate() < 32000) {
-                gfp.VBR_mean_bitrate_kbps = Math.max(gfp.VBR_mean_bitrate_kbps,
-                        8);
-                gfp.VBR_mean_bitrate_kbps = Math.min(gfp.VBR_mean_bitrate_kbps,
-                        160);
+                gfp.VBR_mean_bitrate_kbps = Math.max(gfp.VBR_mean_bitrate_kbps, 8);
+                gfp.VBR_mean_bitrate_kbps = Math.min(gfp.VBR_mean_bitrate_kbps, 160);
             } else {
-                gfp.VBR_mean_bitrate_kbps = Math.max(gfp.VBR_mean_bitrate_kbps,
-                        32);
-                gfp.VBR_mean_bitrate_kbps = Math.min(gfp.VBR_mean_bitrate_kbps,
-                        320);
+                gfp.VBR_mean_bitrate_kbps = Math.max(gfp.VBR_mean_bitrate_kbps, 32);
+                gfp.VBR_mean_bitrate_kbps = Math.min(gfp.VBR_mean_bitrate_kbps, 320);
             }
         }
 
@@ -780,8 +754,7 @@ public class Lame {
                     break;
                 }
                 case vbr_rh: {
-                    final int x[] = {19500, 19000, 18600, 18000, 17500, 16000,
-                            15600, 14900, 12500, 10000, 3950};
+                    final int x[] = {19500, 19000, 18600, 18000, 17500, 16000, 15600, 14900, 12500, 10000, 3950};
                     if (0 <= gfp.getVBRQuality() && gfp.getVBRQuality() <= 9) {
                         double a = x[gfp.getVBRQuality()], b = x[gfp.getVBRQuality() + 1], m = gfp.VBR_q_frac;
                         lowpass = linear_int(a, b, m);
@@ -812,20 +785,17 @@ public class Lame {
             if (2 * gfp.lowpassfreq > gfp.getInSampleRate()) {
                 gfp.lowpassfreq = gfp.getInSampleRate() / 2;
             }
-            gfp.setOutSampleRate(optimum_samplefreq((int) gfp.lowpassfreq,
-                    gfp.getInSampleRate()));
+            gfp.setOutSampleRate(optimum_samplefreq((int) gfp.lowpassfreq, gfp.getInSampleRate()));
         }
 
         gfp.lowpassfreq = Math.min(20500, gfp.lowpassfreq);
         gfp.lowpassfreq = Math.min(gfp.getOutSampleRate() / 2, gfp.lowpassfreq);
 
         if (gfp.getVBR() == VbrMode.vbr_off) {
-            gfp.compression_ratio = gfp.getOutSampleRate() * 16 * gfc.channels_out
-                    / (1.e3f * gfp.getBitRate());
+            gfp.compression_ratio = gfp.getOutSampleRate() * 16 * gfc.channels_out / (1.e3f * gfp.getBitRate());
         }
         if (gfp.getVBR() == VbrMode.vbr_abr) {
-            gfp.compression_ratio = gfp.getOutSampleRate() * 16 * gfc.channels_out
-                    / (1.e3f * gfp.VBR_mean_bitrate_kbps);
+            gfp.compression_ratio = gfp.getOutSampleRate() * 16 * gfc.channels_out / (1.e3f * gfp.VBR_mean_bitrate_kbps);
         }
 
 		/*
@@ -843,12 +813,12 @@ public class Lame {
         if (gfc.decode_on_the_fly)
             gfc.findPeakSample = true;
 
-        if (gfc.findReplayGain) {
-            if (ga.InitGainAnalysis(gfc.rgdata, gfp.getOutSampleRate()) == GainAnalysis.INIT_GAIN_ANALYSIS_ERROR) {
-                gfp.internal_flags = null;
-                return -6;
-            }
-        }
+        //if (gfc.findReplayGain) {
+        //    if (ga.InitGainAnalysis(gfc.rgdata, gfp.getOutSampleRate()) == GainAnalysis.INIT_GAIN_ANALYSIS_ERROR) {
+        //        gfp.internal_flags = null;
+        //        return -6;
+        //    }
+        //}
 
         if (gfc.decode_on_the_fly && !gfp.decode_only) {
             if (gfc.hip != null) {
@@ -858,44 +828,11 @@ public class Lame {
         }
 
         gfc.mode_gr = gfp.getOutSampleRate() <= 24000 ? 1 : 2;
-		/*
-		 * Number of granules per frame
-		 */
+
         gfp.setFrameSize(576 * gfc.mode_gr);
-        gfp.setEncoderDelay(Encoder.ENCDELAY);
 
         gfc.resample_ratio = (double) gfp.getInSampleRate() / gfp.getOutSampleRate();
 
-        /**
-         * <PRE>
-         *  sample freq       bitrate     compression ratio
-         *     [kHz]      [kbps/channel]   for 16 bit input
-         *     44.1            56               12.6
-         *     44.1            64               11.025
-         *     44.1            80                8.82
-         *     22.05           24               14.7
-         *     22.05           32               11.025
-         *     22.05           40                8.82
-         *     16              16               16.0
-         *     16              24               10.667
-         * </PRE>
-         */
-        /**
-         * <PRE>
-         *  For VBR, take a guess at the compression_ratio.
-         *  For example:
-         *
-         *    VBR_q    compression     like
-         *     -        4.4         320 kbps/44 kHz
-         *   0...1      5.5         256 kbps/44 kHz
-         *     2        7.3         192 kbps/44 kHz
-         *     4        8.8         160 kbps/44 kHz
-         *     6       11           128 kbps/44 kHz
-         *     9       14.7          96 kbps
-         *
-         *  for lower bitrates, downsample with --resample
-         * </PRE>
-         */
         switch (gfp.getVBR()) {
             case vbr_mt:
             case vbr_rh:
@@ -999,25 +936,22 @@ public class Lame {
 
         bs.init_bit_stream_w(gfc);
 
-        int j = gfc.samplerate_index + (3 * gfp.getMpegVersion()) + 6
-                * (gfp.getOutSampleRate() < 16000 ? 1 : 0);
-        for (int i = 0; i < Encoder.SBMAX_l + 1; i++)
-            gfc.scalefac_band.l[i] = qupvt.sfBandIndex[j].l[i];
+        int j = gfc.samplerate_index + (3 * gfp.getMpegVersion()) + 6 * (gfp.getOutSampleRate() < 16000 ? 1 : 0);
+        for (int i = 0; i < Encoder.SBMAX_l + 1; i++) {
+            //gfc.scalefac_band.l[i] = qupvt.sfBandIndex[j].l[i];
+        }
 
         for (int i = 0; i < Encoder.PSFB21 + 1; i++) {
-            final int size = (gfc.scalefac_band.l[22] - gfc.scalefac_band.l[21])
-                    / Encoder.PSFB21;
+            final int size = (gfc.scalefac_band.l[22] - gfc.scalefac_band.l[21]) / Encoder.PSFB21;
             final int start = gfc.scalefac_band.l[21] + i * size;
             gfc.scalefac_band.psfb21[i] = start;
         }
         gfc.scalefac_band.psfb21[Encoder.PSFB21] = 576;
 
-        for (int i = 0; i < Encoder.SBMAX_s + 1; i++)
-            gfc.scalefac_band.s[i] = qupvt.sfBandIndex[j].s[i];
+        //for (int i = 0; i < Encoder.SBMAX_s + 1; i++) gfc.scalefac_band.s[i] = qupvt.sfBandIndex[j].s[i];
 
         for (int i = 0; i < Encoder.PSFB12 + 1; i++) {
-            final int size = (gfc.scalefac_band.s[13] - gfc.scalefac_band.s[12])
-                    / Encoder.PSFB12;
+            final int size = (gfc.scalefac_band.s[13] - gfc.scalefac_band.s[12]) / Encoder.PSFB12;
             final int start = gfc.scalefac_band.s[12] + i * size;
             gfc.scalefac_band.psfb12[i] = start;
         }
@@ -1076,8 +1010,8 @@ public class Lame {
                 if (gfp.getQuality() > QUALITY_MIDDLE)
                     gfp.setQuality(QUALITY_MIDDLE);
 
-                gfc.PSY.mask_adjust = gfp.maskingadjust;
-                gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
+                //gfc.PSY.mask_adjust = gfp.maskingadjust;
+                //gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
 
 			/*
 			 * sfb21 extra only with MPEG-1 at higher sampling rates
@@ -1094,8 +1028,8 @@ public class Lame {
 
                 p.apply_preset(gfp, 500 - (gfp.getVBRQuality() * 10), 0);
 
-                gfc.PSY.mask_adjust = gfp.maskingadjust;
-                gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
+                //gfc.PSY.mask_adjust = gfp.maskingadjust;
+                //gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
 
 			/*
 			 * sfb21 extra only with MPEG-1 at higher sampling rates
@@ -1137,8 +1071,8 @@ public class Lame {
                 p.apply_preset(gfp, gfp.VBR_mean_bitrate_kbps, 0);
                 gfp.setVBR(vbrmode);
 
-                gfc.PSY.mask_adjust = gfp.maskingadjust;
-                gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
+                //gfc.PSY.mask_adjust = gfp.maskingadjust;
+                //gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
 
                 if (vbrmode == VbrMode.vbr_off) {
                 } else {
@@ -1191,8 +1125,8 @@ public class Lame {
 
 		/* just another daily changing developer switch */
         if (gfp.tune) {
-            gfc.PSY.mask_adjust += gfp.tune_value_a;
-            gfc.PSY.mask_adjust_short += gfp.tune_value_a;
+            //gfc.PSY.mask_adjust += gfp.tune_value_a;
+            //gfc.PSY.mask_adjust_short += gfp.tune_value_a;
         }
 
 		/* initialize internal qval settings */
@@ -1207,8 +1141,7 @@ public class Lame {
             gfp.short_blocks = ShortBlock.short_block_allowed;
         }
 
-        if (gfp.short_blocks == ShortBlock.short_block_allowed
-                && (gfp.getMode() == MPEGMode.JOINT_STEREO || gfp.getMode() == MPEGMode.STEREO)) {
+        if (gfp.short_blocks == ShortBlock.short_block_allowed && (gfp.getMode() == MPEGMode.JOINT_STEREO || gfp.getMode() == MPEGMode.STEREO)) {
             gfp.short_blocks = ShortBlock.short_block_coupled;
         }
 
@@ -1313,14 +1246,6 @@ public class Lame {
 
         gfc = gfp.internal_flags = new LameInternalFlags();
 
-		/* Global flags. set defaults here for non-zero values */
-		/* see lame.h for description */
-		/*
-		 * set integer values to -1 to mean that LAME will compute the best
-		 * value, UNLESS the calling program as set it (and the value is no
-		 * longer -1)
-		 */
-
         gfp.setMode(MPEGMode.NOT_SET);
         gfp.original = 1;
         gfp.setInSampleRate(44100);
@@ -1367,27 +1292,13 @@ public class Lame {
         gfp.athaa_type = -1;
         gfp.ATHtype = -1; /* default = -1 = set in Lame.initParams */
         gfp.athaa_loudapprox = -1; /* 1 = flat loudness approx. (total energy) */
-		/* 2 = equal loudness curve */
         gfp.athaa_sensitivity = 0.0f; /* no offset */
         gfp.useTemporal = null;
         gfp.interChRatio = -1;
 
-		/*
-		 * The reason for int mf_samples_to_encode = ENCDELAY + POSTDELAY;
-		 * ENCDELAY = internal encoder delay. And then we have to add
-		 * POSTDELAY=288 because of the 50% MDCT overlap. A 576 MDCT granule
-		 * decodes to 1152 samples. To synthesize the 576 samples centered under
-		 * this granule we need the previous granule for the first 288 samples
-		 * (no problem), and the next granule for the next 288 samples (not
-		 * possible if this is last granule). So we need to pad with 288 samples
-		 * to make sure we can encode the 576 samples we are interested in.
-		 */
         gfc.mf_samples_to_encode = Encoder.ENCDELAY + Encoder.POSTDELAY;
         gfp.encoder_padding = 0;
         gfc.mf_size = Encoder.ENCDELAY - Encoder.MDCTDELAY;
-		/*
-		 * we pad input with this many 0's
-		 */
 
         gfp.setFindReplayGain(false);
         gfp.decode_on_the_fly = false;

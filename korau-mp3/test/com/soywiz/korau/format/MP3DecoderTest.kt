@@ -9,6 +9,8 @@ import org.junit.Test
 class MP3DecoderTest {
     @Test
     fun testDecodeWav() = syncTest {
+        //LocalVfs("c:/temp/test.mp3").readAudioStream()!!.play()
+
         val output = ResourcesVfs["mp31.mp3"].readAudioData()
         val outputBytes = AudioFormats.encodeToByteArray(output, "out.wav")
 
@@ -21,5 +23,6 @@ class MP3DecoderTest {
         val expectedBytes = AudioFormats.encodeToByteArray(expected, "out.wav")
 
         Assert.assertArrayEquals(expectedBytes, outputBytes)
+
     }
 }

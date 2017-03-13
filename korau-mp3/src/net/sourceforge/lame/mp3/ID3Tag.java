@@ -87,8 +87,6 @@ public class ID3Tag {
     };
     private static final int GENRE_INDEX_OTHER = 12;
     private static final int ID_TITLE = (FRAME_ID('T', 'I', 'T', '2'));
-
-    ;
     private static final int ID_ARTIST = (FRAME_ID('T', 'P', 'E', '1'));
     private static final int ID_ALBUM = (FRAME_ID('T', 'A', 'L', 'B'));
     private static final int ID_GENRE = (FRAME_ID('T', 'C', 'O', 'N'));
@@ -117,7 +115,6 @@ public class ID3Tag {
     private static final String mime_png = "image/png";
     private static final String mime_gif = "image/gif";
     BitStream bits;
-    private Version version = new Version();
 
     private static int FRAME_ID(char a, char b, char c, char d) {
         return ((a & 0xff) << 24) | ((b & 0xff) << 16) | ((c & 0xff) << 8)
@@ -467,124 +464,6 @@ public class ID3Tag {
         }
     }
 
-    public final int id3tag_set_track(final LameGlobalFlags gfp,
-                                      final String track) {
-        LameInternalFlags gfc = gfp.internal_flags;
-        int ret = 0;
-
-        if (track != null && track.length() != 0) {
-            int trackcount = track.indexOf('/');
-            int num;
-            if (trackcount != -1) {
-                num = Integer.parseInt(track.substring(0, trackcount));
-            } else {
-                num = Integer.parseInt(track);
-            }
-            /* check for valid ID3v1 track number range */
-            if (num < 1 || num > 255) {
-                num = 0;
-                ret = -1;
-				/* track number out of ID3v1 range, ignored for ID3v1 */
-                gfc.tag_spec.flags |= (CHANGED_FLAG | ADD_V2_FLAG);
-            }
-            if (num != 0) {
-                gfc.tag_spec.track_id3v1 = num;
-                gfc.tag_spec.flags |= CHANGED_FLAG;
-            }
-			/* Look for the total track count after a "/", same restrictions */
-            if (trackcount != -1) {
-                gfc.tag_spec.flags |= (CHANGED_FLAG | ADD_V2_FLAG);
-            }
-            copyV1ToV2(gfp, ID_TRACK, track);
-        }
-        return ret;
-    }
-
-    private int nextUpperAlpha(final String p, int pPos, final char x) {
-        for (char c = Character.toUpperCase(p.charAt(pPos)); pPos < p.length(); c = Character
-                .toUpperCase(p.charAt(pPos++))) {
-            if ('A' <= c && c <= 'Z') {
-                if (c != x) {
-                    return pPos;
-                }
-            }
-        }
-        return pPos;
-    }
-
-    private boolean sloppyCompared(final String p, final String q) {
-        int pPos = nextUpperAlpha(p, 0, (char) 0);
-        int qPos = nextUpperAlpha(q, 0, (char) 0);
-        char cp = pPos < p.length() ? Character.toUpperCase(p.charAt(pPos)) : 0;
-        char cq = Character.toUpperCase(q.charAt(qPos));
-        while (cp == cq) {
-            if (cp == 0) {
-                return true;
-            }
-            if (p.charAt(1) == '.') { /* some abbrevation */
-                while (qPos < q.length() && q.charAt(qPos++) != ' ') {
-                }
-            }
-            pPos = nextUpperAlpha(p, pPos, cp);
-            qPos = nextUpperAlpha(q, qPos, cq);
-            cp = pPos < p.length() ? Character.toUpperCase(p.charAt(pPos)) : 0;
-            cq = Character.toUpperCase(q.charAt(qPos));
-        }
-        return false;
-    }
-
-    private int sloppySearchGenre(final String genre) {
-        for (int i = 0; i < genre_names.length; ++i) {
-            if (sloppyCompared(genre, genre_names[i])) {
-                return i;
-            }
-        }
-        return genre_names.length;
-    }
-
-    private int searchGenre(final String genre) {
-        for (int i = 0; i < genre_names.length; ++i) {
-            if (genre_names[i].equals(genre)) {
-                return i;
-            }
-        }
-        return genre_names.length;
-    }
-
-    public final int id3tag_set_genre(final LameGlobalFlags gfp, String genre) {
-        LameInternalFlags gfc = gfp.internal_flags;
-        int ret = 0;
-        if (genre != null && genre.length() != 0) {
-            int num;
-            try {
-                num = Integer.parseInt(genre);
-                if ((num < 0) || (num >= genre_names.length)) {
-                    return -1;
-                }
-                genre = genre_names[num];
-            } catch (NumberFormatException e) {
-				/* is the input a string or a valid number? */
-                num = searchGenre(genre);
-                if (num == genre_names.length) {
-                    num = sloppySearchGenre(genre);
-                }
-                if (num == genre_names.length) {
-                    num = GENRE_INDEX_OTHER;
-                    ret = -2;
-                } else {
-                    genre = genre_names[num];
-                }
-            }
-            gfc.tag_spec.genre_id3v1 = num;
-            gfc.tag_spec.flags |= CHANGED_FLAG;
-            if (ret != 0) {
-                gfc.tag_spec.flags |= ADD_V2_FLAG;
-            }
-            copyV1ToV2(gfp, ID_GENRE, genre);
-        }
-        return ret;
-    }
-
     private int set_frame_custom(final byte[] frame, int framePos,
                                  final char[] fieldvalue) {
         if (fieldvalue != null && fieldvalue[0] != 0) {
@@ -779,29 +658,7 @@ public class ID3Tag {
         return framePos;
     }
 
-    public final int id3tag_set_fieldvalue(final LameGlobalFlags gfp,
-                                           final String fieldvalue) {
-        LameInternalFlags gfc = gfp.internal_flags;
-        if (fieldvalue != null && fieldvalue.length() != 0) {
-            int frame_id = toID3v2TagId(fieldvalue);
-            if (fieldvalue.length() < 5 || fieldvalue.charAt(4) != '=') {
-                return -1;
-            }
-            if (frame_id != 0) {
-                if (id3tag_set_textinfo_latin1(gfp, fieldvalue,
-                        fieldvalue.substring(5)) != 0) {
-                    gfc.tag_spec.values.add(fieldvalue);
-                    gfc.tag_spec.num_values++;
-                }
-            }
-            gfc.tag_spec.flags |= CHANGED_FLAG;
-        }
-        id3tag_add_v2(gfp);
-        return 0;
-    }
-
-    public final int lame_get_id3v2_tag(final LameGlobalFlags gfp,
-                                        final byte[] buffer, final int size) {
+    public final int lame_get_id3v2_tag(final LameGlobalFlags gfp, final byte[] buffer, final int size) {
         LameInternalFlags gfc;
         if (gfp == null) {
             return 0;

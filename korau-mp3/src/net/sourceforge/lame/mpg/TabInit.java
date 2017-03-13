@@ -24,7 +24,8 @@ package net.sourceforge.lame.mpg;
 
 public class TabInit {
 
-    private static final double dewin[] = {0.000000000, -0.000015259,
+    private static final double dewin[] = {
+            0.000000000, -0.000015259,
             -0.000015259, -0.000015259, -0.000015259, -0.000015259,
             -0.000015259, -0.000030518, -0.000030518, -0.000030518,
             -0.000030518, -0.000045776, -0.000045776, -0.000061035,
@@ -82,12 +83,15 @@ public class TabInit {
             0.935195923, 0.956481934, 0.976852417, 0.996246338, 1.014617920,
             1.031936646, 1.048156738, 1.063217163, 1.077117920, 1.089782715,
             1.101211548, 1.111373901, 1.120223999, 1.127746582, 1.133926392,
-            1.138763428, 1.142211914, 1.144287109, 1.144989014};
-    private static float cos64[] = new float[16], cos32[] = new float[8],
-            cos16[] = new float[4], cos8[] = new float[2],
-            cos4[] = new float[1];
-    public float[] pnts[] = {cos64, cos32, cos16, cos8, cos4};
-    public float decwin[] = new float[512 + 32];
+            1.138763428, 1.142211914, 1.144287109, 1.144989014
+    };
+    private static float[] cos64 = new float[16];
+    private static float[] cos32 = new float[8];
+    private static float[] cos16 = new float[4];
+    private static float[] cos8 = new float[2];
+    private static float[] cos4 = new float[1];
+    public float[][] pnts = {cos64, cos32, cos16, cos8, cos4};
+    public float[] decwin = new float[512 + 32];
 
     public TabInit() {
         make_decode_tables(32767);
@@ -102,29 +106,23 @@ public class TabInit {
             kr = 0x10 >> i;
             divv = 0x40 >> i;
             costab = pnts[i];
-            for (k = 0; k < kr; k++)
-                costab[k] = (float) (1.0 / (2.0 * Math.cos(MPG123.M_PI
-                        * ((double) k * 2.0 + 1.0) / (double) divv)));
+            for (k = 0; k < kr; k++) {
+                costab[k] = (float) (1.0 / (2.0 * Math.cos(MPG123.M_PI * ((double) k * 2.0 + 1.0) / (double) divv)));
+            }
         }
 
         table = 0;
         scaleval = -scaleval;
         for (i = 0, j = 0; i < 256; i++, j++, table += 32) {
-            if (table < 512 + 16)
-                decwin[table + 16] = decwin[table + 0] = (float) (dewin[j] * scaleval);
-            if (i % 32 == 31)
-                table -= 1023;
-            if (i % 64 == 63)
-                scaleval = -scaleval;
+            if (table < 512 + 16) decwin[table + 16] = decwin[table + 0] = (float) (dewin[j] * scaleval);
+            if (i % 32 == 31) table -= 1023;
+            if (i % 64 == 63) scaleval = -scaleval;
         }
 
         for ( /* i=256 */; i < 512; i++, j--, table += 32) {
-            if (table < 512 + 16)
-                decwin[table + 16] = decwin[table + 0] = (float) (dewin[j] * scaleval);
-            if (i % 32 == 31)
-                table -= 1023;
-            if (i % 64 == 63)
-                scaleval = -scaleval;
+            if (table < 512 + 16) decwin[table + 16] = decwin[table + 0] = (float) (dewin[j] * scaleval);
+            if (i % 32 == 31) table -= 1023;
+            if (i % 64 == 63) scaleval = -scaleval;
         }
     }
 

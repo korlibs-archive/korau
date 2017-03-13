@@ -1,19 +1,62 @@
 package com.soywiz.korau.awt
 
+import com.soywiz.korau.format.AudioStream
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
+import com.soywiz.korio.async.executeInWorker
+import com.soywiz.korio.async.sleep
+import com.soywiz.korio.async.spawn
+import com.soywiz.korio.async.suspendCancellableCoroutine
 import com.soywiz.korio.coroutine.korioSuspendCoroutine
 import java.io.ByteArrayInputStream
-import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.Clip
-import javax.sound.sampled.DataLine
-import javax.sound.sampled.LineEvent
+import javax.sound.sampled.*
+
 
 class AwtNativeSoundProvider : NativeSoundProvider() {
     override val priority: Int = 1000
 
     override fun createSound(data: ByteArray): NativeSound {
         return AwtNativeSound(data)
+    }
+
+    // @TODO: Execute in thread
+    suspend override fun play(stream: AudioStream): Unit = suspendCancellableCoroutine { c ->
+        spawn {
+            executeInWorker {
+                val af = AudioFormat(stream.rate.toFloat(), 16, stream.channels, true, false)
+                val info = DataLine.Info(SourceDataLine::class.java, af)
+                val line = AudioSystem.getLine(info) as SourceDataLine
+
+                line.open(af, 4096)
+                line.start()
+
+                val sdata = ShortArray(1024)
+                val bdata = ByteArray(sdata.size * 2)
+                //var writtenLength = 0L
+
+                while (!c.cancelled) {
+                //while (true) {
+                    //println(c.cancelled)
+                    //println(line.microsecondPosition)
+                    //println("" + line.longFramePosition + "/" + writtenLength + "/" + cancelled)
+                    val read = stream.read(sdata, 0, sdata.size)
+                    if (read <= 0) break
+                    var m = 0
+                    for (n in 0 until read) {
+                        val s = sdata[n].toInt()
+                        bdata[m++] = ((s ushr 0) and 0xFF).toByte()
+                        bdata[m++] = ((s ushr 8) and 0xFF).toByte()
+                    }
+                    //println(line.available())
+                    line.write(bdata, 0, m)
+                    //writtenLength += read / stream.channels
+                }
+                line.drain()
+                line.stop()
+                line.close()
+            }
+            c.resume(Unit)
+        }
     }
 }
 

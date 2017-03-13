@@ -14,13 +14,10 @@ public final class ScaleFac {
     public ScaleFac() {
     }
 
-    public ScaleFac(final int[] arrL, final int[] arrS, final int[] arr21,
-                    final int[] arr12) {
+    public ScaleFac(final int[] arrL, final int[] arrS, final int[] arr21, final int[] arr12) {
         System.arraycopy(arrL, 0, l, 0, Math.min(arrL.length, l.length));
         System.arraycopy(arrS, 0, s, 0, Math.min(arrS.length, s.length));
-        System.arraycopy(arr21, 0, psfb21, 0,
-                Math.min(arr21.length, psfb21.length));
-        System.arraycopy(arr12, 0, psfb12, 0,
-                Math.min(arr12.length, psfb12.length));
+        System.arraycopy(arr21, 0, psfb21, 0, Math.min(arr21.length, psfb21.length));
+        System.arraycopy(arr12, 0, psfb12, 0, Math.min(arr12.length, psfb12.length));
     }
 }

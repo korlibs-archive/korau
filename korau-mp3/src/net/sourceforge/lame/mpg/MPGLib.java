@@ -78,24 +78,7 @@ public class MPGLib {
 
         ProcessedBytes pb = new ProcessedBytes();
         int ret = decodeMP3_ptr.decode(pmp, buffer, bufferPos, len, p, psize, pb);
-        int processed_samples = pb.pb; /* processed samples per channel */
-        /* three cases:
-         * 1. headers parsed, but data not complete
-         *       pmp.header_parsed==1
-         *       pmp.framesize=0
-         *       pmp.fsizeold=size of last frame, or 0 if this is first frame
-         *
-         * 2. headers, data parsed, but ancillary data not complete
-         *       pmp.header_parsed==1
-         *       pmp.framesize=size of frame
-         *       pmp.fsizeold=size of last frame, or 0 if this is first frame
-         *
-         * 3. frame fully decoded:
-         *       pmp.header_parsed==0
-         *       pmp.framesize=0
-         *       pmp.fsizeold=size of frame (which is now the last frame)
-         *
-         */
+        int processed_samples = pb.pb;
         if (pmp.header_parsed || pmp.fsizeold > 0 || pmp.framesize > 0) {
             mp3data.header_parsed = true;
             mp3data.stereo = pmp.fr.stereo;
@@ -163,13 +146,6 @@ public class MPGLib {
         return interf.InitMP3();
     }
 
-    /*
-     * For lame_decode:  return code
-     * -1     error
-     *  0     ok, but need more data before outputing any samples
-     *  n     number of samples output.  either 576 or 1152 depending on MP3 file.
-     */
-
     public int hip_decode_exit(mpstr_tag hip) {
         if (hip != null) {
             interf.ExitMP3(hip);
@@ -178,47 +154,12 @@ public class MPGLib {
         return 0;
     }
 
-    /*
-     * same as hip_decode1 (look in lame.h), but returns unclipped raw
-     * floating-point samples. It is declared here, not in lame.h, because it
-     * returns LAME's internal type sample_t. No more than 1152 samples per
-     * channel are allowed.
-     */
-    public int hip_decode1_unclipped(mpstr_tag hip, byte[] buffer, int bufferPos,
-                                     int len, final float pcm_l[], final float pcm_r[]) {
-
-        MP3Data mp3data = new MP3Data();
-        FrameSkip enc = new FrameSkip();
-
-        if (hip != null) {
-            IDecoder dec = new IDecoder() {
-
-                @Override
-                public int decode(mpstr_tag mp, byte[] in, int bufferPos, int isize,
-                                  float[] out, int osize, ProcessedBytes done) {
-                    return interf.decodeMP3_unclipped(mp, in, bufferPos, isize, out, osize, done);
-                }
-            };
-            float[] out = new float[OUTSIZE_UNCLIPPED];
-            return decode1_headersB_clipchoice(hip, buffer, bufferPos, len,
-                    pcm_l, 0, pcm_r, 0, mp3data, enc, out, OUTSIZE_UNCLIPPED,
-                    dec);
-        }
-        return 0;
-    }
-
-    /*
-     * For lame_decode:  return code
-     *  -1     error
-     *   0     ok, but need more data before outputing any samples
-     *   n     number of samples output.  Will be at most one frame of
-     *         MPEG data.
-     */
-    public int
-    hip_decode1_headers(mpstr_tag hip, byte[] buffer,
-                        int len,
-                        final float[] pcm_l, final float[] pcm_r, MP3Data mp3data,
-                        FrameSkip enc) {
+    public int hip_decode1_headers(
+            mpstr_tag hip, byte[] buffer,
+            int len,
+            final float[] pcm_l, final float[] pcm_r, MP3Data mp3data,
+            FrameSkip enc
+    ) {
         if (hip != null) {
             IDecoder dec = new IDecoder() {
 
@@ -233,12 +174,6 @@ public class MPGLib {
                     pcm_r, 0, mp3data, enc, out, OUTSIZE_CLIPPED, dec);
         }
         return -1;
-    }
-
-    void hip_set_pinfo(mpstr_tag hip, PlottingData pinfo) {
-        if (hip != null) {
-            hip.pinfo = pinfo;
-        }
     }
 
     interface IDecoder {

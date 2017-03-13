@@ -210,7 +210,7 @@ public class Interface {
     }
 
     int sync_buffer(mpstr_tag mp, boolean free_match) {
-		/*
+        /*
 		 * traverse mp structure without modifying pointers, looking for a frame
 		 * valid header. if free_format, valid header must also have the same
 		 * samplerate. return number of bytes in mp, before the header return -1
@@ -600,10 +600,8 @@ public class Interface {
     }
 
     interface ISynth {
-        int synth_1to1_mono_ptr(mpstr_tag mp, float[] in, int inPos,
-                                float[] out, ProcessedBytes p);
+        int synth_1to1_mono_ptr(mpstr_tag mp, float[] in, int inPos, float[] out, ProcessedBytes p);
 
-        int synth_1to1_ptr(mpstr_tag mp, float[] in, int inPos, int i,
-                           float[] out, ProcessedBytes p);
+        int synth_1to1_ptr(mpstr_tag mp, float[] in, int inPos, int i, float[] out, ProcessedBytes p);
     }
 }

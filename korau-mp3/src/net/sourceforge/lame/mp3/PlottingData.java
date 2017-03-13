@@ -38,5 +38,5 @@ public class PlottingData {
     public int sfbits[][] = new int[2][2];
     public int stereo, js, ms_stereo, i_stereo, emph, bitrate, sampfreq, maindata;
     public int crc, padding;
-    public int scfsi[] = new int[2], mean_bits, resvsize;
+    public int scfsi[] = new int[2];
 }

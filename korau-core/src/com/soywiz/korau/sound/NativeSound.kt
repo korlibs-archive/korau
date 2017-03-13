@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.korau.format.AudioFormats
+import com.soywiz.korau.format.AudioStream
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.vfs.VfsFile
 import java.util.*
@@ -18,6 +19,9 @@ open class NativeSoundProvider {
 
     suspend open fun createSound(data: com.soywiz.korau.format.AudioData): NativeSound {
         return createSound(AudioFormats.encodeToByteArray(data))
+    }
+
+    suspend open fun play(stream: AudioStream): Unit {
     }
 }
 

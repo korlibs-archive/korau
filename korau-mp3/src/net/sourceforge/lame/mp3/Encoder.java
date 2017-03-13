@@ -30,24 +30,16 @@ public class Encoder {
     public static final int ENCDELAY = 576;
     public static final int POSTDELAY = 1152;
     public static final int MDCTDELAY = 48;
-    public static final int FFTOFFSET = (224 + MDCTDELAY);
-    public static final int DECDELAY = 528;
-    public static final int SBLIMIT = 32;
-    public static final int CBANDS = 64;
     public static final int SBMAX_l = 22;
     public static final int SBMAX_s = 13;
     public static final int PSFB21 = 6;
     public static final int PSFB12 = 6;
-    public static final int BLKSIZE = 1024;
-    public static final int BLKSIZE_s = 256;
     public static final int MPG_MD_MS_LR = 2;
     BitStream bs;
     VBRTag vbr;
-    QuantizePVT qupvt;
 
-    public final void setModules(BitStream bs, QuantizePVT qupvt, VBRTag vbr) {
+    public final void setModules(BitStream bs, VBRTag vbr) {
         this.bs = bs;
         this.vbr = vbr;
-        this.qupvt = qupvt;
     }
 }

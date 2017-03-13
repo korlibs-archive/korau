@@ -1822,29 +1822,6 @@ public class Layer3 {
         }
     }
 
-    public int layer3_audiodata_precedesframes(mpstr_tag mp) {
-        int audioDataInFrame;
-        int framesToBacktrack;
-
-		/*
-		 * specific to Layer 3, since Layer 1 & 2 the audio data starts at the
-		 * frame that describes it.
-		 */
-		/*
-		 * determine how many bytes and therefore bitstream frames the audio
-		 * data precedes it's matching frame
-		 */
-		/*
-		 * compute the number of frames to backtrack, 4 for the header, ssize
-		 * already holds the CRC
-		 */
-		/* TODO Erroneously assumes current frame is same as previous frame. */
-        audioDataInFrame = mp.bsize - 4 - mp.ssize;
-        framesToBacktrack = (sideinfo.main_data_begin + audioDataInFrame - 1)
-                / audioDataInFrame;
-        return framesToBacktrack;
-    }
-
     public int do_layer3_sideinfo(mpstr_tag mp) {
         Frame fr = mp.fr;
         int stereo = fr.stereo;
