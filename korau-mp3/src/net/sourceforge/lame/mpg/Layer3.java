@@ -1976,8 +1976,8 @@ public class Layer3 {
                 int i, sb;
                 float ifqstep;
 
-                mp.pinfo.setBitrate(Common.tabsel_123[fr.lsf][fr.lay - 1][fr.bitrate_index]);
-                mp.pinfo.setSampfreq(Common.freqs[sfreq]);
+                mp.pinfo.setBitrate(Common.Companion.getTabsel_123()[fr.lsf][fr.lay - 1][fr.bitrate_index]);
+                mp.pinfo.setSampfreq(Common.Companion.getFreqs()[sfreq]);
                 mp.pinfo.setEmph(fr.emphasis);
                 mp.pinfo.setCrc(fr.error_protection ? 1 : 0);
                 mp.pinfo.setPadding(fr.padding);

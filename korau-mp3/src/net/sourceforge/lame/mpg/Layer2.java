@@ -78,7 +78,7 @@ public class Layer2 {
 
         for (k = 0; k < 27; k++) {
             double m = mulmul[k];
-            table = common.muls[k];
+            table = common.getMuls()[k];
             int tablePos = 0;
             for (j = 3, i = 0; i < 63; i++, j--)
                 table[tablePos++] = (float) (m * Math
@@ -177,7 +177,7 @@ public class Layer2 {
                 if (ba != 0) {
                     k = fr.alloc[(alloc2 = alloc1 + ba)].getBits();
                     if ((d1 = fr.alloc[alloc2].getD()) < 0) {
-                        float cm = common.muls[k][scale[scalePos + x1]];
+                        float cm = common.getMuls()[k][scale[scalePos + x1]];
                         fraction[j][0][i] = ((float) ((int) common.getbits(mp,
                                 k) + d1)) * cm;
                         fraction[j][1][i] = ((float) ((int) common.getbits(mp,
@@ -188,9 +188,9 @@ public class Layer2 {
                         int idx, tab, m = scale[scalePos + x1];
                         idx = (int) common.getbits(mp, k);
                         tab = (idx + idx + idx);
-                        fraction[j][0][i] = common.muls[table[d1][tab++]][m];
-                        fraction[j][1][i] = common.muls[table[d1][tab++]][m];
-                        fraction[j][2][i] = common.muls[table[d1][tab]][m];
+                        fraction[j][0][i] = common.getMuls()[table[d1][tab++]][m];
+                        fraction[j][1][i] = common.getMuls()[table[d1][tab++]][m];
+                        fraction[j][2][i] = common.getMuls()[table[d1][tab]][m];
                     }
                     scalePos += 3;
                 } else
@@ -206,14 +206,14 @@ public class Layer2 {
                 k = fr.alloc[(alloc2 = alloc1 + ba)].getBits();
                 if ((d1 = fr.alloc[alloc2].getD()) < 0) {
                     float cm;
-                    cm = common.muls[k][scale[scalePos + x1 + 3]];
+                    cm = common.getMuls()[k][scale[scalePos + x1 + 3]];
                     fraction[1][0][i] = (fraction[0][0][i] = (float) ((int) common
                             .getbits(mp, k) + d1)) * cm;
                     fraction[1][1][i] = (fraction[0][1][i] = (float) ((int) common
                             .getbits(mp, k) + d1)) * cm;
                     fraction[1][2][i] = (fraction[0][2][i] = (float) ((int) common
                             .getbits(mp, k) + d1)) * cm;
-                    cm = common.muls[k][scale[scalePos + x1]];
+                    cm = common.getMuls()[k][scale[scalePos + x1]];
                     fraction[0][0][i] *= cm;
                     fraction[0][1][i] *= cm;
                     fraction[0][2][i] *= cm;
@@ -223,12 +223,12 @@ public class Layer2 {
                     m2 = scale[scalePos + x1 + 3];
                     idx = (int) common.getbits(mp, k);
                     tab = (idx + idx + idx);
-                    fraction[0][0][i] = common.muls[table[d1][tab]][m1];
-                    fraction[1][0][i] = common.muls[table[d1][tab++]][m2];
-                    fraction[0][1][i] = common.muls[table[d1][tab]][m1];
-                    fraction[1][1][i] = common.muls[table[d1][tab++]][m2];
-                    fraction[0][2][i] = common.muls[table[d1][tab]][m1];
-                    fraction[1][2][i] = common.muls[table[d1][tab]][m2];
+                    fraction[0][0][i] = common.getMuls()[table[d1][tab]][m1];
+                    fraction[1][0][i] = common.getMuls()[table[d1][tab++]][m2];
+                    fraction[0][1][i] = common.getMuls()[table[d1][tab]][m1];
+                    fraction[1][1][i] = common.getMuls()[table[d1][tab++]][m2];
+                    fraction[0][2][i] = common.getMuls()[table[d1][tab]][m1];
+                    fraction[1][2][i] = common.getMuls()[table[d1][tab]][m2];
                 }
                 scalePos += 6;
             } else {

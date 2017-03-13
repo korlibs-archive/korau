@@ -81,7 +81,7 @@ public class MPGLib {
         if (pmp.header_parsed || pmp.fsizeold > 0 || pmp.framesize > 0) {
             mp3data.setHeader_parsed(true);
             mp3data.setStereo(pmp.fr.stereo);
-            mp3data.setSamplerate(Common.freqs[pmp.fr.sampling_frequency]);
+            mp3data.setSamplerate(Common.Companion.getFreqs()[pmp.fr.sampling_frequency]);
             mp3data.setMode(pmp.fr.mode);
             mp3data.setMode_ext(pmp.fr.mode_ext);
             mp3data.setFrameSize(smpls[pmp.fr.lsf][pmp.fr.lay]);
@@ -95,7 +95,7 @@ public class MPGLib {
                 mp3data.setBitrate((int) (8 * (4 + pmp.framesize) * mp3data.getSamplerate() /
                         (1.e3 * mp3data.getFrameSize()) + 0.5));
             else
-                mp3data.setBitrate(Common.tabsel_123[pmp.fr.lsf][pmp.fr.lay - 1][pmp.fr.bitrate_index]);
+                mp3data.setBitrate(Common.Companion.getTabsel_123()[pmp.fr.lsf][pmp.fr.lay - 1][pmp.fr.bitrate_index]);
 
 
             if (pmp.num_frames > 0) {
@@ -272,7 +272,7 @@ public class MPGLib {
         PlottingData pinfo;
     }
 
-    static class ProcessedBytes {
+    static public class ProcessedBytes {
         int pb;
     }
 

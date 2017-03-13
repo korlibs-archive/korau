@@ -96,13 +96,13 @@ public class Layer1 {
             for (sample = 0, i = 0; i < jsbound; i++) {
                 n = balloc[ba++];
                 if (n != 0) {
-                    fraction[0][f0++] = (float) (((-1) << n) + (smpb[sample++]) + 1) * common.muls[n + 1][scale_index[sca++]];
+                    fraction[0][f0++] = (float) (((-1) << n) + (smpb[sample++]) + 1) * common.getMuls()[n + 1][scale_index[sca++]];
                 } else {
                     fraction[0][f0++] = 0.0f;
                 }
                 n = balloc[ba++];
                 if (n != 0) {
-                    fraction[1][f1++] = (float) (((-1) << n) + (smpb[sample++]) + 1) * common.muls[n + 1][scale_index[sca++]];
+                    fraction[1][f1++] = (float) (((-1) << n) + (smpb[sample++]) + 1) * common.getMuls()[n + 1][scale_index[sca++]];
                 } else {
                     fraction[1][f1++] = 0.0f;
                 }
@@ -111,8 +111,8 @@ public class Layer1 {
                 n = balloc[ba++];
                 if (n != 0) {
                     float samp = (float) (((-1) << n) + (smpb[sample++]) + 1);
-                    fraction[0][f0++] = samp * common.muls[n + 1][scale_index[sca++]];
-                    fraction[1][f1++] = samp * common.muls[n + 1][scale_index[sca++]];
+                    fraction[0][f0++] = samp * common.getMuls()[n + 1][scale_index[sca++]];
+                    fraction[1][f1++] = samp * common.getMuls()[n + 1][scale_index[sca++]];
                 } else {
                     fraction[0][f0++] = fraction[1][f1++] = 0.0f;
                 }
@@ -129,7 +129,7 @@ public class Layer1 {
             for (sample = 0, i = 0; i < MPG123.SBLIMIT; i++) {
                 n = balloc[ba++];
                 if (n != 0) {
-                    fraction[0][f0++] = (float) (((-1) << n) + (smpb[sample++]) + 1) * common.muls[n + 1][scale_index[sca++]];
+                    fraction[0][f0++] = (float) (((-1) << n) + (smpb[sample++]) + 1) * common.getMuls()[n + 1][scale_index[sca++]];
                 } else {
                     fraction[0][f0++] = 0.0f;
                 }
