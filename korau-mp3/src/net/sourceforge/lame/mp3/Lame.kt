@@ -25,54 +25,16 @@
 
 /* $Id: Lame.java,v 1.44 2012/03/23 10:02:29 kenchis Exp $ */
 
-package net.sourceforge.lame.mp3;
+package net.sourceforge.lame.mp3
 
-import net.sourceforge.lame.mpg.Interface;
-import net.sourceforge.lame.mpg.MPGLib;
+import net.sourceforge.lame.mpg.Interface
+import net.sourceforge.lame.mpg.MPGLib
 
-public class Lame {
-    private LameGlobalFlags gfp;
-    private VBRTag vbr;
-    private GetAudio gaud;
-    private Parse parse;
-    private MPGLib mpg;
-    private Interface intf;
-
-    public Lame() {
-        gfp = new LameGlobalFlags();
-        gaud = new GetAudio();
-        vbr = new VBRTag();
-        parse = new Parse();
-
-        mpg = new MPGLib();
-        intf = new Interface();
-
-        gaud.setModules(parse, mpg);
-        mpg.setModules(intf);
-        intf.setModules(vbr);
-
-        lame_init();
-    }
-
-    public LameGlobalFlags getFlags() {
-        return gfp;
-    }
-
-    public Parse getParser() {
-        return parse;
-    }
-
-    public GetAudio getAudio() {
-        return gaud;
-    }
-
-    public VBRTag getVbr() {
-        return vbr;
-    }
-
-    private final void lame_init() {
-        gfp.setInSampleRate(44100);
-        gfp.setInNumChannels(2);
-        gfp.num_samples = -1;
-    }
+class Lame {
+    val flags = LameGlobalFlags()
+    val vbr = VBRTag()
+    val parser = Parse()
+    val intf = Interface(vbr)
+    val mpg = MPGLib(intf)
+    val audio = GetAudio(parser, mpg)
 }

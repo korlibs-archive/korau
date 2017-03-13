@@ -408,7 +408,7 @@ public class Layer3 {
                     gr_infos.pow2gain = gainpow2;
                     gr_infos.pow2gainPos = 256 - qss + powdiff;
                     if (mp.pinfo != null) {
-                        mp.pinfo.qss[gr][ch] = qss;
+                        mp.pinfo.getQss()[gr][ch] = qss;
                     }
                 }
                 if (ms_stereo != 0)
@@ -435,7 +435,7 @@ public class Layer3 {
                         gr_infos.full_gain[i] = gr_infos.pow2gain;
                         gr_infos.full_gainPos[i] = gr_infos.pow2gainPos + sbg;
                         if (mp.pinfo != null)
-                            mp.pinfo.sub_gain[gr][ch][i] = sbg / 8;
+                            mp.pinfo.getSub_gain()[gr][ch][i] = sbg / 8;
                     }
 
                     if (gr_infos.block_type == 0) {
@@ -502,7 +502,7 @@ public class Layer3 {
             gr_infos.pow2gain = gainpow2;
             gr_infos.pow2gainPos = 256 - qss + powdiff;
             if (mp.pinfo != null) {
-                mp.pinfo.qss[0][ch] = qss;
+                mp.pinfo.getQss()[0][ch] = qss;
             }
 
             if (ms_stereo != 0)
@@ -528,7 +528,7 @@ public class Layer3 {
                     gr_infos.full_gain[i] = gr_infos.pow2gain;
                     gr_infos.full_gainPos[i] = gr_infos.pow2gainPos + sbg;
                     if (mp.pinfo != null)
-                        mp.pinfo.sub_gain[0][ch][i] = sbg / 8;
+                        mp.pinfo.getSub_gain()[0][ch][i] = sbg / 8;
 
                 }
 
@@ -776,7 +776,7 @@ public class Layer3 {
             mc = 0;
             for (i = 0; i < 2; i++) {
                 int lp = l[i];
-                newhuff[] h = Huffman.ht;
+                newhuff[] h = Huffman.INSTANCE.getHt();
                 int hPos = (gr_infos.table_select[i]);
 
                 for (; lp != 0; lp--, mc--) {
@@ -798,7 +798,7 @@ public class Layer3 {
                         }
                     }
                     {
-                        short[] val = h[hPos].table;
+                        short[] val = h[hPos].getTable();
                         int valPos = 0;
                         while ((y = val[valPos++]) < 0) {
                             if (get1bit(mp) != 0)
@@ -810,8 +810,8 @@ public class Layer3 {
                     }
                     if (x == 15) {
                         max[lwin] = cb;
-                        part2remain -= h[hPos].linbits + 1;
-                        x += common.getbits(mp, (int) h[hPos].linbits);
+                        part2remain -= h[hPos].getLinbits() + 1;
+                        x += common.getbits(mp, (int) h[hPos].getLinbits());
                         if (get1bit(mp) != 0)
                             xrpnt[xrpntPos] = -ispow[x] * v;
                         else
@@ -828,8 +828,8 @@ public class Layer3 {
                     xrpntPos += step;
                     if (y == 15) {
                         max[lwin] = cb;
-                        part2remain -= h[hPos].linbits + 1;
-                        y += common.getbits(mp, (int) h[hPos].linbits);
+                        part2remain -= h[hPos].getLinbits() + 1;
+                        y += common.getbits(mp, (int) h[hPos].getLinbits());
                         if (get1bit(mp) != 0)
                             xrpnt[xrpntPos] = -ispow[y] * v;
                         else
@@ -847,9 +847,9 @@ public class Layer3 {
                 }
             }
             for (; l3 != 0 && (part2remain > 0); l3--) {
-                newhuff[] h = Huffman.htc;
+                newhuff[] h = Huffman.INSTANCE.getHtc();
                 int hPos = (gr_infos.count1table_select);
-                short[] val = h[hPos].table;
+                short[] val = h[hPos].getTable();
                 int valPos = 0;
                 short a;
 
@@ -953,7 +953,7 @@ public class Layer3 {
 			 */
             for (i = 0; i < 3; i++) {
                 int lp = l[i];
-                newhuff[] h = Huffman.ht;
+                newhuff[] h = Huffman.INSTANCE.getHt();
                 int hPos = (gr_infos.table_select[i]);
 
                 for (; lp != 0; lp--, mc--) {
@@ -966,7 +966,7 @@ public class Layer3 {
                         cb = m[mPos++];
                     }
                     {
-                        short[] val = h[hPos].table;
+                        short[] val = h[hPos].getTable();
                         int valPos = 0;
                         while ((y = val[valPos++]) < 0) {
                             if (get1bit(mp) != 0)
@@ -978,8 +978,8 @@ public class Layer3 {
                     }
                     if (x == 15) {
                         max = cb;
-                        part2remain -= h[hPos].linbits + 1;
-                        x += common.getbits(mp, (int) h[hPos].linbits);
+                        part2remain -= h[hPos].getLinbits() + 1;
+                        x += common.getbits(mp, (int) h[hPos].getLinbits());
                         if (get1bit(mp) != 0)
                             xrpnt[xrpntPos++] = -ispow[x] * v;
                         else
@@ -996,8 +996,8 @@ public class Layer3 {
 
                     if (y == 15) {
                         max = cb;
-                        part2remain -= h[hPos].linbits + 1;
-                        y += common.getbits(mp, (int) h[hPos].linbits);
+                        part2remain -= h[hPos].getLinbits() + 1;
+                        y += common.getbits(mp, (int) h[hPos].getLinbits());
                         if (get1bit(mp) != 0)
                             xrpnt[xrpntPos++] = -ispow[y] * v;
                         else
@@ -1018,9 +1018,9 @@ public class Layer3 {
              * short (count1table) values
 			 */
             for (; l3 != 0 && (part2remain > 0); l3--) {
-                newhuff[] h = Huffman.htc;
+                newhuff[] h = Huffman.INSTANCE.getHtc();
                 int hPos = (gr_infos.count1table_select);
-                short[] val = h[hPos].table;
+                short[] val = h[hPos].getTable();
                 int valPos = 0;
                 short a;
 
@@ -1896,9 +1896,9 @@ public class Layer3 {
 
                 if (mp.pinfo != null) {
                     int i;
-                    mp.pinfo.sfbits[gr][0] = part2bits;
+                    mp.pinfo.getSfbits()[gr][0] = part2bits;
                     for (i = 0; i < 39; i++)
-                        mp.pinfo.sfb_s[gr][0][i] = scalefacs[0][i];
+                        mp.pinfo.getSfb_s()[gr][0][i] = scalefacs[0][i];
                 }
 
                 if (III_dequantize_sample(mp, hybridIn[0], scalefacs[0],
@@ -1917,9 +1917,9 @@ public class Layer3 {
                 }
                 if (mp.pinfo != null) {
                     int i;
-                    mp.pinfo.sfbits[gr][1] = part2bits;
+                    mp.pinfo.getSfbits()[gr][1] = part2bits;
                     for (i = 0; i < 39; i++)
-                        mp.pinfo.sfb_s[gr][1][i] = scalefacs[1][i];
+                        mp.pinfo.getSfb_s()[gr][1][i] = scalefacs[1][i];
                 }
 
                 if (III_dequantize_sample(mp, hybridIn[1], scalefacs[1],
@@ -1976,49 +1976,49 @@ public class Layer3 {
                 int i, sb;
                 float ifqstep;
 
-                mp.pinfo.bitrate = Common.tabsel_123[fr.lsf][fr.lay - 1][fr.bitrate_index];
-                mp.pinfo.sampfreq = Common.freqs[sfreq];
-                mp.pinfo.emph = fr.emphasis;
-                mp.pinfo.crc = fr.error_protection ? 1 : 0;
-                mp.pinfo.padding = fr.padding;
-                mp.pinfo.stereo = fr.stereo;
-                mp.pinfo.js = (fr.mode == MPG123.MPG_MD_JOINT_STEREO) ? 1 : 0;
-                mp.pinfo.ms_stereo = ms_stereo;
-                mp.pinfo.i_stereo = i_stereo;
-                mp.pinfo.maindata = sideinfo.main_data_begin;
+                mp.pinfo.setBitrate(Common.tabsel_123[fr.lsf][fr.lay - 1][fr.bitrate_index]);
+                mp.pinfo.setSampfreq(Common.freqs[sfreq]);
+                mp.pinfo.setEmph(fr.emphasis);
+                mp.pinfo.setCrc(fr.error_protection ? 1 : 0);
+                mp.pinfo.setPadding(fr.padding);
+                mp.pinfo.setStereo(fr.stereo);
+                mp.pinfo.setJs((fr.mode == MPG123.MPG_MD_JOINT_STEREO) ? 1 : 0);
+                mp.pinfo.setMs_stereo(ms_stereo);
+                mp.pinfo.setI_stereo(i_stereo);
+                mp.pinfo.setMaindata(sideinfo.main_data_begin);
 
                 for (ch = 0; ch < stereo1; ch++) {
                     gr_info_s gr_infos = (sideinfo.ch[ch].gr[gr]);
-                    mp.pinfo.big_values[gr][ch] = gr_infos.big_values;
-                    mp.pinfo.scalefac_scale[gr][ch] = gr_infos.scalefac_scale;
-                    mp.pinfo.mixed[gr][ch] = gr_infos.mixed_block_flag;
-                    mp.pinfo.mpg123blocktype[gr][ch] = gr_infos.block_type;
-                    mp.pinfo.mainbits[gr][ch] = gr_infos.part2_3_length;
-                    mp.pinfo.preflag[gr][ch] = gr_infos.preflag;
-                    if (gr == 1) mp.pinfo.scfsi[ch] = gr_infos.scfsi;
+                    mp.pinfo.getBig_values()[gr][ch] = gr_infos.big_values;
+                    mp.pinfo.getScalefac_scale()[gr][ch] = gr_infos.scalefac_scale;
+                    mp.pinfo.getMixed()[gr][ch] = gr_infos.mixed_block_flag;
+                    mp.pinfo.getMpg123blocktype()[gr][ch] = gr_infos.block_type;
+                    mp.pinfo.getMainbits()[gr][ch] = gr_infos.part2_3_length;
+                    mp.pinfo.getPreflag()[gr][ch] = gr_infos.preflag;
+                    if (gr == 1) mp.pinfo.getScfsi()[ch] = gr_infos.scfsi;
                 }
 
                 for (ch = 0; ch < stereo1; ch++) {
                     gr_info_s gr_infos = (sideinfo.ch[ch].gr[gr]);
-                    ifqstep = (mp.pinfo.scalefac_scale[gr][ch] == 0) ? .5f : 1.0f;
+                    ifqstep = (mp.pinfo.getScalefac_scale()[gr][ch] == 0) ? .5f : 1.0f;
                     if (2 == gr_infos.block_type) {
                         for (i = 0; i < 3; i++) {
                             for (sb = 0; sb < 12; sb++) {
                                 int j = 3 * sb + i;
 								/* scalefac was copied into pinfo.sfb_s[] above */
-                                mp.pinfo.sfb_s[gr][ch][j] = -ifqstep * mp.pinfo.sfb_s[gr][ch][j - gr_infos.mixed_block_flag];
-                                mp.pinfo.sfb_s[gr][ch][j] -= 2 * (mp.pinfo.sub_gain[gr][ch][i]);
+                                mp.pinfo.getSfb_s()[gr][ch][j] = -ifqstep * mp.pinfo.getSfb_s()[gr][ch][j - gr_infos.mixed_block_flag];
+                                mp.pinfo.getSfb_s()[gr][ch][j] -= 2 * (mp.pinfo.getSub_gain()[gr][ch][i]);
                             }
-                            mp.pinfo.sfb_s[gr][ch][3 * sb + i] = -2 * (mp.pinfo.sub_gain[gr][ch][i]);
+                            mp.pinfo.getSfb_s()[gr][ch][3 * sb + i] = -2 * (mp.pinfo.getSub_gain()[gr][ch][i]);
                         }
                     } else {
                         for (sb = 0; sb < 21; sb++) {
 							/* scalefac was copied into pinfo.sfb[] above */
-                            mp.pinfo.sfb[gr][ch][sb] = mp.pinfo.sfb_s[gr][ch][sb];
-                            if (gr_infos.preflag != 0) mp.pinfo.sfb[gr][ch][sb] += pretab1[sb];
-                            mp.pinfo.sfb[gr][ch][sb] *= -ifqstep;
+                            mp.pinfo.getSfb()[gr][ch][sb] = mp.pinfo.getSfb_s()[gr][ch][sb];
+                            if (gr_infos.preflag != 0) mp.pinfo.getSfb()[gr][ch][sb] += pretab1[sb];
+                            mp.pinfo.getSfb()[gr][ch][sb] *= -ifqstep;
                         }
-                        mp.pinfo.sfb[gr][ch][21] = 0;
+                        mp.pinfo.getSfb()[gr][ch][21] = 0;
                     }
                 }
 
@@ -2026,7 +2026,7 @@ public class Layer3 {
                     int j = 0;
                     for (sb = 0; sb < MPG123.SBLIMIT; sb++)
                         for (ss = 0; ss < MPG123.SSLIMIT; ss++, j++)
-                            mp.pinfo.mpg123xr[gr][ch][j] = hybridIn[ch][sb * MPG123.SSLIMIT + ss];
+                            mp.pinfo.getMpg123xr()[gr][ch][j] = hybridIn[ch][sb * MPG123.SSLIMIT + ss];
                 }
             }
 

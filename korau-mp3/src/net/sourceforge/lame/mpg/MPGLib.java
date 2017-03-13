@@ -40,8 +40,8 @@ public class MPGLib {
     private static final int OUTSIZE_CLIPPED = 4096;
     Interface interf;
 
-    public void setModules(Interface i) {
-        interf = i;
+    public MPGLib(Interface interf) {
+        this.interf = interf;
     }
 
     /* copy mono samples */

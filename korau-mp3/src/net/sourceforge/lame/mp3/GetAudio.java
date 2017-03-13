@@ -24,11 +24,9 @@
 package net.sourceforge.lame.mp3;
 
 import net.sourceforge.lame.mpg.MPGLib;
-import net.sourceforge.lame.util.FileRandomReader;
 import net.sourceforge.lame.util.RandomReader;
 
 import java.io.IOException;
-import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -61,9 +59,9 @@ public class GetAudio {
     private RandomReader musicin;
     private MPGLib.mpstr_tag hip;
 
-    public void setModules(Parse parse2, MPGLib mpg2) {
-        parse = parse2;
-        mpg = mpg2;
+    public GetAudio(Parse parse, MPGLib mpg) {
+        this.parse = parse;
+        this.mpg = mpg;
     }
 
     public final void initInFile(final LameGlobalFlags gfp, final RandomReader inPath, final FrameSkip enc) {
@@ -71,7 +69,7 @@ public class GetAudio {
         count_samples_carefully = false;
         num_samples_read = 0;
         pcmbitwidth = parse.in_bitwidth;
-        pcmswapbytes = parse.swapbytes;
+        pcmswapbytes = false;
         pcm_is_unsigned_8bit = !parse.in_signed;
         try {
             musicin = OpenSndFile(gfp, inPath, enc);
@@ -108,7 +106,7 @@ public class GetAudio {
         //assert (framesize <= 1152);
 
 		/* get num_samples */
-        tmp_num_samples = gfp.num_samples;
+        tmp_num_samples = gfp.getNum_samples();
 
         if (count_samples_carefully) {
             remaining = tmp_num_samples - Math.min(tmp_num_samples, num_samples_read);
@@ -280,8 +278,7 @@ public class GetAudio {
                 case 24:
                 case 16: {
                     if (!parse.in_signed) throw new RuntimeException("Unsigned input only supported with bitwidth 8");
-                    swap_byte_order = (parse.in_endian != ByteOrder.LITTLE_ENDIAN);
-                    if (pcmswapbytes) swap_byte_order = !swap_byte_order;
+                    swap_byte_order = pcmswapbytes;
                     samples_read = unpack_read_samples(samples_to_read, pcmbitwidth / 8, swap_byte_order, sample_buffer, musicin);
                 }
                 break;
@@ -398,8 +395,8 @@ public class GetAudio {
             gfp.setInSampleRate(samples_per_sec);
             pcmbitwidth = bits_per_sample;
             pcm_is_unsigned_8bit = true;
-            gfp.num_samples = data_length
-                    / (channels * ((bits_per_sample + 7) / 8));
+            gfp.setNum_samples(data_length
+                    / (channels * ((bits_per_sample + 7) / 8)));
             return 1;
         }
         return -1;
@@ -542,18 +539,18 @@ public class GetAudio {
             }
         }
         if (dataType == IFF_ID_2CLE) {
-            pcmswapbytes = parse.swapbytes;
+            pcmswapbytes = false;
         } else if (dataType == IFF_ID_2CBE) {
-            pcmswapbytes = !parse.swapbytes;
+            pcmswapbytes = true;
         } else if (dataType == IFF_ID_NONE) {
-            pcmswapbytes = !parse.swapbytes;
+            pcmswapbytes = true;
         } else {
             return -1;
         }
 
         if (seen_comm_chunk != 0
                 && (seen_ssnd_chunk > 0 || aiff_info.numSampleFrames == 0)) {
-			/* make sure the header is sane */
+            /* make sure the header is sane */
             if (0 != aiff_check2(aiff_info))
                 return 0;
             gfp.setInNumChannels(aiff_info.numChannels);
@@ -562,7 +559,7 @@ public class GetAudio {
                 return 0;
             }
             gfp.setInSampleRate((int) aiff_info.sampleRate);
-            gfp.num_samples = aiff_info.numSampleFrames;
+            gfp.setNum_samples(aiff_info.numSampleFrames);
             pcmbitwidth = aiff_info.sampleSize;
             pcm_is_unsigned_8bit = false;
 
@@ -595,14 +592,14 @@ public class GetAudio {
         int type = Read32BitsHighLow(sf);
         count_samples_carefully = false;
         pcm_is_unsigned_8bit = !parse.in_signed;
-		/*
-		 * input_format = sf_raw; commented out, because it is better to fail
+        /*
+         * input_format = sf_raw; commented out, because it is better to fail
 		 * here as to encode some hundreds of input files not supported by LAME
 		 * If you know you have RAW PCM data, use the -r switch
 		 */
 
         if (type == WAV_ID_RIFF) {
-			/* It's probably a WAV file */
+            /* It's probably a WAV file */
             int ret = parse_wave_header(gfp, sf);
             if (ret > 0) {
                 count_samples_carefully = true;
@@ -612,7 +609,7 @@ public class GetAudio {
                 //System.err.println("Warning: corrupt or unsupported WAVE format");
             }
         } else if (type == IFF_ID_FORM) {
-			/* It's probably an AIFF file */
+            /* It's probably an AIFF file */
             int ret = parse_aiff_header(gfp, sf);
             if (ret > 0) {
                 count_samples_carefully = true;
@@ -627,16 +624,13 @@ public class GetAudio {
         return SoundFileFormat.sf_unknown;
     }
 
-    private RandomReader OpenSndFile(final LameGlobalFlags gfp,
-                                     final String inPath, final FrameSkip enc) throws IOException {
-        return OpenSndFile(gfp, new FileRandomReader(inPath, "r"), enc);
-    }
-
-    private RandomReader OpenSndFile(final LameGlobalFlags gfp,
-                                     final RandomReader musicin2, final FrameSkip enc) throws IOException {
+    private RandomReader OpenSndFile(
+            final LameGlobalFlags gfp,
+            final RandomReader musicin2, final FrameSkip enc
+    ) throws IOException {
 
 		/* set the defaults from info in case we cannot determine them from file */
-        gfp.num_samples = -1;
+        gfp.setNum_samples(-1);
 
         musicin = musicin2;
 
@@ -646,14 +640,14 @@ public class GetAudio {
             }
             gfp.setInNumChannels(parse.getMp3InputData().stereo);
             gfp.setInSampleRate(parse.getMp3InputData().samplerate);
-            gfp.num_samples = parse.getMp3InputData().getNumSamples();
+            gfp.setNum_samples(parse.getMp3InputData().getNumSamples());
         } else if (parse.getInputFormat() == SoundFileFormat.sf_ogg) {
             throw new RuntimeException("sorry, vorbis support in LAME is deprecated.");
         } else if (parse.getInputFormat() == SoundFileFormat.sf_raw) {
-			/* assume raw PCM */
+            /* assume raw PCM */
             //System.out.println("Assuming raw pcm input file");
             //if (parse.swapbytes) System.out.printf(" : Forcing byte-swapping\n");else System.out.printf("\n");
-            pcmswapbytes = parse.swapbytes;
+            pcmswapbytes = false;
         } else {
             parse.setInputFormat(parse_file_header(gfp, musicin));
         }
@@ -661,10 +655,10 @@ public class GetAudio {
             throw new RuntimeException("Unknown sound format!");
         }
 
-        if (gfp.num_samples == -1) {
+        if (gfp.getNum_samples() == -1) {
 
             double flen = musicin2.length();
-			/* try to figure out num_samples */
+            /* try to figure out num_samples */
             if (flen >= 0) {
 				/* try file size, assume 2 bytes per sample */
                 if (is_mpeg_file_format(parse.getInputFormat())) {
@@ -672,11 +666,11 @@ public class GetAudio {
                         double totalseconds = (flen * 8.0 / (1000.0 * parse.getMp3InputData().bitrate));
                         int tmp_num_samples = (int) (totalseconds * gfp.getInSampleRate());
 
-                        gfp.num_samples = tmp_num_samples;
+                        gfp.setNum_samples(tmp_num_samples);
                         parse.getMp3InputData().setNumSamples(tmp_num_samples);
                     }
                 } else {
-                    gfp.num_samples = (int) (flen / (2 * gfp.getInNumChannels()));
+                    gfp.setNum_samples((int) (flen / (2 * gfp.getInNumChannels())));
                 }
             }
         }
@@ -695,18 +689,10 @@ public class GetAudio {
     private boolean is_syncword_mp123(final byte[] headerptr) {
         int p = 0;
 
-        if ((headerptr[p + 0] & 0xFF) != 0xFF) {
-			/* first 8 bits must be '1' */
-            return false;
-        }
-        if ((headerptr[p + 1] & 0xE0) != 0xE0) {
-			/* next 3 bits are also */
-            return false;
-        }
-        if ((headerptr[p + 1] & 0x18) == 0x08) {
-			/* no MPEG-1, -2 or -2.5 */
-            return false;
-        }
+        if ((headerptr[p + 0] & 0xFF) != 0xFF) return false; /* first 8 bits must be '1' */
+        if ((headerptr[p + 1] & 0xE0) != 0xE0) return false; /* next 3 bits are also */
+        if ((headerptr[p + 1] & 0x18) == 0x08) return false; /* no MPEG-1, -2 or -2.5 */
+
         switch (headerptr[p + 1] & 0x06) {
             default:
             case 0x00:
@@ -715,8 +701,7 @@ public class GetAudio {
 
             case 0x02:
 			/* Layer3 */
-                if (parse.getInputFormat() != SoundFileFormat.sf_mp3
-                        && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
+                if (parse.getInputFormat() != SoundFileFormat.sf_mp3 && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
                     return false;
                 }
                 parse.setInputFormat(SoundFileFormat.sf_mp3);
@@ -724,8 +709,7 @@ public class GetAudio {
 
             case 0x04:
 			/* Layer2 */
-                if (parse.getInputFormat() != SoundFileFormat.sf_mp2
-                        && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
+                if (parse.getInputFormat() != SoundFileFormat.sf_mp2 && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
                     return false;
                 }
                 parse.setInputFormat(SoundFileFormat.sf_mp2);
@@ -733,33 +717,18 @@ public class GetAudio {
 
             case 0x06:
 			/* Layer1 */
-                if (parse.getInputFormat() != SoundFileFormat.sf_mp1
-                        && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
+                if (parse.getInputFormat() != SoundFileFormat.sf_mp1 && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
                     return false;
                 }
                 parse.setInputFormat(SoundFileFormat.sf_mp1);
                 break;
         }
-        if ((headerptr[p + 1] & 0x06) == 0x00) {
-			/* no Layer I, II and III */
+        if ((headerptr[p + 1] & 0x06) == 0x00) return false; /* no Layer I, II and III */
+        if ((headerptr[p + 2] & 0xF0) == 0xF0) return false; /* bad bitrate */
+        if ((headerptr[p + 2] & 0x0C) == 0x0C) return false; /* no sample frequency with (32,44.1,48)/(1,2,4) */
+        if ((headerptr[p + 1] & 0x18) == 0x18 && (headerptr[p + 1] & 0x06) == 0x04 && (abl2[(headerptr[p + 2] & 0xff) >> 4] & (1 << ((headerptr[p + 3] & 0xff) >> 6))) != 0)
             return false;
-        }
-        if ((headerptr[p + 2] & 0xF0) == 0xF0) {
-			/* bad bitrate */
-            return false;
-        }
-        if ((headerptr[p + 2] & 0x0C) == 0x0C) {
-			/* no sample frequency with (32,44.1,48)/(1,2,4) */
-            return false;
-        }
-        if ((headerptr[p + 1] & 0x18) == 0x18
-                && (headerptr[p + 1] & 0x06) == 0x04
-                && (abl2[(headerptr[p + 2] & 0xff) >> 4] & (1 << ((headerptr[p + 3] & 0xff) >> 6))) != 0)
-            return false;
-        if ((headerptr[p + 3] & 3) == 2) {
-			/* reserved enphasis mode */
-            return false;
-        }
+        if ((headerptr[p + 3] & 3) == 2) return false; /* reserved enphasis mode */
         return true;
     }
 
@@ -962,8 +931,7 @@ public class GetAudio {
         int first = 0xffff & Read16BitsLowHigh(fp);
         int second = 0xffff & Read16BitsLowHigh(fp);
 
-        int result = (second << 16) + first;
-        return (result);
+        return ((second << 16) + first);
     }
 
     private int Read16BitsLowHigh(final RandomReader fp) {
@@ -971,8 +939,7 @@ public class GetAudio {
             int first = 0xff & fp.read();
             int second = 0xff & fp.read();
 
-            int result = (second << 8) + first;
-            return (result);
+            return ((second << 8) + first);
         } catch (IOException e) {
             e.printStackTrace();
             return 0;
@@ -996,9 +963,7 @@ public class GetAudio {
     private int Read32BitsHighLow(final RandomReader fp) {
         int first = 0xffff & Read16BitsHighLow(fp);
         int second = 0xffff & Read16BitsHighLow(fp);
-
-        int result = (first << 16) + second;
-        return (result);
+        return ((first << 16) + second);
     }
 
     private double unsignedToFloat(final double u) {

@@ -41,8 +41,8 @@ public class Interface {
     private Layer2 layer2 = new Layer2(common);
     private Layer3 layer3 = new Layer3(common);
 
-    public void setModules(VBRTag v) {
-        vbr = v;
+    public Interface(VBRTag vbr) {
+        this.vbr = vbr;
     }
 
     mpstr_tag InitMP3() {

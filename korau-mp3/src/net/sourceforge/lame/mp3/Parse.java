@@ -23,13 +23,9 @@
 
 package net.sourceforge.lame.mp3;
 
-import java.nio.ByteOrder;
-
 public class Parse {
-    public boolean swapbytes = false;
     //public int silent;
     public boolean in_signed = true;
-    public ByteOrder in_endian = ByteOrder.LITTLE_ENDIAN;
     public int in_bitwidth = 16;
     private GetAudio.SoundFileFormat inputFormat = GetAudio.SoundFileFormat.sf_unknown;
     private MP3Data mp3InputData = new MP3Data();

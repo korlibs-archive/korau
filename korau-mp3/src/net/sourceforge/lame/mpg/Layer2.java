@@ -50,7 +50,7 @@ public class Layer2 {
     private final int[] table[] = {null, null, null, grp_3tab, null, grp_5tab, null, null, null, grp_9tab};
     private final int base[][] = {{1, 0, 2,}, {17, 18, 0, 19, 20,}, {21, 1, 22, 23, 0, 24, 25, 2, 26}};
     private final int tablen[] = {3, 5, 9};
-    private final L2Tables.al_table2[] tables2[] = {L2Tables.alloc_0, L2Tables.alloc_1, L2Tables.alloc_2, L2Tables.alloc_3, L2Tables.alloc_4};
+    private final L2Tables.al_table2[] tables2[] = {L2Tables.INSTANCE.getAlloc_0(), L2Tables.INSTANCE.getAlloc_1(), L2Tables.INSTANCE.getAlloc_2(), L2Tables.INSTANCE.getAlloc_3(), L2Tables.INSTANCE.getAlloc_4()};
     private final int sblims[] = {27, 30, 8, 12, 30};
     private Common common;
     private int itable;
@@ -103,12 +103,12 @@ public class Layer2 {
         if (stereo != 0) {
             for (i = jsbound; i != 0; i--, alloc1 += (1 << step)) {
                 bit_alloc[bita++] = (char) common.getbits(mp,
-                        step = fr.alloc[alloc1].bits);
+                        step = fr.alloc[alloc1].getBits());
                 bit_alloc[bita++] = (char) common.getbits(mp, step);
             }
             for (i = sblimit - jsbound; i != 0; i--, alloc1 += (1 << step)) {
                 bit_alloc[bita + 0] = (char) common.getbits(mp,
-                        step = fr.alloc[alloc1].bits);
+                        step = fr.alloc[alloc1].getBits());
                 bit_alloc[bita + 1] = bit_alloc[bita + 0];
                 bita += 2;
             }
@@ -121,7 +121,7 @@ public class Layer2 {
 
             for (i = sblimit; i != 0; i--, alloc1 += (1 << step))
                 bit_alloc[bita++] = (char) common.getbits(mp,
-                        step = fr.alloc[alloc1].bits);
+                        step = fr.alloc[alloc1].getBits());
             bita = 0;
             scfsi = 0;
             for (i = sblimit; i != 0; i--)
@@ -171,12 +171,12 @@ public class Layer2 {
         int d1, step;
 
         for (i = 0; i < jsbound; i++, alloc1 += (1 << step)) {
-            step = fr.alloc[alloc1].bits;
+            step = fr.alloc[alloc1].getBits();
             for (j = 0; j < stereo; j++) {
                 ba = bit_alloc[bita++];
                 if (ba != 0) {
-                    k = fr.alloc[(alloc2 = alloc1 + ba)].bits;
-                    if ((d1 = fr.alloc[alloc2].d) < 0) {
+                    k = fr.alloc[(alloc2 = alloc1 + ba)].getBits();
+                    if ((d1 = fr.alloc[alloc2].getD()) < 0) {
                         float cm = common.muls[k][scale[scalePos + x1]];
                         fraction[j][0][i] = ((float) ((int) common.getbits(mp,
                                 k) + d1)) * cm;
@@ -199,12 +199,12 @@ public class Layer2 {
         }
 
         for (i = jsbound; i < sblimit; i++, alloc1 += (1 << step)) {
-            step = fr.alloc[alloc1].bits;
+            step = fr.alloc[alloc1].getBits();
             bita++; /* channel 1 and channel 2 bitalloc are the same */
             ba = bit_alloc[bita++];
             if (ba != 0) {
-                k = fr.alloc[(alloc2 = alloc1 + ba)].bits;
-                if ((d1 = fr.alloc[alloc2].d) < 0) {
+                k = fr.alloc[(alloc2 = alloc1 + ba)].getBits();
+                if ((d1 = fr.alloc[alloc2].getD()) < 0) {
                     float cm;
                     cm = common.muls[k][scale[scalePos + x1 + 3]];
                     fraction[1][0][i] = (fraction[0][0][i] = (float) ((int) common

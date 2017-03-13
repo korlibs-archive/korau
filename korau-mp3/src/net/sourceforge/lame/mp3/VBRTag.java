@@ -61,10 +61,10 @@ public class VBRTag {
         int hSrIndex = (buf[bufPos + 2] >> 2) & 3;
         int hMode = (buf[bufPos + 3] >> 6) & 3;
         int hBitrate = ((buf[bufPos + 2] >> 4) & 0xf);
-        hBitrate = Tables.bitrate_table[hId][hBitrate];
+        hBitrate = Tables.INSTANCE.getBitrate_table()[hId][hBitrate];
 
 		/* check for FFE syncword */
-        pTagData.samprate = ((buf[bufPos + 1] >> 4) == 0xE) ? Tables.samplerate_table[2][hSrIndex] : Tables.samplerate_table[hId][hSrIndex];
+        pTagData.samprate = ((buf[bufPos + 1] >> 4) == 0xE) ? Tables.INSTANCE.getSamplerate_table()[2][hSrIndex] : Tables.INSTANCE.getSamplerate_table()[hId][hSrIndex];
 
         if (hId != 0) {
             bufPos += (hMode != 3) ? (32 + 4) : (17 + 4); // mpeg1

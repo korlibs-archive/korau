@@ -40,8 +40,6 @@ public class MPG123 {
         int pow2gainPos;
     }
 
-    ;
-
     static class grT {
         gr_info_s gr[] = new gr_info_s[2];
 
@@ -61,7 +59,4 @@ public class MPG123 {
             ch[1] = new grT();
         }
     }
-
-    ;
-
 }
