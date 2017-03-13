@@ -24,17 +24,24 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jogg
 
-public class JOrbisException extends Exception {
+class Packet {
+    var packet_base: ByteArray = byteArrayOf()
+    var packet: Int = 0
+    var bytes: Int = 0
+    var b_o_s: Int = 0
+    var e_o_s: Int = 0
 
-    private static final long serialVersionUID = 1L;
+    var granulepos: Long = 0
 
-    public JOrbisException() {
-        super();
-    }
+    /**
+     * sequence number for decode; the framing
+     * knows where there's a hole in the data,
+     * but we need coupling so that the codec
+     * (which is in a seperate abstraction
+     * layer) also knows about the gap
+     */
+    var packetno: Long = 0
 
-    public JOrbisException(String s) {
-        super("JOrbis: " + s);
-    }
 }

@@ -122,7 +122,7 @@ public class VorbisFile {
 
     private int get_data() {
         int index = oy.buffer(CHUNKSIZE);
-        byte[] buffer = oy.data;
+        byte[] buffer = oy.getData();
         int bytes = 0;
         try {
             bytes = datasource.read(buffer, index, CHUNKSIZE);
@@ -176,8 +176,9 @@ public class VorbisFile {
         int offst = -1;
         while (offst == -1) {
             begin -= CHUNKSIZE;
-            if (begin < 0)
+            if (begin < 0) {
                 begin = 0;
+            }
             seek_helper(begin);
             while (offset < begin + CHUNKSIZE) {
                 ret = get_next_page(page, begin + CHUNKSIZE - offset);
@@ -185,8 +186,9 @@ public class VorbisFile {
                     return OV_EREAD;
                 }
                 if (ret < 0) {
-                    if (offst == -1)
+                    if (offst == -1) {
                         throw new JOrbisException();
+                    }
                     break;
                 } else {
                     offst = ret;
@@ -225,7 +227,7 @@ public class VorbisFile {
                 if (ret >= 0)
                     next = ret;
             } else {
-                searched = ret + page.header_len + page.body_len;
+                searched = ret + page.getHeader_len() + page.getBody_len();
             }
         }
         seek_helper(next);
@@ -472,7 +474,7 @@ public class VorbisFile {
                 // error code in a bit.
                 if (result > 0) {
                     // got a packet.  process it
-                    granulepos = op.granulepos;
+                    granulepos = op.getGranulepos();
                     if (vb.synthesis(op) == 0) { // lazy check for lazy
                         // header handling.  The
                         // header packets aren't
@@ -485,11 +487,11 @@ public class VorbisFile {
                             int oldsamples = vd.synthesis_pcmout(null, null);
                             vd.synthesis_blockin(vb);
                             samptrack += vd.synthesis_pcmout(null, null) - oldsamples;
-                            bittrack += op.bytes * 8;
+                            bittrack += op.getBytes() * 8;
                         }
 
                         // update the pcm offset.
-                        if (granulepos != -1 && op.e_o_s == 0) {
+                        if (granulepos != -1 && op.getE_o_s() == 0) {
                             int link = (seekable ? current_link : 0);
                             int samples;
                             // this packet has a pcm_offset on it (the last packet
@@ -523,7 +525,7 @@ public class VorbisFile {
 
             // bitrate tracking; add the header's bytes here, the body bytes
             // are done by packet above
-            bittrack += og.header_len * 8;
+            bittrack += og.getHeader_len() * 8;
 
             // has our decoding just traversed a bitstream boundary?
             if (decode_ready) {
@@ -668,7 +670,7 @@ public class VorbisFile {
         // stream)
         if (initial != null) {
             int index = oy.buffer(ibytes);
-            System.arraycopy(initial, 0, oy.data, index, ibytes);
+            System.arraycopy(initial, 0, oy.getData(), index, ibytes);
             oy.wrote(ibytes);
         }
         // can we seek? Stevens suggests the seek test was portable

@@ -24,24 +24,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jogg;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-public class Packet {
-    public byte[] packet_base;
-    public int packet;
-    public int bytes;
-    public int b_o_s;
-    public int e_o_s;
-
-    public long granulepos;
-
-    /**
-     * sequence number for decode; the framing
-     * knows where there's a hole in the data,
-     * but we need coupling so that the codec
-     * (which is in a seperate abstraction
-     * layer) also knows about the gap
-     */
-    public long packetno;
-
-}
+class JOrbisException(s: String = "") : Exception("JOrbis: $s")

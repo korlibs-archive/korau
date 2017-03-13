@@ -38,8 +38,9 @@ class Floor0 extends FuncFloor {
         opb.write(info.ampbits, 6);
         opb.write(info.ampdB, 8);
         opb.write(info.numbooks - 1, 4);
-        for (int j = 0; j < info.numbooks; j++)
+        for (int j = 0; j < info.numbooks; j++) {
             opb.write(info.books[j], 8);
+        }
     }
 
     Object unpack(Info vi, Buffer opb) {
@@ -87,8 +88,9 @@ class Floor0 extends FuncFloor {
         look.linearmap = new int[look.n];
         for (int j = 0; j < look.n; j++) {
             int val = (int) Math.floor(toBARK((float) ((info.rate / 2.) / look.n * j)) * scale); // bark numbers represent band edges
-            if (val >= look.ln)
+            if (val >= look.ln) {
                 val = look.ln; // guard against the approximation
+            }
             look.linearmap[j] = val;
         }
         return look;
@@ -140,31 +142,34 @@ class Floor0 extends FuncFloor {
                     if (lsp == null || lsp.length < look.m) {
                         lsp = new float[look.m];
                     } else {
-                        for (int j = 0; j < look.m; j++)
+                        for (int j = 0; j < look.m; j++) {
                             lsp[j] = 0.f;
+                        }
                     }
 
                     CodeBook b = vb.vd.fullbooks[info.books[booknum]];
                     float last = 0.f;
 
-                    for (int j = 0; j < look.m; j++)
+                    for (int j = 0; j < look.m; j++) {
                         out[j] = 0.0f;
+                    }
 
                     for (int j = 0; j < look.m; j += b.dim) {
                         if (b.decodevs(lsp, j, vb.opb, 1, -1) == -1) {
-                            for (int k = 0; k < look.n; k++)
+                            for (int k = 0; k < look.n; k++) {
                                 out[k] = 0.0f;
+                            }
                             return (0);
                         }
                     }
                     for (int j = 0; j < look.m; ) {
-                        for (int k = 0; k < b.dim; k++, j++)
+                        for (int k = 0; k < b.dim; k++, j++) {
                             lsp[j] += last;
+                        }
                         last = lsp[j - 1];
                     }
                     // take the coefficients back to a spectral envelope curve
-                    Lsp.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m,
-                            amp, info.ampdB);
+                    Lsp.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m, amp, info.ampdB);
 
                     return (1);
                 }
@@ -194,8 +199,9 @@ class Floor0 extends FuncFloor {
                 if (lsp == null || lsp.length < look.m + 1) {
                     lsp = new float[look.m + 1];
                 } else {
-                    for (int j = 0; j < lsp.length; j++)
+                    for (int j = 0; j < lsp.length; j++) {
                         lsp[j] = 0.f;
+                    }
                 }
 
                 for (int j = 0; j < look.m; j += b.dim) {
@@ -205,8 +211,9 @@ class Floor0 extends FuncFloor {
                 }
 
                 for (int j = 0; j < look.m; ) {
-                    for (int k = 0; k < b.dim; k++, j++)
+                    for (int k = 0; k < b.dim; k++, j++) {
                         lsp[j] += last;
+                    }
                     last = lsp[j - 1];
                 }
                 lsp[look.m] = amp;
@@ -268,7 +275,8 @@ class Floor0 extends FuncFloor {
 
         // run impulse response
         for (i = 1; i < m + 1; i++) {
-            A = B = 0.f;
+            A = 0.f;
+            B = 0.f;
             for (j = 0; j < m2; j++) {
                 temp = O[j] * Ao[j] + Ae[j];
                 Ae[j] = Ao[j];
@@ -292,14 +300,16 @@ class Floor0 extends FuncFloor {
         float[] lcurve = new float[Math.max(l.ln * 2, l.m * 2 + 2)];
 
         if (amp == 0) {
-            for (int j = 0; j < l.n; j++)
+            for (int j = 0; j < l.n; j++) {
                 curve[j] = 0.0f;
+            }
             return;
         }
         l.lpclook.lpc_to_curve(lcurve, lpc, amp);
 
-        for (int i = 0; i < l.n; i++)
+        for (int i = 0; i < l.n; i++) {
             curve[i] = lcurve[l.linearmap[i]];
+        }
     }
 
     class InfoFloor0 {

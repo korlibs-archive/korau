@@ -75,7 +75,7 @@ public class Block {
         Info vi = vd.vi;
 
         // first things first.  Make sure decode is ready
-        opb.readinit(op.packet_base, op.packet, op.bytes);
+        opb.readinit(op.getPacket_base(), op.getPacket(), op.getBytes());
 
         // Check the packet type
         if (opb.read(1) != 0) {
@@ -101,9 +101,9 @@ public class Block {
         }
 
         // more setup
-        granulepos = op.granulepos;
-        sequence = op.packetno - 3; // first block is third packet
-        eofflag = op.e_o_s;
+        granulepos = op.getGranulepos();
+        sequence = op.getPacketno() - 3; // first block is third packet
+        eofflag = op.getE_o_s();
 
         // alloc pcm passback storage
         pcmend = vi.blocksizes[W];

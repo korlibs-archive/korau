@@ -76,7 +76,7 @@ class DecodeExample {
 
             // submit a 4k block to libvorbis' Ogg layer
             int index = oy.buffer(4096);
-            buffer = oy.data;
+            buffer = oy.getData();
             try {
                 bytes = input.read(buffer, index, 4096);
             } catch (Exception e) {
@@ -170,7 +170,7 @@ class DecodeExample {
                 }
                 // no harm in not checking before adding more
                 index = oy.buffer(4096);
-                buffer = oy.data;
+                buffer = oy.getData();
                 try {
                     bytes = input.read(buffer, index, 4096);
                 } catch (Exception e) {
@@ -288,7 +288,7 @@ class DecodeExample {
                 }
                 if (eos == 0) {
                     index = oy.buffer(4096);
-                    buffer = oy.data;
+                    buffer = oy.getData();
                     try {
                         bytes = input.read(buffer, index, 4096);
                     } catch (Exception e) {

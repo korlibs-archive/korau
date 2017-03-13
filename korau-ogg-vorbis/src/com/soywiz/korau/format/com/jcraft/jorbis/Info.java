@@ -313,7 +313,7 @@ public class Info {
         Buffer opb = new Buffer();
 
         if (op != null) {
-            opb.readinit(op.packet_base, op.packet, op.bytes);
+            opb.readinit(op.getPacket_base(), op.getPacket(), op.getBytes());
 
             // Which of the three types of header is this?
             // Also verify header-ness, vorbis
@@ -328,7 +328,7 @@ public class Info {
                 }
                 switch (packtype) {
                     case 0x01: // least significant *bit* is read first
-                        if (op.b_o_s == 0) {
+                        if (op.getB_o_s() == 0) {
                             // Not the initial packet
                             return (-1);
                         }
@@ -439,7 +439,7 @@ public class Info {
 
         int mode;
 
-        opb.readinit(op.packet_base, op.packet, op.bytes);
+        opb.readinit(op.getPacket_base(), op.getPacket(), op.getBytes());
 
     /* Check the packet type */
         if (opb.read(1) != 0) {

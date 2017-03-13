@@ -203,13 +203,13 @@ public class Comment {
         if (pack(opb) != 0)
             return OV_EIMPL;
 
-        op.packet_base = new byte[opb.bytes()];
-        op.packet = 0;
-        op.bytes = opb.bytes();
-        System.arraycopy(opb.buffer(), 0, op.packet_base, 0, op.bytes);
-        op.b_o_s = 0;
-        op.e_o_s = 0;
-        op.granulepos = 0;
+        op.setPacket_base(new byte[opb.bytes()]);
+        op.setPacket(0);
+        op.setBytes(opb.bytes());
+        System.arraycopy(opb.buffer(), 0, op.getPacket_base(), 0, op.getBytes());
+        op.setB_o_s(0);
+        op.setE_o_s(0);
+        op.setGranulepos(0);
         return 0;
     }
 
