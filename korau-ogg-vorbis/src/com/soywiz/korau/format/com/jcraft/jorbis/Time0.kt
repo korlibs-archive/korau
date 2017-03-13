@@ -28,7 +28,7 @@ package com.soywiz.korau.format.com.jcraft.jorbis
 
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
-internal class Time0 : FuncTime() {
+class Time0 : FuncTime() {
     override fun pack(i: Any, opb: Buffer) {}
     override fun unpack(vi: Info, opb: Buffer): Any = ""
     override fun look(vd: DspState, mi: InfoMode, i: Any): Any = ""

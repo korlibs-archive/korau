@@ -24,23 +24,25 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-import com.soywiz.korau.format.com.jcraft.jogg.Buffer;
+import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
-abstract class FuncResidue {
-    public static FuncResidue[] residue_P = {new Residue0(), new Residue1(),
-            new Residue2()};
+abstract class FuncMapping {
 
-    abstract void pack(Object vr, Buffer opb);
+    abstract fun pack(info: Info, imap: Any, buffer: Buffer)
 
-    abstract Object unpack(Info vi, Buffer opb);
+    abstract fun unpack(info: Info, buffer: Buffer): Any?
 
-    abstract Object look(DspState vd, InfoMode vm, Object vr);
+    abstract fun look(vd: DspState, vm: InfoMode, m: Any): Any
 
-    abstract void free_info(Object i);
+    abstract fun free_info(imap: Any)
 
-    abstract void free_look(Object i);
+    abstract fun free_look(imap: Any)
 
-    abstract int inverse(Block vb, Object vl, float[][] in, int[] nonzero, int ch);
+    abstract fun inverse(vd: Block, lm: Any): Int
+
+    companion object {
+        var mapping_P = arrayOf<FuncMapping>(Mapping0())
+    }
 }

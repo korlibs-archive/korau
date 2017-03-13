@@ -117,7 +117,7 @@ public class Info {
         mode_param = null;
 
         for (int i = 0; i < maps; i++) { // unpack does the range checking
-            FuncMapping.mapping_P[map_type[i]].free_info(map_param[i]);
+            FuncMapping.Companion.getMapping_P()[map_type[i]].free_info(map_param[i]);
         }
         map_param = null;
 
@@ -132,7 +132,7 @@ public class Info {
         floor_param = null;
 
         for (int i = 0; i < residues; i++) { // unpack does the range checking
-            FuncResidue.residue_P[residue_type[i]].free_info(residue_param[i]);
+            FuncResidue.Companion.getResidue_P()[residue_type[i]].free_info(residue_param[i]);
         }
         residue_param = null;
 
@@ -251,7 +251,7 @@ public class Info {
                 clear();
                 return (-1);
             }
-            residue_param[i] = FuncResidue.residue_P[residue_type[i]].unpack(this, opb);
+            residue_param[i] = FuncResidue.Companion.getResidue_P()[residue_type[i]].unpack(this, opb);
             if (residue_param[i] == null) {
                 clear();
                 return (-1);
@@ -270,7 +270,7 @@ public class Info {
                 clear();
                 return (-1);
             }
-            map_param[i] = FuncMapping.mapping_P[map_type[i]].unpack(this, opb);
+            map_param[i] = FuncMapping.Companion.getMapping_P()[map_type[i]].unpack(this, opb);
             if (map_param[i] == null) {
                 clear();
                 return (-1);
@@ -411,14 +411,14 @@ public class Info {
         opb.write(residues - 1, 6);
         for (int i = 0; i < residues; i++) {
             opb.write(residue_type[i], 16);
-            FuncResidue.residue_P[residue_type[i]].pack(residue_param[i], opb);
+            FuncResidue.Companion.getResidue_P()[residue_type[i]].pack(residue_param[i], opb);
         }
 
         // maps
         opb.write(maps - 1, 6);
         for (int i = 0; i < maps; i++) {
             opb.write(map_type[i], 16);
-            FuncMapping.mapping_P[map_type[i]].pack(this, map_param[i], opb);
+            FuncMapping.Companion.getMapping_P()[map_type[i]].pack(this, map_param[i], opb);
         }
 
         // modes

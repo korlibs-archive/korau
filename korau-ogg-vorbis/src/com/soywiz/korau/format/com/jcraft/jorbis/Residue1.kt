@@ -24,21 +24,21 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-class Residue1 extends Residue0 {
+internal class Residue1 : Residue0() {
 
-    int inverse(Block vb, Object vl, float[][] in, int[] nonzero, int ch) {
-        int used = 0;
-        for (int i = 0; i < ch; i++) {
+    override fun inverse(vb: Block, vl: Any, `in`: Array<FloatArray>, nonzero: IntArray, ch: Int): Int {
+        var used = 0
+        for (i in 0 until ch) {
             if (nonzero[i] != 0) {
-                in[used++] = in[i];
+                `in`[used++] = `in`[i]
             }
         }
         if (used != 0) {
-            return (_01inverse(vb, vl, in, used, 1));
+            return Residue0._01inverse(vb, vl, `in`, used, 1)
         } else {
-            return 0;
+            return 0
         }
     }
 }

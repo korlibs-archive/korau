@@ -24,18 +24,25 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-class Residue2 extends Residue0 {
+import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
-    int inverse(Block vb, Object vl, float[][] in, int[] nonzero, int ch) {
-        int i = 0;
-        for (i = 0; i < ch; i++)
-            if (nonzero[i] != 0)
-                break;
-        if (i == ch)
-            return (0); /* no nonzero vectors */
+abstract class FuncResidue {
 
-        return (_2inverse(vb, vl, in, ch));
+    abstract fun pack(vr: Any, opb: Buffer)
+
+    abstract fun unpack(vi: Info, opb: Buffer): Any?
+
+    abstract fun look(vd: DspState, vm: InfoMode, vr: Any): Any
+
+    abstract fun free_info(i: Any)
+
+    abstract fun free_look(i: Any)
+
+    abstract fun inverse(vb: Block, vl: Any, `in`: Array<FloatArray>, nonzero: IntArray, ch: Int): Int
+
+    companion object {
+        var residue_P = arrayOf<FuncResidue>(Residue0(), Residue1(), Residue2())
     }
 }

@@ -24,22 +24,20 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-import com.soywiz.korau.format.com.jcraft.jogg.Buffer;
+internal class Residue2 : Residue0() {
+    override fun inverse(vb: Block, vl: Any, `in`: Array<FloatArray>, nonzero: IntArray, ch: Int): Int {
+        var i = 0
+        i = 0
+        while (i < ch) {
+            if (nonzero[i] != 0)
+                break
+            i++
+        }
+        if (i == ch)
+            return 0 /* no nonzero vectors */
 
-abstract class FuncMapping {
-    public static FuncMapping[] mapping_P = {new Mapping0()};
-
-    abstract void pack(Info info, Object imap, Buffer buffer);
-
-    abstract Object unpack(Info info, Buffer buffer);
-
-    abstract Object look(DspState vd, InfoMode vm, Object m);
-
-    abstract void free_info(Object imap);
-
-    abstract void free_look(Object imap);
-
-    abstract int inverse(Block vd, Object lm);
+        return Residue0._2inverse(vb, vl, `in`, ch)
+    }
 }
