@@ -41,7 +41,7 @@ class Mapping0 extends FuncMapping {
 
     Object look(DspState vd, InfoMode vm, Object m) {
         //System.err.println("Mapping0.look");
-        Info vi = vd.vi;
+        Info vi = vd.getVi();
         LookMapping0 look = new LookMapping0();
         InfoMapping0 info = look.map = (InfoMapping0) m;
         look.mode = vm;
@@ -70,7 +70,7 @@ class Mapping0 extends FuncMapping {
 
         }
 
-        if (vi.psys != 0 && vd.analysisp != 0) {
+        if (vi.psys != 0 && vd.getAnalysisp() != 0) {
             // ??
         }
 
@@ -189,14 +189,14 @@ class Mapping0 extends FuncMapping {
 
     synchronized int inverse(Block vb, Object l) {
         DspState vd = vb.getVd();
-        Info vi = vd.vi;
+        Info vi = vd.getVi();
         LookMapping0 look = (LookMapping0) l;
         InfoMapping0 info = look.map;
         InfoMode mode = look.mode;
         int n = vi.blocksizes[vb.getW()];
         vb.setPcmend(n);
 
-        float[] window = vd.window[vb.getW()][vb.getLW()][vb.getNW()][mode.getWindowtype()];
+        float[] window = vd.getWindow()[vb.getW()][vb.getLW()][vb.getNW()][mode.getWindowtype()];
         if (pcmbundle == null || pcmbundle.length < vi.channels) {
             pcmbundle = new float[vi.channels][];
             nonzero = new int[vi.channels];
@@ -296,7 +296,7 @@ class Mapping0 extends FuncMapping {
         for (int i = 0; i < vi.channels; i++) {
             float[] pcm = vb.getPcm()[i];
             //_analysis_output("out",seq+i,pcm,n/2,0,0);
-            ((Mdct) vd.transform[vb.getW()][0]).backward(pcm, pcm);
+            ((Mdct) vd.getTransform()[vb.getW()][0]).backward(pcm, pcm);
         }
 
         // now apply the decoded pre-window time information

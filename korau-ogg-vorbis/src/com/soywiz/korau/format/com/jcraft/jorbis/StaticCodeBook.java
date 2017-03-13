@@ -28,7 +28,7 @@ package com.soywiz.korau.format.com.jcraft.jorbis;
 
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer;
 
-class StaticCodeBook {
+public class StaticCodeBook {
     int dim; // codebook dimensions (elements per vector)
     int entries; // codebook entries
     int[] lengthlist; // codeword lengths in bits

@@ -244,7 +244,7 @@ class Floor1 extends FuncFloor {
     Object inverse1(Block vb, Object ii, Object memo) {
         LookFloor1 look = (LookFloor1) ii;
         InfoFloor1 info = look.vi;
-        CodeBook[] books = vb.getVd().fullbooks;
+        CodeBook[] books = vb.getVd().getFullbooks();
 
     /* unpack wrapped/predicted values from stream */
         if (vb.getOpb().read(1) == 1) {
@@ -352,7 +352,7 @@ class Floor1 extends FuncFloor {
     int inverse2(Block vb, Object i, Object memo, float[] out) {
         LookFloor1 look = (LookFloor1) i;
         InfoFloor1 info = look.vi;
-        int n = vb.getVd().vi.blocksizes[vb.getMode()] / 2;
+        int n = vb.getVd().getVi().blocksizes[vb.getMode()] / 2;
 
         if (memo != null) {
       /* render the lines */

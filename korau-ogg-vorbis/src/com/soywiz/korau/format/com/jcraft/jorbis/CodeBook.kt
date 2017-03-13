@@ -28,7 +28,7 @@ package com.soywiz.korau.format.com.jcraft.jorbis
 
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
-internal class CodeBook {
+class CodeBook {
     var dim: Int = 0 // codebook dimensions (elements per vector)
     var entries: Int = 0 // codebook entries
     var c = StaticCodeBook()
@@ -408,7 +408,7 @@ internal class CodeBook {
         return t
     }
 
-    internal inner class DecodeAux {
+    inner class DecodeAux {
         var tab: IntArray = intArrayOf()
         var tabl: IntArray = intArrayOf()
         var tabn: Int = 0

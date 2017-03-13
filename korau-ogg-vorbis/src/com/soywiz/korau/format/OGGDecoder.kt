@@ -106,7 +106,7 @@ class OGGDecoder : OGG() {
         vd.synthesis_init(vi)
         vb.init(vd)
 
-        val _pcmf = arrayOfNulls<Array<FloatArray>>(1)
+        val _pcmf = Array<Array<FloatArray>>(1) { arrayOf() }
         val _index = IntArray(vi.channels)
 
         var chained = false

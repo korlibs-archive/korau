@@ -106,8 +106,8 @@ class Residue0 extends FuncResidue {
         look.map = vm.getMapping();
 
         look.parts = info.partitions;
-        look.fullbooks = vd.fullbooks;
-        look.phrasebook = vd.fullbooks[info.groupbook];
+        look.fullbooks = vd.getFullbooks();
+        look.phrasebook = vd.getFullbooks()[info.groupbook];
 
         dim = look.phrasebook.getDim();
 
