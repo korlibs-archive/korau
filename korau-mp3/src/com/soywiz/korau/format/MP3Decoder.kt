@@ -2,14 +2,12 @@ package com.soywiz.korau.format
 
 import com.soywiz.korio.stream.AsyncStream
 import net.sourceforge.lame.mp3.FrameSkip
-import net.sourceforge.lame.mp3.GetAudio
 import net.sourceforge.lame.mp3.Lame
-import net.sourceforge.lame.util.AsyncStreamToRandomReader
 
 class MP3Decoder : MP3() {
     suspend override fun decodeStream(data: AsyncStream): AudioStream? {
         val lame = Lame()
-        lame.audio.initInFile(lame.flags, AsyncStreamToRandomReader(data), FrameSkip())
+        lame.audio.initInFile(lame.flags, data, FrameSkip())
 
         lame.parser.mp3InputData.totalFrames = lame.parser.mp3InputData.numSamples / lame.parser.mp3InputData.frameSize
 

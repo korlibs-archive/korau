@@ -25,8 +25,7 @@ class MP3DecoderTest {
 
         //LocalVfs("c:/temp/test.mp3").readAudioStream()!!.play()
         //LocalVfs("c:/temp/test3.mp3").readAudioStream()!!.play()
+        ResourcesVfs["mp31_joint_stereo_vbr.mp3"].readAudioStream()!!.play()
         LocalVfs("c:/temp/test2.mp3").readAudioStream()!!.play()
-
-        //ResourcesVfs["mp31_joint_stereo_vbr.mp3"].readAudioStream()!!.play()
     }
 }

@@ -24,7 +24,7 @@ open class AudioStream(
     }
 
     companion object {
-        fun generator(rate: Int, channels: Int, gen: () -> ShortArray?): AudioStream {
+        fun generator(rate: Int, channels: Int, gen: suspend () -> ShortArray?): AudioStream {
             return object : AudioStream(rate, channels) {
                 var chunk: ShortArray = shortArrayOf()
                 var pos = 0
