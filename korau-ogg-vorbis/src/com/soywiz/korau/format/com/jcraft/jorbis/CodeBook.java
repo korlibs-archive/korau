@@ -436,7 +436,7 @@ class CodeBook {
             }
         }
 
-        t.tabn = Util.ilog(entries) - 4;
+        t.tabn = Util.INSTANCE.ilog(entries) - 4;
 
         if (t.tabn < 5)
             t.tabn = 5;

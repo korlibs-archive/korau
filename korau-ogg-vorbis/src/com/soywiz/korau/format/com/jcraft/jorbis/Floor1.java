@@ -62,8 +62,8 @@ class Floor1 extends FuncFloor {
 
     /* save out the post list */
         opb.write(info.mult - 1, 2); /* only 1,2,3,4 legal now */
-        opb.write(Util.ilog2(maxposit), 4);
-        rangebits = Util.ilog2(maxposit);
+        opb.write(Util.INSTANCE.ilog2(maxposit), 4);
+        rangebits = Util.INSTANCE.ilog2(maxposit);
 
         for (int j = 0, k = 0; j < info.partitions; j++) {
             count += info.class_dim[info.partitionclass[j]];
@@ -244,10 +244,10 @@ class Floor1 extends FuncFloor {
     Object inverse1(Block vb, Object ii, Object memo) {
         LookFloor1 look = (LookFloor1) ii;
         InfoFloor1 info = look.vi;
-        CodeBook[] books = vb.vd.fullbooks;
+        CodeBook[] books = vb.getVd().fullbooks;
 
     /* unpack wrapped/predicted values from stream */
-        if (vb.opb.read(1) == 1) {
+        if (vb.getOpb().read(1) == 1) {
             int[] fit_value = null;
             if (memo instanceof int[]) {
                 fit_value = (int[]) memo;
@@ -259,8 +259,8 @@ class Floor1 extends FuncFloor {
                     fit_value[i] = 0;
             }
 
-            fit_value[0] = vb.opb.read(Util.ilog(look.quant_q - 1));
-            fit_value[1] = vb.opb.read(Util.ilog(look.quant_q - 1));
+            fit_value[0] = vb.getOpb().read(Util.INSTANCE.ilog(look.quant_q - 1));
+            fit_value[1] = vb.getOpb().read(Util.INSTANCE.ilog(look.quant_q - 1));
 
       /* partition by partition */
             for (int i = 0, j = 2; i < info.partitions; i++) {
@@ -272,7 +272,7 @@ class Floor1 extends FuncFloor {
 
         /* decode the partition's first stage cascade value */
                 if (csubbits != 0) {
-                    cval = books[info.class_book[clss]].decode(vb.opb);
+                    cval = books[info.class_book[clss]].decode(vb.getOpb());
 
                     if (cval == -1) {
                         return (null);
@@ -283,7 +283,7 @@ class Floor1 extends FuncFloor {
                     int book = info.class_subbook[clss][cval & (csub - 1)];
                     cval >>>= csubbits;
                     if (book >= 0) {
-                        if ((fit_value[j + k] = books[book].decode(vb.opb)) == -1) {
+                        if ((fit_value[j + k] = books[book].decode(vb.getOpb())) == -1) {
                             return (null);
                         }
                     } else {
@@ -352,7 +352,7 @@ class Floor1 extends FuncFloor {
     int inverse2(Block vb, Object i, Object memo, float[] out) {
         LookFloor1 look = (LookFloor1) i;
         InfoFloor1 info = look.vi;
-        int n = vb.vd.vi.blocksizes[vb.mode] / 2;
+        int n = vb.getVd().vi.blocksizes[vb.getMode()] / 2;
 
         if (memo != null) {
       /* render the lines */

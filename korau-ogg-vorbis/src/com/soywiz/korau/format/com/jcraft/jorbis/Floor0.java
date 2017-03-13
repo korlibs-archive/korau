@@ -71,7 +71,7 @@ class Floor0 extends FuncFloor {
         InfoFloor0 info = (InfoFloor0) i;
         LookFloor0 look = new LookFloor0();
         look.m = info.order;
-        look.n = vi.blocksizes[mi.blockflag] / 2;
+        look.n = vi.blocksizes[mi.getBlockflag()] / 2;
         look.ln = info.barkmap;
         look.vi = info;
         look.lpclook.init(look.ln, look.m);
@@ -130,11 +130,11 @@ class Floor0 extends FuncFloor {
         //System.err.println("Floor0.inverse "+i.getClass()+"]");
         LookFloor0 look = (LookFloor0) i;
         InfoFloor0 info = look.vi;
-        int ampraw = vb.opb.read(info.ampbits);
+        int ampraw = vb.getOpb().read(info.ampbits);
         if (ampraw > 0) { // also handles the -1 out of data case
             int maxval = (1 << info.ampbits) - 1;
             float amp = (float) ampraw / maxval * info.ampdB;
-            int booknum = vb.opb.read(Util.ilog(info.numbooks));
+            int booknum = vb.getOpb().read(Util.INSTANCE.ilog(info.numbooks));
 
             if (booknum != -1 && booknum < info.numbooks) {
 
@@ -147,7 +147,7 @@ class Floor0 extends FuncFloor {
                         }
                     }
 
-                    CodeBook b = vb.vd.fullbooks[info.books[booknum]];
+                    CodeBook b = vb.getVd().fullbooks[info.books[booknum]];
                     float last = 0.f;
 
                     for (int j = 0; j < look.m; j++) {
@@ -155,7 +155,7 @@ class Floor0 extends FuncFloor {
                     }
 
                     for (int j = 0; j < look.m; j += b.dim) {
-                        if (b.decodevs(lsp, j, vb.opb, 1, -1) == -1) {
+                        if (b.decodevs(lsp, j, vb.getOpb(), 1, -1) == -1) {
                             for (int k = 0; k < look.n; k++) {
                                 out[k] = 0.0f;
                             }
@@ -186,14 +186,14 @@ class Floor0 extends FuncFloor {
             lsp = (float[]) memo;
         }
 
-        int ampraw = vb.opb.read(info.ampbits);
+        int ampraw = vb.getOpb().read(info.ampbits);
         if (ampraw > 0) { // also handles the -1 out of data case
             int maxval = (1 << info.ampbits) - 1;
             float amp = (float) ampraw / maxval * info.ampdB;
-            int booknum = vb.opb.read(Util.ilog(info.numbooks));
+            int booknum = vb.getOpb().read(Util.INSTANCE.ilog(info.numbooks));
 
             if (booknum != -1 && booknum < info.numbooks) {
-                CodeBook b = vb.vd.fullbooks[info.books[booknum]];
+                CodeBook b = vb.getVd().fullbooks[info.books[booknum]];
                 float last = 0.f;
 
                 if (lsp == null || lsp.length < look.m + 1) {
@@ -205,7 +205,7 @@ class Floor0 extends FuncFloor {
                 }
 
                 for (int j = 0; j < look.m; j += b.dim) {
-                    if (b.decodev_set(lsp, j, vb.opb, b.dim) == -1) {
+                    if (b.decodev_set(lsp, j, vb.getOpb(), b.dim) == -1) {
                         return (null);
                     }
                 }

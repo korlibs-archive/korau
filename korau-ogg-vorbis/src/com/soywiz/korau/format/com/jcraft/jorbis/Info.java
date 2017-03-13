@@ -122,7 +122,7 @@ public class Info {
         map_param = null;
 
         for (int i = 0; i < times; i++) { // unpack does the range checking
-            FuncTime.time_P[time_type[i]].free_info(time_param[i]);
+            FuncTime.Companion.getTime_P()[time_type[i]].free_info(time_param[i]);
         }
         time_param = null;
 
@@ -208,7 +208,7 @@ public class Info {
                 clear();
                 return (-1);
             }
-            time_param[i] = FuncTime.time_P[time_type[i]].unpack(this, opb);
+            time_param[i] = FuncTime.Companion.getTime_P()[time_type[i]].unpack(this, opb);
             if (time_param[i] == null) {
                 clear();
                 return (-1);
@@ -283,14 +283,14 @@ public class Info {
             mode_param = new InfoMode[modes];
         for (int i = 0; i < modes; i++) {
             mode_param[i] = new InfoMode();
-            mode_param[i].blockflag = opb.read(1);
-            mode_param[i].windowtype = opb.read(16);
-            mode_param[i].transformtype = opb.read(16);
-            mode_param[i].mapping = opb.read(8);
+            mode_param[i].setBlockflag(opb.read(1));
+            mode_param[i].setWindowtype(opb.read(16));
+            mode_param[i].setTransformtype(opb.read(16));
+            mode_param[i].setMapping(opb.read(8));
 
-            if ((mode_param[i].windowtype >= VI_WINDOWB)
-                    || (mode_param[i].transformtype >= VI_WINDOWB)
-                    || (mode_param[i].mapping >= maps)) {
+            if ((mode_param[i].getWindowtype() >= VI_WINDOWB)
+                    || (mode_param[i].getTransformtype() >= VI_WINDOWB)
+                    || (mode_param[i].getMapping() >= maps)) {
                 clear();
                 return (-1);
             }
@@ -374,8 +374,8 @@ public class Info {
         opb.write(bitrate_nominal, 32);
         opb.write(bitrate_lower, 32);
 
-        opb.write(Util.ilog2(blocksizes[0]), 4);
-        opb.write(Util.ilog2(blocksizes[1]), 4);
+        opb.write(Util.INSTANCE.ilog2(blocksizes[0]), 4);
+        opb.write(Util.INSTANCE.ilog2(blocksizes[1]), 4);
         opb.write(1, 1);
         return (0);
     }
@@ -397,7 +397,7 @@ public class Info {
         opb.write(times - 1, 6);
         for (int i = 0; i < times; i++) {
             opb.write(time_type[i], 16);
-            FuncTime.time_P[time_type[i]].pack(this.time_param[i], opb);
+            FuncTime.Companion.getTime_P()[time_type[i]].pack(this.time_param[i], opb);
         }
 
         // floors
@@ -424,10 +424,10 @@ public class Info {
         // modes
         opb.write(modes - 1, 6);
         for (int i = 0; i < modes; i++) {
-            opb.write(mode_param[i].blockflag, 1);
-            opb.write(mode_param[i].windowtype, 16);
-            opb.write(mode_param[i].transformtype, 16);
-            opb.write(mode_param[i].mapping, 8);
+            opb.write(mode_param[i].getBlockflag(), 1);
+            opb.write(mode_param[i].getWindowtype(), 16);
+            opb.write(mode_param[i].getTransformtype(), 16);
+            opb.write(mode_param[i].getMapping(), 8);
         }
         opb.write(1, 1);
         return (0);
@@ -459,7 +459,7 @@ public class Info {
         }
         if (mode == -1)
             return (OV_EBADPACKET);
-        return (blocksizes[mode_param[mode].blockflag]);
+        return (blocksizes[mode_param[mode].getBlockflag()]);
     }
 
     public String toString() {

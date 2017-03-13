@@ -45,7 +45,7 @@ class Lsp {
         int i;
         float wdel = M_PI / ln;
         for (i = 0; i < m; i++)
-            lsp[i] = Lookup.coslook(lsp[i]);
+            lsp[i] = Lookup.INSTANCE.coslook(lsp[i]);
         int m2 = (m / 2) * 2;
 
         i = 0;
@@ -53,7 +53,7 @@ class Lsp {
             int k = map[i];
             float p = .7071067812f;
             float q = .7071067812f;
-            float w = Lookup.coslook(wdel * k);
+            float w = Lookup.INSTANCE.coslook(wdel * k);
 
             for (int j = 0; j < m2; j += 2) {
                 q *= lsp[j] - w;
@@ -92,7 +92,7 @@ class Lsp {
                 q = Float.intBitsToFloat(hx);
             }
 
-            q = Lookup.fromdBlook(amp * Lookup.invsqlook(q) * Lookup.invsq2explook(qexp + m)
+            q = Lookup.INSTANCE.fromdBlook(amp * Lookup.INSTANCE.invsqlook(q) * Lookup.INSTANCE.invsq2explook(qexp + m)
                     - ampoffset);
 
             do {

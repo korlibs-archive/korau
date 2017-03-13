@@ -24,19 +24,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-class PsyLook {
-    int n;
-    PsyInfo vi;
-
-    float[][][] tonecurves;
-    float[][] peakatt;
-    float[][][] noisecurves;
-
-    float[] ath;
-    int[] octave;
-
-    void init(PsyInfo vi, int n, int rate) {
-    }
+class InfoMode {
+    var blockflag: Int = 0
+    var windowtype: Int = 0
+    var transformtype: Int = 0
+    var mapping: Int = 0
 }

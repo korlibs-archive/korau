@@ -89,12 +89,12 @@ class StaticCodeBook {
                 int _last = lengthlist[i - 1];
                 if (_this > _last) {
                     for (int j = _last; j < _this; j++) {
-                        opb.write(i - count, Util.ilog(entries - count));
+                        opb.write(i - count, Util.INSTANCE.ilog(entries - count));
                         count = i;
                     }
                 }
             }
-            opb.write(i - count, Util.ilog(entries - count));
+            opb.write(i - count, Util.INSTANCE.ilog(entries - count));
         } else {
             // length random.  Again, we don't code the codeword itself, just
             // the length.  This time, though, we have to encode each length
@@ -240,7 +240,7 @@ class StaticCodeBook {
                 lengthlist = new int[entries];
 
                 for (i = 0; i < entries; ) {
-                    int num = opb.read(Util.ilog(entries - i));
+                    int num = opb.read(Util.INSTANCE.ilog(entries - i));
                     if (num == -1) {
                         //          goto _eofout;
                         clear();

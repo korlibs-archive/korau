@@ -203,8 +203,7 @@ public class VorbisFile {
         return offst;
     }
 
-    int bisect_forward_serialno(long begin, long searched, long end,
-                                int currentno, int m) {
+    int bisect_forward_serialno(long begin, long searched, long end, int currentno, int m) {
         long endsearched = end;
         long next = end;
         Page page = new Page();

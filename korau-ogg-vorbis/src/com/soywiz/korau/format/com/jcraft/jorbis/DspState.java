@@ -138,7 +138,7 @@ public class DspState {
 
     int init(Info vi, boolean encp) {
         this.vi = vi;
-        modebits = Util.ilog2(vi.modes);
+        modebits = Util.INSTANCE.ilog2(vi.modes);
 
         transform[0] = new Object[VI_TRANSFORMB];
         transform[1] = new Object[VI_TRANSFORMB];
@@ -204,7 +204,7 @@ public class DspState {
         // initialize all the mapping/backend lookups
         mode = new Object[vi.modes];
         for (int i = 0; i < vi.modes; i++) {
-            int mapnum = vi.mode_param[i].mapping;
+            int mapnum = vi.mode_param[i].getMapping();
             int maptype = vi.map_type[mapnum];
             mode[i] = FuncMapping.mapping_P[maptype].look(this, vi.mode_param[i],
                     vi.map_param[mapnum]);
@@ -257,18 +257,18 @@ public class DspState {
         }
 
         lW = W;
-        W = vb.W;
+        W = vb.getW();
         nW = -1;
 
-        glue_bits += vb.glue_bits;
-        time_bits += vb.time_bits;
-        floor_bits += vb.floor_bits;
-        res_bits += vb.res_bits;
+        glue_bits += vb.getGlue_bits();
+        time_bits += vb.getTime_bits();
+        floor_bits += vb.getFloor_bits();
+        res_bits += vb.getRes_bits();
 
-        if (sequence + 1 != vb.sequence)
+        if (sequence + 1 != vb.getSequence())
             granulepos = -1; // out of sequence; lose count
 
-        sequence = vb.sequence;
+        sequence = vb.getSequence();
 
         {
             int sizeW = vi.blocksizes[W];
@@ -306,11 +306,11 @@ public class DspState {
                 // the overlap/add section
                 int i = 0;
                 for (i = beginSl; i < endSl; i++) {
-                    pcm[j][_pcm + i] += vb.pcm[j][i];
+                    pcm[j][_pcm + i] += vb.getPcm()[j][i];
                 }
                 // the remaining section
                 for (; i < sizeW; i++) {
-                    pcm[j][_pcm + i] = vb.pcm[j][i];
+                    pcm[j][_pcm + i] = vb.getPcm()[j][i];
                 }
             }
 
@@ -326,16 +326,16 @@ public class DspState {
             // it reads the last two marked pages in proper sequence
 
             if (granulepos == -1) {
-                granulepos = vb.granulepos;
+                granulepos = vb.getGranulepos();
             } else {
                 granulepos += (_centerW - centerW);
-                if (vb.granulepos != -1 && granulepos != vb.granulepos) {
-                    if (granulepos > vb.granulepos && vb.eofflag != 0) {
+                if (vb.getGranulepos() != -1 && granulepos != vb.getGranulepos()) {
+                    if (granulepos > vb.getGranulepos() && vb.getEofflag() != 0) {
                         // partial last frame.  Strip the padding off
-                        _centerW -= (granulepos - vb.granulepos);
+                        _centerW -= (granulepos - vb.getGranulepos());
                     }// else{ Shouldn't happen *unless* the bitstream is out of
                     // spec.  Either way, believe the bitstream }
-                    granulepos = vb.granulepos;
+                    granulepos = vb.getGranulepos();
                 }
             }
 
@@ -343,7 +343,7 @@ public class DspState {
 
             centerW = _centerW;
             pcm_current = endW;
-            if (vb.eofflag != 0)
+            if (vb.getEofflag() != 0)
                 eofflag = 1;
         }
         return (0);

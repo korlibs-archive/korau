@@ -59,7 +59,7 @@ class Mapping0 extends FuncMapping {
             int floornum = info.floorsubmap[i];
             int resnum = info.residuesubmap[i];
 
-            look.time_func[i] = FuncTime.time_P[vi.time_type[timenum]];
+            look.time_func[i] = FuncTime.Companion.getTime_P()[vi.time_type[timenum]];
             look.time_look[i] = look.time_func[i].look(vd, vm, vi.time_param[timenum]);
             look.floor_func[i] = FuncFloor.floor_P[vi.floor_type[floornum]];
             look.floor_look[i] = look.floor_func[i].look(vd, vm,
@@ -100,8 +100,8 @@ class Mapping0 extends FuncMapping {
             opb.write(1, 1);
             opb.write(info.coupling_steps - 1, 8);
             for (int i = 0; i < info.coupling_steps; i++) {
-                opb.write(info.coupling_mag[i], Util.ilog2(vi.channels));
-                opb.write(info.coupling_ang[i], Util.ilog2(vi.channels));
+                opb.write(info.coupling_mag[i], Util.INSTANCE.ilog2(vi.channels));
+                opb.write(info.coupling_ang[i], Util.INSTANCE.ilog2(vi.channels));
             }
         } else {
             opb.write(0, 1);
@@ -135,8 +135,8 @@ class Mapping0 extends FuncMapping {
             info.coupling_steps = opb.read(8) + 1;
 
             for (int i = 0; i < info.coupling_steps; i++) {
-                int testM = info.coupling_mag[i] = opb.read(Util.ilog2(vi.channels));
-                int testA = info.coupling_ang[i] = opb.read(Util.ilog2(vi.channels));
+                int testM = info.coupling_mag[i] = opb.read(Util.INSTANCE.ilog2(vi.channels));
+                int testA = info.coupling_ang[i] = opb.read(Util.INSTANCE.ilog2(vi.channels));
 
                 if (testM < 0 || testA < 0 || testM == testA || testM >= vi.channels
                         || testA >= vi.channels) {
@@ -188,14 +188,15 @@ class Mapping0 extends FuncMapping {
     Object[] floormemo = null;
 
     synchronized int inverse(Block vb, Object l) {
-        DspState vd = vb.vd;
+        DspState vd = vb.getVd();
         Info vi = vd.vi;
         LookMapping0 look = (LookMapping0) l;
         InfoMapping0 info = look.map;
         InfoMode mode = look.mode;
-        int n = vb.pcmend = vi.blocksizes[vb.W];
+        int n = vi.blocksizes[vb.getW()];
+        vb.setPcmend(n);
 
-        float[] window = vd.window[vb.W][vb.lW][vb.nW][mode.windowtype];
+        float[] window = vd.window[vb.getW()][vb.getLW()][vb.getNW()][mode.getWindowtype()];
         if (pcmbundle == null || pcmbundle.length < vi.channels) {
             pcmbundle = new float[vi.channels][];
             nonzero = new int[vi.channels];
@@ -210,7 +211,7 @@ class Mapping0 extends FuncMapping {
 
         // recover the spectral envelope; store it in the PCM vector for now
         for (int i = 0; i < vi.channels; i++) {
-            float[] pcm = vb.pcm[i];
+            float[] pcm = vb.getPcm()[i];
             int submap = info.chmuxlist[i];
 
             floormemo[i] = look.floor_func[submap].inverse1(vb,
@@ -244,7 +245,7 @@ class Mapping0 extends FuncMapping {
                     } else {
                         zerobundle[ch_in_bundle] = 0;
                     }
-                    pcmbundle[ch_in_bundle++] = vb.pcm[j];
+                    pcmbundle[ch_in_bundle++] = vb.getPcm()[j];
                 }
             }
 
@@ -253,8 +254,8 @@ class Mapping0 extends FuncMapping {
         }
 
         for (int i = info.coupling_steps - 1; i >= 0; i--) {
-            float[] pcmM = vb.pcm[info.coupling_mag[i]];
-            float[] pcmA = vb.pcm[info.coupling_ang[i]];
+            float[] pcmM = vb.getPcm()[info.coupling_mag[i]];
+            float[] pcmA = vb.getPcm()[info.coupling_ang[i]];
 
             for (int j = 0; j < n / 2; j++) {
                 float mag = pcmM[j];
@@ -283,7 +284,7 @@ class Mapping0 extends FuncMapping {
         //    /* compute and apply spectral envelope */
 
         for (int i = 0; i < vi.channels; i++) {
-            float[] pcm = vb.pcm[i];
+            float[] pcm = vb.getPcm()[i];
             int submap = info.chmuxlist[i];
             look.floor_func[submap].inverse2(vb, look.floor_look[submap],
                     floormemo[i], pcm);
@@ -293,9 +294,9 @@ class Mapping0 extends FuncMapping {
         // only MDCT right now....
 
         for (int i = 0; i < vi.channels; i++) {
-            float[] pcm = vb.pcm[i];
+            float[] pcm = vb.getPcm()[i];
             //_analysis_output("out",seq+i,pcm,n/2,0,0);
-            ((Mdct) vd.transform[vb.W][0]).backward(pcm, pcm);
+            ((Mdct) vd.transform[vb.getW()][0]).backward(pcm, pcm);
         }
 
         // now apply the decoded pre-window time information
@@ -303,7 +304,7 @@ class Mapping0 extends FuncMapping {
 
         // window the data
         for (int i = 0; i < vi.channels; i++) {
-            float[] pcm = vb.pcm[i];
+            float[] pcm = vb.getPcm()[i];
             if (nonzero[i] != 0) {
                 for (int j = 0; j < n; j++) {
                     pcm[j] *= window[j];

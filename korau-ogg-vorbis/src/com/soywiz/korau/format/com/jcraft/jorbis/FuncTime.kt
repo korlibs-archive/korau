@@ -24,29 +24,25 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-import com.soywiz.korau.format.com.jcraft.jogg.Buffer;
+import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
-class Time0 extends FuncTime {
-    void pack(Object i, Buffer opb) {
-    }
+abstract class FuncTime {
 
-    Object unpack(Info vi, Buffer opb) {
-        return "";
-    }
+    abstract fun pack(i: Any, opb: Buffer)
 
-    Object look(DspState vd, InfoMode mi, Object i) {
-        return "";
-    }
+    abstract fun unpack(vi: Info, opb: Buffer): Any
 
-    void free_info(Object i) {
-    }
+    abstract fun look(vd: DspState, vm: InfoMode, i: Any): Any
 
-    void free_look(Object i) {
-    }
+    abstract fun free_info(i: Any)
 
-    int inverse(Block vb, Object i, float[] in, float[] out) {
-        return 0;
+    abstract fun free_look(i: Any)
+
+    abstract fun inverse(vb: Block, i: Any, `in`: FloatArray, out: FloatArray): Int
+
+    companion object {
+        var time_P = arrayOf<FuncTime>(Time0())
     }
 }

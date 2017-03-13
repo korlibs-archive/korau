@@ -45,7 +45,7 @@ class Residue0 extends FuncResidue {
        this pass */
         for (int j = 0; j < info.partitions; j++) {
             int i = info.secondstages[j];
-            if (Util.ilog(i) > 3) {
+            if (Util.INSTANCE.ilog(i) > 3) {
         /* yes, this is a minor hack due to not thinking ahead */
                 opb.write(i, 3);
                 opb.write(1, 1);
@@ -53,7 +53,7 @@ class Residue0 extends FuncResidue {
             } else {
                 opb.write(i, 4); /* trailing zero */
             }
-            acc += Util.icount(i);
+            acc += Util.INSTANCE.icount(i);
         }
         for (int j = 0; j < acc; j++) {
             opb.write(info.booklist[j], 8);
@@ -75,7 +75,7 @@ class Residue0 extends FuncResidue {
                 cascade |= (opb.read(5) << 3);
             }
             info.secondstages[j] = cascade;
-            acc += Util.icount(cascade);
+            acc += Util.INSTANCE.icount(cascade);
         }
 
         for (int j = 0; j < acc; j++) {
@@ -103,7 +103,7 @@ class Residue0 extends FuncResidue {
         int dim;
         int maxstage = 0;
         look.info = info;
-        look.map = vm.mapping;
+        look.map = vm.getMapping();
 
         look.parts = info.partitions;
         look.fullbooks = vd.fullbooks;
@@ -115,7 +115,7 @@ class Residue0 extends FuncResidue {
 
         for (int j = 0; j < look.parts; j++) {
             int i = info.secondstages[j];
-            int stages = Util.ilog(i);
+            int stages = Util.INSTANCE.ilog(i);
             if (stages != 0) {
                 if (stages > maxstage)
                     maxstage = stages;
@@ -186,7 +186,7 @@ class Residue0 extends FuncResidue {
                 if (s == 0) {
                     // fetch the partition word for each channel
                     for (j = 0; j < ch; j++) {
-                        int temp = look.phrasebook.decode(vb.opb);
+                        int temp = look.phrasebook.decode(vb.getOpb());
                         if (temp == -1) {
                             return (0);
                         }
@@ -206,12 +206,12 @@ class Residue0 extends FuncResidue {
                             CodeBook stagebook = look.fullbooks[look.partbooks[index][s]];
                             if (stagebook != null) {
                                 if (decodepart == 0) {
-                                    if (stagebook.decodevs_add(in[j], offset, vb.opb,
+                                    if (stagebook.decodevs_add(in[j], offset, vb.getOpb(),
                                             samples_per_partition) == -1) {
                                         return (0);
                                     }
                                 } else if (decodepart == 1) {
-                                    if (stagebook.decodev_add(in[j], offset, vb.opb,
+                                    if (stagebook.decodev_add(in[j], offset, vb.getOpb(),
                                             samples_per_partition) == -1) {
                                         return (0);
                                     }
@@ -246,7 +246,7 @@ class Residue0 extends FuncResidue {
             for (i = 0, l = 0; i < partvals; l++) {
                 if (s == 0) {
                     // fetch the partition word for each channel
-                    int temp = look.phrasebook.decode(vb.opb);
+                    int temp = look.phrasebook.decode(vb.getOpb());
                     if (temp == -1) {
                         return (0);
                     }
@@ -263,7 +263,7 @@ class Residue0 extends FuncResidue {
                     if ((info.secondstages[index] & (1 << s)) != 0) {
                         CodeBook stagebook = look.fullbooks[look.partbooks[index][s]];
                         if (stagebook != null) {
-                            if (stagebook.decodevv_add(in, offset, ch, vb.opb,
+                            if (stagebook.decodevv_add(in, offset, ch, vb.getOpb(),
                                     samples_per_partition) == -1) {
                                 return (0);
                             }
