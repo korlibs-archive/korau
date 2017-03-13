@@ -118,7 +118,6 @@ public class Layer3 {
     private float win[][] = new float[4][36];
     private float win1[][] = new float[4][36];
 
-    ;
     private float gainpow2[] = new float[256 + 118 + 4];
     private float COS9[] = new float[9];
     private float COS6_1, COS6_2;
@@ -139,10 +138,8 @@ public class Layer3 {
      * MPEG 2.0 slen for intensity stereo.
      */
     private int i_slen2[] = new int[256];
-    private float tan1_1[] = new float[16], tan2_1[] = new float[16],
-            tan1_2[] = new float[16], tan2_2[] = new float[16];
-    private float pow1_1[][] = new float[2][16], pow2_1[][] = new float[2][16],
-            pow1_2[][] = new float[2][16], pow2_2[][] = new float[2][16];
+    private float tan1_1[] = new float[16], tan2_1[] = new float[16], tan1_2[] = new float[16], tan2_2[] = new float[16];
+    private float pow1_1[][] = new float[2][16], pow2_1[][] = new float[2][16], pow1_2[][] = new float[2][16], pow2_2[][] = new float[2][16];
 
     /*
      * read additional side information
@@ -168,7 +165,6 @@ public class Layer3 {
         mp.bitindex++;
         mp.wordpointerPos += (mp.bitindex >> 3);
         mp.bitindex &= 7;
-
         return rval >> 7;
     }
 
@@ -176,12 +172,9 @@ public class Layer3 {
      * init tables for layer-3
      */
     public void init_layer3(final int down_sample_sblimit) {
-        for (int i = -256; i < 118 + 4; i++)
-            gainpow2[i + 256] = (float) Math.pow((double) 2.0, -0.25
-                    * (double) (i + 210));
+        for (int i = -256; i < 118 + 4; i++) gainpow2[i + 256] = (float) Math.pow(2.0, -0.25 * (double) (i + 210));
 
-        for (int i = 0; i < 8207; i++)
-            ispow[i] = (float) Math.pow((double) i, (double) 4.0 / 3.0);
+        for (int i = 0; i < 8207; i++) ispow[i] = (float) Math.pow((double) i, 4.0 / 3.0);
 
         for (int i = 0; i < 8; i++) {
             double sq = Math.sqrt(1.0 + Ci[i] * Ci[i]);
@@ -190,44 +183,29 @@ public class Layer3 {
         }
 
         for (int i = 0; i < 18; i++) {
-            win[0][i] = win[1][i] = (float) (0.5 * Math.sin(MPG123.M_PI / 72.0
-                    * (double) (2 * (i + 0) + 1)) / Math.cos(MPG123.M_PI
-                    * (double) (2 * (i + 0) + 19) / 72.0));
-            win[0][i + 18] = win[3][i + 18] = (float) (0.5 * Math
-                    .sin(MPG123.M_PI / 72.0 * (double) (2 * (i + 18) + 1)) / Math
-                    .cos(MPG123.M_PI * (double) (2 * (i + 18) + 19) / 72.0));
+            win[0][i] = win[1][i] = (float) (0.5 * Math.sin(MPG123.M_PI / 72.0 * (double) (2 * (i + 0) + 1)) / Math.cos(MPG123.M_PI * (double) (2 * (i + 0) + 19) / 72.0));
+            win[0][i + 18] = win[3][i + 18] = (float) (0.5 * Math.sin(MPG123.M_PI / 72.0 * (double) (2 * (i + 18) + 1)) / Math.cos(MPG123.M_PI * (double) (2 * (i + 18) + 19) / 72.0));
         }
         for (int i = 0; i < 6; i++) {
-            win[1][i + 18] = (float) (0.5 / Math.cos(MPG123.M_PI
-                    * (double) (2 * (i + 18) + 19) / 72.0));
-            win[3][i + 12] = (float) (0.5 / Math.cos(MPG123.M_PI
-                    * (double) (2 * (i + 12) + 19) / 72.0));
-            win[1][i + 24] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0
-                    * (double) (2 * i + 13)) / Math.cos(MPG123.M_PI
-                    * (double) (2 * (i + 24) + 19) / 72.0));
+            win[1][i + 18] = (float) (0.5 / Math.cos(MPG123.M_PI * (double) (2 * (i + 18) + 19) / 72.0));
+            win[3][i + 12] = (float) (0.5 / Math.cos(MPG123.M_PI * (double) (2 * (i + 12) + 19) / 72.0));
+            win[1][i + 24] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0 * (double) (2 * i + 13)) / Math.cos(MPG123.M_PI * (double) (2 * (i + 24) + 19) / 72.0));
             win[1][i + 30] = win[3][i] = 0.0f;
-            win[3][i + 6] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0
-                    * (double) (2 * i + 1)) / Math.cos(MPG123.M_PI
-                    * (double) (2 * (i + 6) + 19) / 72.0));
+            win[3][i + 6] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0 * (double) (2 * i + 1)) / Math.cos(MPG123.M_PI * (double) (2 * (i + 6) + 19) / 72.0));
         }
 
-        for (int i = 0; i < 9; i++)
-            COS9[i] = (float) Math.cos(MPG123.M_PI / 18.0 * (double) i);
-
-        for (int i = 0; i < 9; i++)
-            tfcos36[i] = (float) (0.5 / Math.cos(MPG123.M_PI
-                    * (double) (i * 2 + 1) / 36.0));
-        for (int i = 0; i < 3; i++)
-            tfcos12[i] = (float) (0.5 / Math.cos(MPG123.M_PI
-                    * (double) (i * 2 + 1) / 12.0));
+        for (int i = 0; i < 9; i++) COS9[i] = (float) Math.cos(MPG123.M_PI / 18.0 * (double) i);
+        for (int i = 0; i < 9; i++) tfcos36[i] = (float) (0.5 / Math.cos(MPG123.M_PI * (double) (i * 2 + 1) / 36.0));
+        for (int i = 0; i < 3; i++) tfcos12[i] = (float) (0.5 / Math.cos(MPG123.M_PI * (double) (i * 2 + 1) / 12.0));
 
         COS6_1 = (float) Math.cos(MPG123.M_PI / 6.0 * (double) 1);
         COS6_2 = (float) Math.cos(MPG123.M_PI / 6.0 * (double) 2);
 
         for (int i = 0; i < 12; i++) {
             win[2][i] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0 * (double) (2 * i + 1)) / Math.cos(MPG123.M_PI * (double) (2 * i + 7) / 24.0));
-            for (int j = 0; j < 6; j++)
+            for (int j = 0; j < 6; j++) {
                 COS1[i][j] = (float) Math.cos(MPG123.M_PI / 24.0 * (double) ((2 * i + 7) * (2 * j + 1)));
+            }
         }
 
         for (int j = 0; j < 4; j++) {
@@ -318,13 +296,11 @@ public class Layer3 {
         for (int j = 0; j < 9; j++) {
             for (int i = 0; i < 23; i++) {
                 longLimit[j][i] = (bandInfo[j].longIdx[i] - 1 + 8) / 18 + 1;
-                if (longLimit[j][i] > (down_sample_sblimit))
-                    longLimit[j][i] = down_sample_sblimit;
+                if (longLimit[j][i] > (down_sample_sblimit)) longLimit[j][i] = down_sample_sblimit;
             }
             for (int i = 0; i < 14; i++) {
                 shortLimit[j][i] = (bandInfo[j].shortIdx[i] - 1) / 18 + 1;
-                if (shortLimit[j][i] > (down_sample_sblimit))
-                    shortLimit[j][i] = down_sample_sblimit;
+                if (shortLimit[j][i] > (down_sample_sblimit)) shortLimit[j][i] = down_sample_sblimit;
             }
         }
 
@@ -382,10 +358,7 @@ public class Layer3 {
         int powdiff = (single == 3) ? 4 : 0;
 
         si.main_data_begin = common.getbits(mp, 9);
-        if (stereo == 1)
-            si.private_bits = common.getbits_fast(mp, 5);
-        else
-            si.private_bits = common.getbits_fast(mp, 3);
+        si.private_bits = stereo == 1 ? common.getbits_fast(mp, 5) : common.getbits_fast(mp, 3);
 
         for (ch = 0; ch < stereo; ch++) {
             si.ch[ch].gr[0].scfsi = -1;
@@ -407,12 +380,9 @@ public class Layer3 {
                     int qss = common.getbits_fast(mp, 8);
                     gr_infos.pow2gain = gainpow2;
                     gr_infos.pow2gainPos = 256 - qss + powdiff;
-                    if (mp.pinfo != null) {
-                        mp.pinfo.getQss()[gr][ch] = qss;
-                    }
+                    mp.pinfo.getQss()[gr][ch] = qss;
                 }
-                if (ms_stereo != 0)
-                    gr_infos.pow2gainPos += 2;
+                if (ms_stereo != 0) gr_infos.pow2gainPos += 2;
                 gr_infos.scalefac_compress = common.getbits_fast(mp, 4);
                 /*
                  * window-switching flag == 1 for block_Type != 0 .. and
@@ -434,13 +404,11 @@ public class Layer3 {
                         int sbg = (common.getbits_fast(mp, 3) << 3);
                         gr_infos.full_gain[i] = gr_infos.pow2gain;
                         gr_infos.full_gainPos[i] = gr_infos.pow2gainPos + sbg;
-                        if (mp.pinfo != null)
-                            mp.pinfo.getSub_gain()[gr][ch][i] = sbg / 8;
+                        mp.pinfo.getSub_gain()[gr][ch][i] = sbg / 8;
                     }
 
                     if (gr_infos.block_type == 0) {
-                        System.err
-                                .printf("Blocktype == 0 and window-switching == 1 not allowed.\n");
+                        System.err.printf("Blocktype == 0 and window-switching == 1 not allowed.\n");
                         /*
                          * error seems to be very good recoverable, so don't
 						 * exit
@@ -474,18 +442,13 @@ public class Layer3 {
     /*
      * Side Info for MPEG 2.0 / LSF
      */
-    private void III_get_side_info_2(final mpstr_tag mp, final III_sideinfo si,
-                                     final int stereo, final int ms_stereo, final int sfreq,
-                                     final int single) {
+    private void III_get_side_info_2(final mpstr_tag mp, final III_sideinfo si, final int stereo, final int ms_stereo, final int sfreq, final int single) {
         int ch;
         int powdiff = (single == 3) ? 4 : 0;
 
         si.main_data_begin = common.getbits(mp, 8);
 
-        if (stereo == 1)
-            si.private_bits = get1bit(mp);
-        else
-            si.private_bits = common.getbits_fast(mp, 2);
+        si.private_bits = (stereo == 1) ? get1bit(mp) : common.getbits_fast(mp, 2);
 
         for (ch = 0; ch < stereo; ch++) {
             gr_info_s gr_infos = si.ch[ch].gr[0];
@@ -494,19 +457,15 @@ public class Layer3 {
             gr_infos.part2_3_length = common.getbits(mp, 12);
             gr_infos.big_values = common.getbits_fast(mp, 9);
             if (gr_infos.big_values > 288) {
-                System.err.printf("big_values too large! %d\n",
-                        gr_infos.big_values);
+                System.err.printf("big_values too large! %d\n", gr_infos.big_values);
                 gr_infos.big_values = 288;
             }
             qss = common.getbits_fast(mp, 8);
             gr_infos.pow2gain = gainpow2;
             gr_infos.pow2gainPos = 256 - qss + powdiff;
-            if (mp.pinfo != null) {
-                mp.pinfo.getQss()[0][ch] = qss;
-            }
+            mp.pinfo.getQss()[0][ch] = qss;
 
-            if (ms_stereo != 0)
-                gr_infos.pow2gainPos += 2;
+            if (ms_stereo != 0) gr_infos.pow2gainPos += 2;
             gr_infos.scalefac_compress = common.getbits(mp, 9);
             /*
              * window-switching flag == 1 for block_Type != 0 .. and block-type
@@ -527,29 +486,28 @@ public class Layer3 {
                     int sbg = (common.getbits_fast(mp, 3) << 3);
                     gr_infos.full_gain[i] = gr_infos.pow2gain;
                     gr_infos.full_gainPos[i] = gr_infos.pow2gainPos + sbg;
-                    if (mp.pinfo != null)
-                        mp.pinfo.getSub_gain()[0][ch][i] = sbg / 8;
-
+                    mp.pinfo.getSub_gain()[0][ch][i] = sbg / 8;
                 }
 
                 if (gr_infos.block_type == 0) {
-                    System.err
-                            .printf("Blocktype == 0 and window-switching == 1 not allowed.\n");
+                    System.err.printf("Blocktype == 0 and window-switching == 1 not allowed.\n");
                     /* error seems to be very good recoverable, so don't exit */
                     /* exit(1); */
                 }
                 /* region_count/start parameters are implicit in this case. */
                 /* check this again! */
                 if (gr_infos.block_type == 2) {
-                    if (sfreq == 8)
+                    if (sfreq == 8) {
                         gr_infos.region1start = 36;
-                    else
+                    } else {
                         gr_infos.region1start = 36 >> 1;
+                    }
                 } else if (sfreq == 8)
-                    /* check this for 2.5 and sfreq=8 */
+                    /* check this for 2.5 and sfreq=8 */ {
                     gr_infos.region1start = 108 >> 1;
-                else
+                } else {
                     gr_infos.region1start = 54 >> 1;
+                }
                 gr_infos.region2start = 576 >> 1;
             } else {
                 int i, r0c, r1c;
@@ -558,8 +516,7 @@ public class Layer3 {
                 r0c = common.getbits_fast(mp, 4);
                 r1c = common.getbits_fast(mp, 3);
                 gr_infos.region1start = bandInfo[sfreq].longIdx[r0c + 1] >> 1;
-                gr_infos.region2start = bandInfo[sfreq].longIdx[r0c + 1 + r1c
-                        + 1] >> 1;
+                gr_infos.region2start = bandInfo[sfreq].longIdx[r0c + 1 + r1c + 1] >> 1;
                 gr_infos.block_type = 0;
                 gr_infos.mixed_block_flag = 0;
             }
@@ -568,8 +525,7 @@ public class Layer3 {
         }
     }
 
-    private int III_get_scale_factors_1(mpstr_tag mp, int[] scf,
-                                        gr_info_s gr_infos) {
+    private int III_get_scale_factors_1(mpstr_tag mp, int[] scf, gr_info_s gr_infos) {
         int scfPos = 0;
         int numbits;
         int num0 = slen[0][gr_infos.scalefac_compress];
@@ -580,16 +536,13 @@ public class Layer3 {
             numbits = (num0 + num1) * 18;
 
             if (gr_infos.mixed_block_flag != 0) {
-                for (i = 8; i != 0; i--)
-                    scf[scfPos++] = common.getbits_fast(mp, num0);
+                for (i = 8; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num0);
                 i = 9;
                 numbits -= num0; /* num0 * 17 + num1 * 18 */
             }
 
-            for (; i != 0; i--)
-                scf[scfPos++] = common.getbits_fast(mp, num0);
-            for (i = 18; i != 0; i--)
-                scf[scfPos++] = common.getbits_fast(mp, num1);
+            for (; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num0);
+            for (i = 18; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num1);
             scf[scfPos++] = 0;
             scf[scfPos++] = 0;
             scf[scfPos++] = 0; /* short[13][0..2] = 0 */
@@ -598,40 +551,34 @@ public class Layer3 {
             int scfsi = gr_infos.scfsi;
 
             if (scfsi < 0) { /* scfsi < 0 => granule == 0 */
-                for (i = 11; i != 0; i--)
-                    scf[scfPos++] = common.getbits_fast(mp, num0);
-                for (i = 10; i != 0; i--)
-                    scf[scfPos++] = common.getbits_fast(mp, num1);
+                for (i = 11; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num0);
+                for (i = 10; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num1);
                 numbits = (num0 + num1) * 10 + num0;
             } else {
                 numbits = 0;
                 if (0 == (scfsi & 0x8)) {
-                    for (i = 6; i != 0; i--)
-                        scf[scfPos++] = common.getbits_fast(mp, num0);
+                    for (i = 6; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num0);
                     numbits += num0 * 6;
                 } else {
                     scfPos += 6;
                 }
 
                 if (0 == (scfsi & 0x4)) {
-                    for (i = 5; i != 0; i--)
-                        scf[scfPos++] = common.getbits_fast(mp, num0);
+                    for (i = 5; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num0);
                     numbits += num0 * 5;
                 } else {
                     scfPos += 5;
                 }
 
                 if (0 == (scfsi & 0x2)) {
-                    for (i = 5; i != 0; i--)
-                        scf[scfPos++] = common.getbits_fast(mp, num1);
+                    for (i = 5; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num1);
                     numbits += num1 * 5;
                 } else {
                     scfPos += 5;
                 }
 
                 if (0 == (scfsi & 0x1)) {
-                    for (i = 5; i != 0; i--)
-                        scf[scfPos++] = common.getbits_fast(mp, num1);
+                    for (i = 5; i != 0; i--) scf[scfPos++] = common.getbits_fast(mp, num1);
                     numbits += num1 * 5;
                 } else {
                     scfPos += 5;
@@ -643,8 +590,7 @@ public class Layer3 {
         return numbits;
     }
 
-    private int III_get_scale_factors_2(mpstr_tag mp, int[] scf,
-                                        gr_info_s gr_infos, int i_stereo) {
+    private int III_get_scale_factors_2(mpstr_tag mp, int[] scf, gr_info_s gr_infos, int i_stereo) {
         int scfPos = 0;
         int[] pnt;
         int i, j;
@@ -652,13 +598,11 @@ public class Layer3 {
         int n = 0;
         int numbits = 0;
 
-        if (i_stereo != 0) /*
-                             * i_stereo AND second channel . do_layer3() checks
-							 * this
-							 */
+        if (i_stereo != 0) {
             slen = i_slen2[gr_infos.scalefac_compress >> 1];
-        else
+        } else {
             slen = n_slen2[gr_infos.scalefac_compress];
+        }
 
         gr_infos.preflag = (slen >> 15) & 0x1;
 
@@ -675,27 +619,25 @@ public class Layer3 {
             int num = slen & 0x7;
             slen >>= 3;
             if (num != 0) {
-                for (j = 0; j < (int) (pnt[i]); j++)
+                for (j = 0; j < pnt[i]; j++)
                     scf[scfPos++] = common.getbits_fast(mp, num);
                 numbits += pnt[i] * num;
             } else {
-                for (j = 0; j < (int) (pnt[i]); j++)
+                for (j = 0; j < pnt[i]; j++)
                     scf[scfPos++] = 0;
             }
         }
 
         n = (n << 1) + 1;
-        for (i = 0; i < n; i++)
-            scf[scfPos++] = 0;
+        for (i = 0; i < n; i++) scf[scfPos++] = 0;
 
         return numbits;
     }
 
-    private int III_dequantize_sample(mpstr_tag mp, float xr[], int[] scf,
-                                      gr_info_s gr_infos, int sfreq, int part2bits) {
+    private int III_dequantize_sample(mpstr_tag mp, float xr[], int[] scf, gr_info_s gr_infos, int sfreq, int part2bits) {
         int scfPos = 0;
         int shift = 1 + gr_infos.scalefac_scale;
-        float[] xrpnt = (float[]) xr;
+        float[] xrpnt = xr;
         int xrpntPos = 0;
         int l[] = new int[3], l3;
         int part2remain = gr_infos.part2_3_length - part2bits;
@@ -709,7 +651,7 @@ public class Layer3 {
                 xrpnt[xrpntPos++] = 0.0f;
             }
 
-            xrpnt = (float[]) xr;
+            xrpnt = xr;
             xrpntPos = 0;
         }
 
@@ -783,17 +725,15 @@ public class Layer3 {
                     int x, y;
                     if ((0 == mc)) {
                         mc = m[mPos++];
-                        xrpnt = (float[]) xr;
+                        xrpnt = xr;
                         xrpntPos = (m[mPos++]);
                         lwin = m[mPos++];
                         cb = m[mPos++];
                         if (lwin == 3) {
-                            v = gr_infos.pow2gain[gr_infos.pow2gainPos
-                                    + (((scf[scfPos++]) << shift))];
+                            v = gr_infos.pow2gain[gr_infos.pow2gainPos + (((scf[scfPos++]) << shift))];
                             step = 1;
                         } else {
-                            v = gr_infos.full_gain[lwin][gr_infos.full_gainPos[lwin]
-                                    + ((scf[scfPos++]) << shift)];
+                            v = gr_infos.full_gain[lwin][gr_infos.full_gainPos[lwin] + ((scf[scfPos++]) << shift)];
                             step = 3;
                         }
                     }
@@ -801,8 +741,7 @@ public class Layer3 {
                         short[] val = h[hPos].getTable();
                         int valPos = 0;
                         while ((y = val[valPos++]) < 0) {
-                            if (get1bit(mp) != 0)
-                                valPos -= y;
+                            if (get1bit(mp) != 0) valPos -= y;
                             part2remain--;
                         }
                         x = y >> 4;
@@ -811,17 +750,19 @@ public class Layer3 {
                     if (x == 15) {
                         max[lwin] = cb;
                         part2remain -= h[hPos].getLinbits() + 1;
-                        x += common.getbits(mp, (int) h[hPos].getLinbits());
-                        if (get1bit(mp) != 0)
+                        x += common.getbits(mp, h[hPos].getLinbits());
+                        if (get1bit(mp) != 0) {
                             xrpnt[xrpntPos] = -ispow[x] * v;
-                        else
+                        } else {
                             xrpnt[xrpntPos] = ispow[x] * v;
+                        }
                     } else if (x != 0) {
                         max[lwin] = cb;
-                        if (get1bit(mp) != 0)
+                        if (get1bit(mp) != 0) {
                             xrpnt[xrpntPos] = -ispow[x] * v;
-                        else
+                        } else {
                             xrpnt[xrpntPos] = ispow[x] * v;
+                        }
                         part2remain--;
                     } else
                         xrpnt[xrpntPos] = 0.0f;
@@ -829,17 +770,19 @@ public class Layer3 {
                     if (y == 15) {
                         max[lwin] = cb;
                         part2remain -= h[hPos].getLinbits() + 1;
-                        y += common.getbits(mp, (int) h[hPos].getLinbits());
-                        if (get1bit(mp) != 0)
+                        y += common.getbits(mp, h[hPos].getLinbits());
+                        if (get1bit(mp) != 0) {
                             xrpnt[xrpntPos] = -ispow[y] * v;
-                        else
+                        } else {
                             xrpnt[xrpntPos] = ispow[y] * v;
+                        }
                     } else if (y != 0) {
                         max[lwin] = cb;
-                        if (get1bit(mp) != 0)
+                        if (get1bit(mp) != 0) {
                             xrpnt[xrpntPos] = -ispow[y] * v;
-                        else
+                        } else {
                             xrpnt[xrpntPos] = ispow[y] * v;
+                        }
                         part2remain--;
                     } else
                         xrpnt[xrpntPos] = 0.0f;
@@ -860,24 +803,21 @@ public class Layer3 {
                         a = 0;
                         break;
                     }
-                    if (get1bit(mp) != 0)
-                        valPos -= a;
+                    if (get1bit(mp) != 0) valPos -= a;
                 }
                 for (i = 0; i < 4; i++) {
                     if (0 == (i & 1)) {
                         if (0 == mc) {
                             mc = m[mPos++];
-                            xrpnt = ((float[]) xr);
+                            xrpnt = xr;
                             xrpntPos = (m[mPos++]);
                             lwin = m[mPos++];
                             cb = m[mPos++];
                             if (lwin == 3) {
-                                v = gr_infos.pow2gain[gr_infos.pow2gainPos
-                                        + ((scf[scfPos++]) << shift)];
+                                v = gr_infos.pow2gain[gr_infos.pow2gainPos + ((scf[scfPos++]) << shift)];
                                 step = 1;
                             } else {
-                                v = gr_infos.full_gain[lwin][gr_infos.full_gainPos[lwin]
-                                        + ((scf[scfPos++]) << shift)];
+                                v = gr_infos.full_gain[lwin][gr_infos.full_gainPos[lwin] + ((scf[scfPos++]) << shift)];
                                 step = 3;
                             }
                         }
@@ -890,12 +830,10 @@ public class Layer3 {
                             part2remain++;
                             break;
                         }
-                        if (get1bit(mp) != 0)
-                            xrpnt[xrpntPos] = -v;
-                        else
-                            xrpnt[xrpntPos] = v;
-                    } else
+                        xrpnt[xrpntPos] = (get1bit(mp) != 0) ? -v : v;
+                    } else {
                         xrpnt[xrpntPos] = 0.0f;
+                    }
                     xrpntPos += step;
                 }
             }
@@ -903,12 +841,9 @@ public class Layer3 {
             while (mPos < me) {
                 if (0 == mc) {
                     mc = m[mPos++];
-                    xrpnt = ((float[]) xr);
+                    xrpnt = xr;
                     xrpntPos = m[mPos++];
-                    if ((m[mPos++]) == 3)
-                        step = 1;
-                    else
-                        step = 3;
+                    step = ((m[mPos++]) == 3) ? 1 : 3;
                     mPos++; /* cb */
                 }
                 mc--;
@@ -931,15 +866,14 @@ public class Layer3 {
             {
                 int rmax = max[0] > max[1] ? max[0] : max[1];
                 rmax = (rmax > max[2] ? rmax : max[2]) + 1;
-                gr_infos.maxb = rmax != 0 ? shortLimit[sfreq][rmax]
-                        : longLimit[sfreq][max[3] + 1];
+                gr_infos.maxb = rmax != 0 ? shortLimit[sfreq][rmax] : longLimit[sfreq][max[3] + 1];
             }
 
         } else {
             /*
              * decoding with 'long' BandIndex table (block_type != 2)
 			 */
-            int[] pretab = (int[]) (gr_infos.preflag != 0 ? pretab1 : pretab2);
+            int[] pretab = gr_infos.preflag != 0 ? pretab1 : pretab2;
             int pretabPos = 0;
             int i, max = -1;
             int cb = 0;
@@ -961,16 +895,14 @@ public class Layer3 {
 
                     if (0 == mc) {
                         mc = m[mPos++];
-                        v = gr_infos.pow2gain[gr_infos.pow2gainPos
-                                + (((scf[scfPos++]) + (pretab[pretabPos++])) << shift)];
+                        v = gr_infos.pow2gain[gr_infos.pow2gainPos + (((scf[scfPos++]) + (pretab[pretabPos++])) << shift)];
                         cb = m[mPos++];
                     }
                     {
                         short[] val = h[hPos].getTable();
                         int valPos = 0;
                         while ((y = val[valPos++]) < 0) {
-                            if (get1bit(mp) != 0)
-                                valPos -= y;
+                            if (get1bit(mp) != 0) valPos -= y;
                             part2remain--;
                         }
                         x = y >> 4;
@@ -979,7 +911,7 @@ public class Layer3 {
                     if (x == 15) {
                         max = cb;
                         part2remain -= h[hPos].getLinbits() + 1;
-                        x += common.getbits(mp, (int) h[hPos].getLinbits());
+                        x += common.getbits(mp, h[hPos].getLinbits());
                         if (get1bit(mp) != 0)
                             xrpnt[xrpntPos++] = -ispow[x] * v;
                         else
@@ -997,7 +929,7 @@ public class Layer3 {
                     if (y == 15) {
                         max = cb;
                         part2remain -= h[hPos].getLinbits() + 1;
-                        y += common.getbits(mp, (int) h[hPos].getLinbits());
+                        y += common.getbits(mp, h[hPos].getLinbits());
                         if (get1bit(mp) != 0)
                             xrpnt[xrpntPos++] = -ispow[y] * v;
                         else
@@ -1031,16 +963,14 @@ public class Layer3 {
                         a = 0;
                         break;
                     }
-                    if (get1bit(mp) != 0)
-                        valPos -= a;
+                    if (get1bit(mp) != 0) valPos -= a;
                 }
                 for (i = 0; i < 4; i++) {
                     if (0 == (i & 1)) {
                         if (0 == mc) {
                             mc = m[mPos++];
                             cb = m[mPos++];
-                            v = gr_infos.pow2gain[gr_infos.pow2gainPos
-                                    + (((scf[scfPos++]) + (pretab[pretabPos++])) << shift)];
+                            v = gr_infos.pow2gain[gr_infos.pow2gainPos + (((scf[scfPos++]) + (pretab[pretabPos++])) << shift)];
                         }
                         mc--;
                     }
@@ -1061,7 +991,7 @@ public class Layer3 {
             }
 
 			/*
-			 * zero part
+             * zero part
 			 */
             for (i = ((MPG123.SBLIMIT * MPG123.SSLIMIT) - xrpntPos) >> 1; i != 0; i--) {
                 xrpnt[xrpntPos++] = 0.0f;
@@ -1087,7 +1017,7 @@ public class Layer3 {
     }
 
 	/*
-	 * DCT insipired by Jeff Tsay's DCT from the maplay package this is an
+     * DCT insipired by Jeff Tsay's DCT from the maplay package this is an
 	 * optimized version with manual unroll.
 	 * 
 	 * References: [1] S. Winograd:
@@ -1098,8 +1028,7 @@ public class Layer3 {
     /*
      * III_stereo: calculate real channel values for Joint-I-Stereo-mode
      */
-    private void III_i_stereo(float xr_buf[][], int[] scalefac,
-                              gr_info_s gr_infos, int sfreq, int ms_stereo, int lsf) {
+    private void III_i_stereo(float xr_buf[][], int[] scalefac, gr_info_s gr_infos, int sfreq, int ms_stereo, int lsf) {
         float[][] xr = xr_buf;
         final bandInfoStruct bi = bandInfo[sfreq];
         float tabl1[], tabl2[];
@@ -1129,23 +1058,11 @@ public class Layer3 {
                 do_l = 1;
 
             for (lwin = 0; lwin < 3; lwin++) { /* process each window */
-				/* get first band with zero values */
-                int is_p, sb, idx, sfb = gr_infos.maxband[lwin]; /*
-																 * sfb is
-																 * minimal 3 for
-																 * mixed mode
-																 */
-                if (sfb > 3)
-                    do_l = 0;
+                int is_p, sb, idx, sfb = gr_infos.maxband[lwin];
+                if (sfb > 3) do_l = 0;
 
                 for (; sfb < 12; sfb++) {
-                    is_p = scalefac[sfb * 3 + lwin - gr_infos.mixed_block_flag]; /*
-																				 * scale
-																				 * :
-																				 * 0
-																				 * -
-																				 * 15
-																				 */
+                    is_p = scalefac[sfb * 3 + lwin - gr_infos.mixed_block_flag];
                     if (is_p != 7) {
                         float t1, t2;
                         sb = bi.shortDiff[sfb];
@@ -1160,17 +1077,7 @@ public class Layer3 {
                     }
                 }
 
-				/*
-				 * in the original: copy 10 to 11 , here: copy 11 to 12 maybe
-				 * still wrong??? (copy 12 to 13?)
-				 */
-                is_p = scalefac[11 * 3 + lwin - gr_infos.mixed_block_flag]; /*
-																			 * scale
-																			 * :
-																			 * 0
-																			 * -
-																			 * 15
-																			 */
+                is_p = scalefac[11 * 3 + lwin - gr_infos.mixed_block_flag];
                 sb = bi.shortDiff[12];
                 idx = bi.shortIdx[12] + lwin;
                 if (is_p != 7) {
@@ -1186,8 +1093,8 @@ public class Layer3 {
             } /* end for(lwin; .. ; . ) */
 
             if (do_l != 0) {
-				/*
-				 * also check l-part, if ALL bands in the three windows are
+                /*
+                 * also check l-part, if ALL bands in the three windows are
 				 * 'empty' and mode = mixed_mode
 				 */
                 int sfb = gr_infos.maxbandl;
@@ -1232,7 +1139,8 @@ public class Layer3 {
             is_p = scalefac[20]; /* copy l-band 20 to l-band 21 */
             if (is_p != 7) {
                 int sb;
-                float t1 = tabl1[is_p], t2 = tabl2[is_p];
+                float t1 = tabl1[is_p];
+                float t2 = tabl2[is_p];
 
                 for (sb = bi.longDiff[21]; sb > 0; sb--, idx++) {
                     float v = xr[0][idx];
@@ -1255,23 +1163,25 @@ public class Layer3 {
         }
 
 		/* 31 alias-reduction operations between each pair of sub-bands */
-		/* with 8 butterflies between each pair */
+        /* with 8 butterflies between each pair */
 
         {
             int sb;
-            float[] xr1 = (float[]) xr;
+            float[] xr1 = xr;
             int xr1Pos = MPG123.SSLIMIT;
 
             for (sb = sblim; sb != 0; sb--, xr1Pos += 10) {
                 int ss;
-                float cs[] = aa_cs, ca[] = aa_ca;
+                float cs[] = aa_cs;
+                float ca[] = aa_ca;
                 int caPos = 0;
                 int csPos = 0;
                 float[] xr2 = xr1;
                 int xr2Pos = xr1Pos;
 
                 for (ss = 7; ss >= 0; ss--) { /* upper and lower butterfly inputs */
-                    float bu = xr2[--xr2Pos], bd = xr1[xr1Pos];
+                    float bu = xr2[--xr2Pos];
+                    float bd = xr1[xr1Pos];
                     xr2[xr2Pos] = (bu * (cs[csPos])) - (bd * (ca[caPos]));
                     xr1[xr1Pos++] = (bd * (cs[csPos++])) + (bu * (ca[caPos++]));
                 }
@@ -1313,7 +1223,6 @@ public class Layer3 {
             in[inPos + 3] += in[inPos + 1];
 
             {
-
                 final float[] c = COS9;
                 float[] out2 = o2;
                 int out2Pos = o2Pos;
@@ -1331,207 +1240,144 @@ public class Layer3 {
 
                 {
                     float tmp1a, tmp2a, tmp1b, tmp2b;
-                    tmp1a = in[inPos + 2 * 1 + 0] * c[1] + ta33
-                            + in[inPos + 2 * 5 + 0] * c[5]
-                            + in[inPos + 2 * 7 + 0] * c[7];
-                    tmp1b = in[inPos + 2 * 1 + 1] * c[1] + tb33
-                            + in[inPos + 2 * 5 + 1] * c[5]
-                            + in[inPos + 2 * 7 + 1] * c[7];
-                    tmp2a = in[inPos + 2 * 0 + 0] + in[inPos + 2 * 2 + 0]
-                            * c[2] + in[inPos + 2 * 4 + 0] * c[4] + ta66
-                            + in[inPos + 2 * 8 + 0] * c[8];
-                    tmp2b = in[inPos + 2 * 0 + 1] + in[inPos + 2 * 2 + 1]
-                            * c[2] + in[inPos + 2 * 4 + 1] * c[4] + tb66
-                            + in[inPos + 2 * 8 + 1] * c[8];
+                    tmp1a = in[inPos + 2 * 1 + 0] * c[1] + ta33 + in[inPos + 2 * 5 + 0] * c[5] + in[inPos + 2 * 7 + 0] * c[7];
+                    tmp1b = in[inPos + 2 * 1 + 1] * c[1] + tb33 + in[inPos + 2 * 5 + 1] * c[5] + in[inPos + 2 * 7 + 1] * c[7];
+                    tmp2a = in[inPos + 2 * 0 + 0] + in[inPos + 2 * 2 + 0] * c[2] + in[inPos + 2 * 4 + 0] * c[4] + ta66 + in[inPos + 2 * 8 + 0] * c[8];
+                    tmp2b = in[inPos + 2 * 0 + 1] + in[inPos + 2 * 2 + 1] * c[2] + in[inPos + 2 * 4 + 1] * c[4] + tb66 + in[inPos + 2 * 8 + 1] * c[8];
 
                     // MACRO1(0);
                     {
                         float sum0 = tmp1a + tmp2a;
                         float sum1 = (tmp1b + tmp2b) * tfcos36[(0)];
-                        float tmp;
-                        out2[out2Pos + 9 + (0)] = (tmp = sum0 + sum1)
-                                * w[27 + (0)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (0)] = tmp * w[27 + (0)];
                         out2[out2Pos + 8 - (0)] = tmp * w[26 - (0)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (0))] = out1[out1Pos + 8 - (0)]
-                                + sum0 * w[8 - (0)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (0))] = out1[out1Pos + 9 + (0)]
-                                + sum0 * w[9 + (0)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (0))] = out1[out1Pos + 8 - (0)] + sum0 * w[8 - (0)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (0))] = out1[out1Pos + 9 + (0)] + sum0 * w[9 + (0)];
                     }
                     // MACRO2(8);
                     {
                         float sum0, sum1;
                         sum0 = tmp2a - tmp1a;
                         sum1 = (tmp2b - tmp1b) * tfcos36[(8)];
-                        float tmp;
-                        out2[out2Pos + 9 + (8)] = (tmp = sum0 + sum1)
-                                * w[27 + (8)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (8)] = tmp * w[27 + (8)];
                         out2[out2Pos + 8 - (8)] = tmp * w[26 - (8)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (8))] = out1[out1Pos + 8 - (8)]
-                                + sum0 * w[8 - (8)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (8))] = out1[out1Pos + 9 + (8)]
-                                + sum0 * w[9 + (8)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (8))] = out1[out1Pos + 8 - (8)] + sum0 * w[8 - (8)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (8))] = out1[out1Pos + 9 + (8)] + sum0 * w[9 + (8)];
                     }
                 }
 
                 {
                     float tmp1a, tmp2a, tmp1b, tmp2b;
-                    tmp1a = (in[inPos + 2 * 1 + 0] - in[inPos + 2 * 5 + 0] - in[inPos + 2 * 7 + 0])
-                            * c[3];
-                    tmp1b = (in[inPos + 2 * 1 + 1] - in[inPos + 2 * 5 + 1] - in[inPos + 2 * 7 + 1])
-                            * c[3];
-                    tmp2a = (in[inPos + 2 * 2 + 0] - in[inPos + 2 * 4 + 0] - in[inPos + 2 * 8 + 0])
-                            * c[6]
-                            - in[inPos + 2 * 6 + 0]
-                            + in[inPos + 2 * 0 + 0];
-                    tmp2b = (in[inPos + 2 * 2 + 1] - in[inPos + 2 * 4 + 1] - in[inPos + 2 * 8 + 1])
-                            * c[6]
-                            - in[inPos + 2 * 6 + 1]
-                            + in[inPos + 2 * 0 + 1];
+                    tmp1a = (in[inPos + 2 * 1 + 0] - in[inPos + 2 * 5 + 0] - in[inPos + 2 * 7 + 0]) * c[3];
+                    tmp1b = (in[inPos + 2 * 1 + 1] - in[inPos + 2 * 5 + 1] - in[inPos + 2 * 7 + 1]) * c[3];
+                    tmp2a = (in[inPos + 2 * 2 + 0] - in[inPos + 2 * 4 + 0] - in[inPos + 2 * 8 + 0]) * c[6] - in[inPos + 2 * 6 + 0] + in[inPos + 2 * 0 + 0];
+                    tmp2b = (in[inPos + 2 * 2 + 1] - in[inPos + 2 * 4 + 1] - in[inPos + 2 * 8 + 1]) * c[6] - in[inPos + 2 * 6 + 1] + in[inPos + 2 * 0 + 1];
 
                     // MACRO1(1);
                     {
                         float sum0 = tmp1a + tmp2a;
                         float sum1 = (tmp1b + tmp2b) * tfcos36[(1)];
-                        float tmp;
-                        out2[out2Pos + 9 + (1)] = (tmp = sum0 + sum1)
-                                * w[27 + (1)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (1)] = tmp * w[27 + (1)];
                         out2[out2Pos + 8 - (1)] = tmp * w[26 - (1)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (1))] = out1[out1Pos + 8 - (1)]
-                                + sum0 * w[8 - (1)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (1))] = out1[out1Pos + 9 + (1)]
-                                + sum0 * w[9 + (1)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (1))] = out1[out1Pos + 8 - (1)] + sum0 * w[8 - (1)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (1))] = out1[out1Pos + 9 + (1)] + sum0 * w[9 + (1)];
                     }
                     // MACRO2(7);
                     {
                         float sum0, sum1;
                         sum0 = tmp2a - tmp1a;
                         sum1 = (tmp2b - tmp1b) * tfcos36[(7)];
-                        float tmp;
-                        out2[out2Pos + 9 + (7)] = (tmp = sum0 + sum1)
-                                * w[27 + (7)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (7)] = tmp * w[27 + (7)];
                         out2[out2Pos + 8 - (7)] = tmp * w[26 - (7)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (7))] = out1[out1Pos + 8 - (7)]
-                                + sum0 * w[8 - (7)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (7))] = out1[out1Pos + 9 + (7)]
-                                + sum0 * w[9 + (7)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (7))] = out1[out1Pos + 8 - (7)] + sum0 * w[8 - (7)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (7))] = out1[out1Pos + 9 + (7)] + sum0 * w[9 + (7)];
                     }
                 }
 
                 {
                     float tmp1a, tmp2a, tmp1b, tmp2b;
-                    tmp1a = in[inPos + 2 * 1 + 0] * c[5] - ta33
-                            - in[inPos + 2 * 5 + 0] * c[7]
-                            + in[inPos + 2 * 7 + 0] * c[1];
-                    tmp1b = in[inPos + 2 * 1 + 1] * c[5] - tb33
-                            - in[inPos + 2 * 5 + 1] * c[7]
-                            + in[inPos + 2 * 7 + 1] * c[1];
-                    tmp2a = in[inPos + 2 * 0 + 0] - in[inPos + 2 * 2 + 0]
-                            * c[8] - in[inPos + 2 * 4 + 0] * c[2] + ta66
-                            + in[inPos + 2 * 8 + 0] * c[4];
-                    tmp2b = in[inPos + 2 * 0 + 1] - in[inPos + 2 * 2 + 1]
-                            * c[8] - in[inPos + 2 * 4 + 1] * c[2] + tb66
-                            + in[inPos + 2 * 8 + 1] * c[4];
+                    tmp1a = in[inPos + 2 * 1 + 0] * c[5] - ta33 - in[inPos + 2 * 5 + 0] * c[7] + in[inPos + 2 * 7 + 0] * c[1];
+                    tmp1b = in[inPos + 2 * 1 + 1] * c[5] - tb33 - in[inPos + 2 * 5 + 1] * c[7] + in[inPos + 2 * 7 + 1] * c[1];
+                    tmp2a = in[inPos + 2 * 0 + 0] - in[inPos + 2 * 2 + 0] * c[8] - in[inPos + 2 * 4 + 0] * c[2] + ta66 + in[inPos + 2 * 8 + 0] * c[4];
+                    tmp2b = in[inPos + 2 * 0 + 1] - in[inPos + 2 * 2 + 1] * c[8] - in[inPos + 2 * 4 + 1] * c[2] + tb66 + in[inPos + 2 * 8 + 1] * c[4];
 
                     // MACRO1(2);
                     {
                         float sum0 = tmp1a + tmp2a;
                         float sum1 = (tmp1b + tmp2b) * tfcos36[(2)];
-                        float tmp;
-                        out2[out2Pos + 9 + (2)] = (tmp = sum0 + sum1)
-                                * w[27 + (2)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (2)] = tmp * w[27 + (2)];
                         out2[out2Pos + 8 - (2)] = tmp * w[26 - (2)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (2))] = out1[out1Pos + 8 - (2)]
-                                + sum0 * w[8 - (2)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (2))] = out1[out1Pos + 9 + (2)]
-                                + sum0 * w[9 + (2)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (2))] = out1[out1Pos + 8 - (2)] + sum0 * w[8 - (2)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (2))] = out1[out1Pos + 9 + (2)] + sum0 * w[9 + (2)];
                     }
                     // MACRO2(6);
                     {
                         float sum0, sum1;
                         sum0 = tmp2a - tmp1a;
                         sum1 = (tmp2b - tmp1b) * tfcos36[(6)];
-                        float tmp;
-                        out2[out2Pos + 9 + (6)] = (tmp = sum0 + sum1)
-                                * w[27 + (6)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (6)] = tmp * w[27 + (6)];
                         out2[out2Pos + 8 - (6)] = tmp * w[26 - (6)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (6))] = out1[out1Pos + 8 - (6)]
-                                + sum0 * w[8 - (6)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (6))] = out1[out1Pos + 9 + (6)]
-                                + sum0 * w[9 + (6)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (6))] = out1[out1Pos + 8 - (6)] + sum0 * w[8 - (6)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (6))] = out1[out1Pos + 9 + (6)] + sum0 * w[9 + (6)];
                     }
                 }
 
                 {
                     float tmp1a, tmp2a, tmp1b, tmp2b;
-                    tmp1a = in[inPos + 2 * 1 + 0] * c[7] - ta33
-                            + in[inPos + 2 * 5 + 0] * c[1]
-                            - in[inPos + 2 * 7 + 0] * c[5];
-                    tmp1b = in[inPos + 2 * 1 + 1] * c[7] - tb33
-                            + in[inPos + 2 * 5 + 1] * c[1]
-                            - in[inPos + 2 * 7 + 1] * c[5];
-                    tmp2a = in[inPos + 2 * 0 + 0] - in[inPos + 2 * 2 + 0]
-                            * c[4] + in[inPos + 2 * 4 + 0] * c[8] + ta66
-                            - in[inPos + 2 * 8 + 0] * c[2];
-                    tmp2b = in[inPos + 2 * 0 + 1] - in[inPos + 2 * 2 + 1]
-                            * c[4] + in[inPos + 2 * 4 + 1] * c[8] + tb66
-                            - in[inPos + 2 * 8 + 1] * c[2];
+                    tmp1a = in[inPos + 2 * 1 + 0] * c[7] - ta33 + in[inPos + 2 * 5 + 0] * c[1] - in[inPos + 2 * 7 + 0] * c[5];
+                    tmp1b = in[inPos + 2 * 1 + 1] * c[7] - tb33 + in[inPos + 2 * 5 + 1] * c[1] - in[inPos + 2 * 7 + 1] * c[5];
+                    tmp2a = in[inPos + 2 * 0 + 0] - in[inPos + 2 * 2 + 0] * c[4] + in[inPos + 2 * 4 + 0] * c[8] + ta66 - in[inPos + 2 * 8 + 0] * c[2];
+                    tmp2b = in[inPos + 2 * 0 + 1] - in[inPos + 2 * 2 + 1] * c[4] + in[inPos + 2 * 4 + 1] * c[8] + tb66 - in[inPos + 2 * 8 + 1] * c[2];
 
                     // MACRO1(3);
                     {
                         float sum0 = tmp1a + tmp2a;
                         float sum1 = (tmp1b + tmp2b) * tfcos36[(3)];
-                        float tmp;
-                        out2[out2Pos + 9 + (3)] = (tmp = sum0 + sum1)
-                                * w[27 + (3)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (3)] = tmp * w[27 + (3)];
                         out2[out2Pos + 8 - (3)] = tmp * w[26 - (3)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (3))] = out1[out1Pos + 8 - (3)]
-                                + sum0 * w[8 - (3)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (3))] = out1[out1Pos + 9 + (3)]
-                                + sum0 * w[9 + (3)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (3))] = out1[out1Pos + 8 - (3)] + sum0 * w[8 - (3)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (3))] = out1[out1Pos + 9 + (3)] + sum0 * w[9 + (3)];
                     }
                     // MACRO2(5);
                     {
                         float sum0, sum1;
                         sum0 = tmp2a - tmp1a;
                         sum1 = (tmp2b - tmp1b) * tfcos36[(5)];
-                        float tmp;
-                        out2[out2Pos + 9 + (5)] = (tmp = sum0 + sum1)
-                                * w[27 + (5)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (5)] = tmp * w[27 + (5)];
                         out2[out2Pos + 8 - (5)] = tmp * w[26 - (5)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (5))] = out1[out1Pos + 8 - (5)]
-                                + sum0 * w[8 - (5)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (5))] = out1[out1Pos + 9 + (5)]
-                                + sum0 * w[9 + (5)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (5))] = out1[out1Pos + 8 - (5)] + sum0 * w[8 - (5)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (5))] = out1[out1Pos + 9 + (5)] + sum0 * w[9 + (5)];
                     }
                 }
 
                 {
                     float sum0, sum1;
-                    sum0 = in[inPos + 2 * 0 + 0] - in[inPos + 2 * 2 + 0]
-                            + in[inPos + 2 * 4 + 0] - in[inPos + 2 * 6 + 0]
-                            + in[inPos + 2 * 8 + 0];
-                    sum1 = (in[inPos + 2 * 0 + 1] - in[inPos + 2 * 2 + 1]
-                            + in[inPos + 2 * 4 + 1] - in[inPos + 2 * 6 + 1] + in[inPos + 2 * 8 + 1])
-                            * tfcos36[4];
+                    sum0 = in[inPos + 2 * 0 + 0] - in[inPos + 2 * 2 + 0] + in[inPos + 2 * 4 + 0] - in[inPos + 2 * 6 + 0] + in[inPos + 2 * 8 + 0];
+                    sum1 = (in[inPos + 2 * 0 + 1] - in[inPos + 2 * 2 + 1] + in[inPos + 2 * 4 + 1] - in[inPos + 2 * 6 + 1] + in[inPos + 2 * 8 + 1]) * tfcos36[4];
                     // MACRO0(4)
                     {
-                        float tmp;
-                        out2[out2Pos + 9 + (4)] = (tmp = sum0 + sum1)
-                                * w[27 + (4)];
+                        float tmp = sum0 + sum1;
+                        out2[out2Pos + 9 + (4)] = tmp * w[27 + (4)];
                         out2[out2Pos + 8 - (4)] = tmp * w[26 - (4)];
                         sum0 -= sum1;
-                        ts[tsPos + MPG123.SBLIMIT * (8 - (4))] = out1[out1Pos + 8 - (4)]
-                                + sum0 * w[8 - (4)];
-                        ts[tsPos + MPG123.SBLIMIT * (9 + (4))] = out1[out1Pos + 9 + (4)]
-                                + sum0 * w[9 + (4)];
+                        ts[tsPos + MPG123.SBLIMIT * (8 - (4))] = out1[out1Pos + 8 - (4)] + sum0 * w[8 - (4)];
+                        ts[tsPos + MPG123.SBLIMIT * (9 + (4))] = out1[out1Pos + 9 + (4)] + sum0 * w[9 + (4)];
                     }
                 }
             }
@@ -1559,55 +1405,51 @@ public class Layer3 {
             ts[tsPos + MPG123.SBLIMIT * 5] = out1[out1Pos + 5];
 
             // DCT12_PART1
-            {
-                in5 = in[inbufPos + 5 * 3];
-                in5 += (in4 = in[inbufPos + 4 * 3]);
-                in4 += (in3 = in[inbufPos + 3 * 3]);
-                in3 += (in2 = in[inbufPos + 2 * 3]);
-                in2 += (in1 = in[inbufPos + 1 * 3]);
-                in1 += (in0 = in[inbufPos + 0 * 3]);
 
-                in5 += in3;
-                in3 += in1;
+            in5 = in[inbufPos + 5 * 3];
+            in5 += (in4 = in[inbufPos + 4 * 3]);
+            in4 += (in3 = in[inbufPos + 3 * 3]);
+            in3 += (in2 = in[inbufPos + 2 * 3]);
+            in2 += (in1 = in[inbufPos + 1 * 3]);
+            in1 += (in0 = in[inbufPos + 0 * 3]);
 
-                in2 *= COS6_1;
-                in3 *= COS6_1;
-            }
-            {
-                float tmp0, tmp1 = (in0 - in4);
-                {
-                    float tmp2 = (in1 - in5) * tfcos12[1];
-                    tmp0 = tmp1 + tmp2;
-                    tmp1 -= tmp2;
-                }
-                ts[tsPos + (17 - 1) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 1]
-                        + tmp0 * wi[11 - 1];
-                ts[tsPos + (12 + 1) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 1]
-                        + tmp0 * wi[6 + 1];
-                ts[tsPos + (6 + 1) * MPG123.SBLIMIT] = out1[out1Pos + 6 + 1]
-                        + tmp1 * wi[1];
-                ts[tsPos + (11 - 1) * MPG123.SBLIMIT] = out1[out1Pos + 11 - 1]
-                        + tmp1 * wi[5 - 1];
-            }
+            in5 += in3;
+            in3 += in1;
+
+            in2 *= COS6_1;
+            in3 *= COS6_1;
+
+
+            float tmp0, tmp1 = (in0 - in4);
+
+            float tmp2 = (in1 - in5) * tfcos12[1];
+            tmp0 = tmp1 + tmp2;
+            tmp1 -= tmp2;
+
+            ts[tsPos + (17 - 1) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 1] + tmp0 * wi[11 - 1];
+            ts[tsPos + (12 + 1) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 1] + tmp0 * wi[6 + 1];
+            ts[tsPos + (6 + 1) * MPG123.SBLIMIT] = out1[out1Pos + 6 + 1] + tmp1 * wi[1];
+            ts[tsPos + (11 - 1) * MPG123.SBLIMIT] = out1[out1Pos + 11 - 1] + tmp1 * wi[5 - 1];
+
 
             // DCT12_PART2
-            {
-                in0 += in4 * COS6_2;
 
-                in4 = in0 + in2;
-                in0 -= in2;
+            in0 += in4 * COS6_2;
 
-                in1 += in5 * COS6_2;
+            in4 = in0 + in2;
+            in0 -= in2;
 
-                in5 = (in1 + in3) * tfcos12[0];
-                in1 = (in1 - in3) * tfcos12[2];
+            in1 += in5 * COS6_2;
 
-                in3 = in4 + in5;
-                in4 -= in5;
+            in5 = (in1 + in3) * tfcos12[0];
+            in1 = (in1 - in3) * tfcos12[2];
 
-                in2 = in0 + in1;
-                in0 -= in1;
-            }
+            in3 = in4 + in5;
+            in4 -= in5;
+
+            in2 = in0 + in1;
+            in0 -= in1;
+
             ts[tsPos + (17 - 0) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 0] + in2 * wi[11 - 0];
             ts[tsPos + (12 + 0) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 0] + in2 * wi[6 + 0];
             ts[tsPos + (12 + 2) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 2] + in3 * wi[6 + 2];
@@ -1626,52 +1468,48 @@ public class Layer3 {
             int out2Pos = rawout2Pos;
 
             // DCT12_PART1
-            {
-                in5 = in[inbufPos + 5 * 3];
-                in5 += (in4 = in[inbufPos + 4 * 3]);
-                in4 += (in3 = in[inbufPos + 3 * 3]);
-                in3 += (in2 = in[inbufPos + 2 * 3]);
-                in2 += (in1 = in[inbufPos + 1 * 3]);
-                in1 += (in0 = in[inbufPos + 0 * 3]);
+            in5 = in[inbufPos + 5 * 3];
+            in5 += (in4 = in[inbufPos + 4 * 3]);
+            in4 += (in3 = in[inbufPos + 3 * 3]);
+            in3 += (in2 = in[inbufPos + 2 * 3]);
+            in2 += (in1 = in[inbufPos + 1 * 3]);
+            in1 += (in0 = in[inbufPos + 0 * 3]);
 
-                in5 += in3;
-                in3 += in1;
+            in5 += in3;
+            in3 += in1;
 
-                in2 *= COS6_1;
-                in3 *= COS6_1;
-            }
+            in2 *= COS6_1;
+            in3 *= COS6_1;
 
-            {
-                float tmp0, tmp1 = (in0 - in4);
-                {
-                    float tmp2 = (in1 - in5) * tfcos12[1];
-                    tmp0 = tmp1 + tmp2;
-                    tmp1 -= tmp2;
-                }
-                out2[out2Pos + 5 - 1] = tmp0 * wi[11 - 1];
-                out2[out2Pos + 0 + 1] = tmp0 * wi[6 + 1];
-                ts[tsPos + (12 + 1) * MPG123.SBLIMIT] += tmp1 * wi[1];
-                ts[tsPos + (17 - 1) * MPG123.SBLIMIT] += tmp1 * wi[5 - 1];
-            }
+            float tmp0, tmp1 = (in0 - in4);
+
+            float tmp2 = (in1 - in5) * tfcos12[1];
+            tmp0 = tmp1 + tmp2;
+            tmp1 -= tmp2;
+
+            out2[out2Pos + 5 - 1] = tmp0 * wi[11 - 1];
+            out2[out2Pos + 0 + 1] = tmp0 * wi[6 + 1];
+            ts[tsPos + (12 + 1) * MPG123.SBLIMIT] += tmp1 * wi[1];
+            ts[tsPos + (17 - 1) * MPG123.SBLIMIT] += tmp1 * wi[5 - 1];
+
 
             // DCT12_PART2
-            {
-                in0 += in4 * COS6_2;
 
-                in4 = in0 + in2;
-                in0 -= in2;
+            in0 += in4 * COS6_2;
 
-                in1 += in5 * COS6_2;
+            in4 = in0 + in2;
+            in0 -= in2;
 
-                in5 = (in1 + in3) * tfcos12[0];
-                in1 = (in1 - in3) * tfcos12[2];
+            in1 += in5 * COS6_2;
 
-                in3 = in4 + in5;
-                in4 -= in5;
+            in5 = (in1 + in3) * tfcos12[0];
+            in1 = (in1 - in3) * tfcos12[2];
 
-                in2 = in0 + in1;
-                in0 -= in1;
-            }
+            in3 = in4 + in5;
+            in4 -= in5;
+
+            in2 = in0 + in1;
+            in0 -= in1;
 
             out2[out2Pos + 5 - 0] = in2 * wi[11 - 0];
             out2[out2Pos + 0 + 0] = in2 * wi[6 + 0];
@@ -1690,55 +1528,57 @@ public class Layer3 {
             float in0, in1, in2, in3, in4, in5;
             float[] out2 = rawout2;
             int out2Pos = rawout2Pos;
-            out2[out2Pos + 12] = out2[out2Pos + 13] = out2[out2Pos + 14] = out2[out2Pos + 15] = out2[out2Pos + 16] = out2[out2Pos + 17] = 0.0f;
+            out2[out2Pos + 12] = 0.0f;
+            out2[out2Pos + 13] = 0.0f;
+            out2[out2Pos + 14] = 0.0f;
+            out2[out2Pos + 15] = 0.0f;
+            out2[out2Pos + 16] = 0.0f;
+            out2[out2Pos + 17] = 0.0f;
 
             // DCT12_PART1
-            {
-                in5 = in[inbufPos + 5 * 3];
-                in5 += (in4 = in[inbufPos + 4 * 3]);
-                in4 += (in3 = in[inbufPos + 3 * 3]);
-                in3 += (in2 = in[inbufPos + 2 * 3]);
-                in2 += (in1 = in[inbufPos + 1 * 3]);
-                in1 += (in0 = in[inbufPos + 0 * 3]);
 
-                in5 += in3;
-                in3 += in1;
+            in5 = in[inbufPos + 5 * 3];
+            in5 += (in4 = in[inbufPos + 4 * 3]);
+            in4 += (in3 = in[inbufPos + 3 * 3]);
+            in3 += (in2 = in[inbufPos + 2 * 3]);
+            in2 += (in1 = in[inbufPos + 1 * 3]);
+            in1 += (in0 = in[inbufPos + 0 * 3]);
 
-                in2 *= COS6_1;
-                in3 *= COS6_1;
-            }
+            in5 += in3;
+            in3 += in1;
 
-            {
-                float tmp0, tmp1 = (in0 - in4);
-                {
-                    float tmp2 = (in1 - in5) * tfcos12[1];
-                    tmp0 = tmp1 + tmp2;
-                    tmp1 -= tmp2;
-                }
-                out2[out2Pos + 11 - 1] = tmp0 * wi[11 - 1];
-                out2[out2Pos + 6 + 1] = tmp0 * wi[6 + 1];
-                out2[out2Pos + 0 + 1] += tmp1 * wi[1];
-                out2[out2Pos + 5 - 1] += tmp1 * wi[5 - 1];
-            }
+            in2 *= COS6_1;
+            in3 *= COS6_1;
+
+            float tmp0, tmp1 = (in0 - in4);
+            float tmp2 = (in1 - in5) * tfcos12[1];
+            tmp0 = tmp1 + tmp2;
+            tmp1 -= tmp2;
+
+            out2[out2Pos + 11 - 1] = tmp0 * wi[11 - 1];
+            out2[out2Pos + 6 + 1] = tmp0 * wi[6 + 1];
+            out2[out2Pos + 0 + 1] += tmp1 * wi[1];
+            out2[out2Pos + 5 - 1] += tmp1 * wi[5 - 1];
+
 
             // DCT12_PART2
-            {
-                in0 += in4 * COS6_2;
 
-                in4 = in0 + in2;
-                in0 -= in2;
+            in0 += in4 * COS6_2;
 
-                in1 += in5 * COS6_2;
+            in4 = in0 + in2;
+            in0 -= in2;
 
-                in5 = (in1 + in3) * tfcos12[0];
-                in1 = (in1 - in3) * tfcos12[2];
+            in1 += in5 * COS6_2;
 
-                in3 = in4 + in5;
-                in4 -= in5;
+            in5 = (in1 + in3) * tfcos12[0];
+            in1 = (in1 - in3) * tfcos12[2];
 
-                in2 = in0 + in1;
-                in0 -= in1;
-            }
+            in3 = in4 + in5;
+            in4 -= in5;
+
+            in2 = in0 + in1;
+            in0 -= in1;
+
 
             out2[out2Pos + 11 - 0] = in2 * wi[11 - 0];
             out2[out2Pos + 6 + 0] = in2 * wi[6 + 0];
@@ -1752,8 +1592,7 @@ public class Layer3 {
         }
     }
 
-    private void III_hybrid(mpstr_tag mp, float fsIn[], float tsOut[], int ch,
-                            gr_info_s gr_infos) {
+    private void III_hybrid(mpstr_tag mp, float fsIn[], float tsOut[], int ch, gr_info_s gr_infos) {
         float[] tspnt = tsOut;
         int tspntPos = 0;
         float block[][][] = mp.hybrid_block;
@@ -1763,22 +1602,18 @@ public class Layer3 {
         int bt;
         int sb = 0;
 
-        {
-            int b = blc[ch];
-            rawout1 = block[b][ch];
-            rawout1Pos = 0;
-            b = -b + 1;
-            rawout2 = block[b][ch];
-            rawout2Pos = 0;
-            blc[ch] = b;
-        }
+        int b = blc[ch];
+        rawout1 = block[b][ch];
+        rawout1Pos = 0;
+        b = -b + 1;
+        rawout2 = block[b][ch];
+        rawout2Pos = 0;
+        blc[ch] = b;
 
         if (gr_infos.mixed_block_flag != 0) {
             sb = 2;
-            dct36(fsIn, 0 * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2,
-                    rawout2Pos, win[0], tspnt, tspntPos + 0);
-            dct36(fsIn, 1 * MPG123.SSLIMIT, rawout1, rawout1Pos + 18, rawout2,
-                    rawout2Pos + 18, win1[0], tspnt, tspntPos + 1);
+            dct36(fsIn, 0 * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2, rawout2Pos, win[0], tspnt, tspntPos + 0);
+            dct36(fsIn, 1 * MPG123.SSLIMIT, rawout1, rawout1Pos + 18, rawout2, rawout2Pos + 18, win1[0], tspnt, tspntPos + 1);
             rawout1Pos += 36;
             rawout2Pos += 36;
             tspntPos += 2;
@@ -1787,25 +1622,18 @@ public class Layer3 {
         bt = gr_infos.block_type;
         if (bt == 2) {
             for (; sb < gr_infos.maxb; sb += 2, tspntPos += 2, rawout1Pos += 36, rawout2Pos += 36) {
-                dct12(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2,
-                        rawout2Pos, win[2], tspnt, tspntPos + 0);
-                dct12(fsIn, (sb + 1) * MPG123.SSLIMIT, rawout1,
-                        rawout1Pos + 18, rawout2, rawout2Pos + 18, win1[2],
-                        tspnt, tspntPos + 1);
+                dct12(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2, rawout2Pos, win[2], tspnt, tspntPos + 0);
+                dct12(fsIn, (sb + 1) * MPG123.SSLIMIT, rawout1, rawout1Pos + 18, rawout2, rawout2Pos + 18, win1[2], tspnt, tspntPos + 1);
             }
         } else {
             for (; sb < gr_infos.maxb; sb += 2, tspntPos += 2, rawout1Pos += 36, rawout2Pos += 36) {
-                dct36(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2,
-                        rawout2Pos, win[bt], tspnt, tspntPos + 0);
-                dct36(fsIn, (sb + 1) * MPG123.SSLIMIT, rawout1,
-                        rawout1Pos + 18, rawout2, rawout2Pos + 18, win1[bt],
-                        tspnt, tspntPos + 1);
+                dct36(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2, rawout2Pos, win[bt], tspnt, tspntPos + 0);
+                dct36(fsIn, (sb + 1) * MPG123.SSLIMIT, rawout1, rawout1Pos + 18, rawout2, rawout2Pos + 18, win1[bt], tspnt, tspntPos + 1);
             }
         }
 
         for (; sb < MPG123.SBLIMIT; sb++, tspntPos++) {
-            int i;
-            for (i = 0; i < MPG123.SSLIMIT; i++) {
+            for (int i = 0; i < MPG123.SSLIMIT; i++) {
                 tspnt[tspntPos + i * MPG123.SBLIMIT] = rawout1[rawout1Pos++];
                 rawout2[rawout2Pos++] = 0.0f;
             }
@@ -1821,14 +1649,9 @@ public class Layer3 {
         int granules;
         int ch, gr, databits;
 
-        if (stereo == 1) { /* stream is mono */
-            single = 0;
-        }
+        if (stereo == 1) single = 0; /* stream is mono */
 
-        if (fr.mode == MPG123.MPG_MD_JOINT_STEREO) {
-            ms_stereo = fr.mode_ext & 0x2;
-        } else
-            ms_stereo = 0;
+        ms_stereo = (fr.mode == MPG123.MPG_MD_JOINT_STEREO) ? 0 : (fr.mode_ext & 0x2);
 
         if (fr.lsf != 0) {
             granules = 1;
@@ -1848,9 +1671,8 @@ public class Layer3 {
         return databits - 8 * sideinfo.main_data_begin;
     }
 
-    public int do_layer3(mpstr_tag mp, float[] pcm_sample,
-                         ProcessedBytes pcm_point, ISynth synth) {
-        int gr, ch, ss, clip = 0;
+    public int do_layer3(mpstr_tag mp, float[] pcm_sample, ProcessedBytes pcm_point, ISynth synth) {
+        int gr, ss, clip = 0;
         int scalefacs[][] = new int[2][39];
         Frame fr = (mp.fr);
         int stereo = fr.stereo;
@@ -1859,8 +1681,7 @@ public class Layer3 {
         int sfreq = fr.sampling_frequency;
         int stereo1, granules;
 
-        if (common.set_pointer(mp, (int) sideinfo.main_data_begin) == MPGLib.MP3_ERR)
-            return 0;
+        if (common.set_pointer(mp, sideinfo.main_data_begin) == MPGLib.MP3_ERR) return 0;
 
         if (stereo == 1) { /* stream is mono */
             stereo1 = 1;
@@ -1884,51 +1705,39 @@ public class Layer3 {
 
         for (gr = 0; gr < granules; gr++) {
 
-            {
-                gr_info_s gr_infos = (sideinfo.ch[0].gr[gr]);
-                int part2bits;
+            gr_info_s gr_infos2 = (sideinfo.ch[0].gr[gr]);
+            int part2bits2;
 
-                if (fr.lsf != 0)
-                    part2bits = III_get_scale_factors_2(mp, scalefacs[0], gr_infos, 0);
-                else {
-                    part2bits = III_get_scale_factors_1(mp, scalefacs[0], gr_infos);
-                }
-
-                if (mp.pinfo != null) {
-                    int i;
-                    mp.pinfo.getSfbits()[gr][0] = part2bits;
-                    for (i = 0; i < 39; i++)
-                        mp.pinfo.getSfb_s()[gr][0][i] = scalefacs[0][i];
-                }
-
-                if (III_dequantize_sample(mp, hybridIn[0], scalefacs[0],
-                        gr_infos, sfreq, part2bits) != 0)
-                    return clip;
+            if (fr.lsf != 0)
+                part2bits2 = III_get_scale_factors_2(mp, scalefacs[0], gr_infos2, 0);
+            else {
+                part2bits2 = III_get_scale_factors_1(mp, scalefacs[0], gr_infos2);
             }
+
+            if (mp.pinfo != null) {
+                mp.pinfo.getSfbits()[gr][0] = part2bits2;
+                for (int i = 0; i < 39; i++) mp.pinfo.getSfb_s()[gr][0][i] = scalefacs[0][i];
+            }
+
+            if (III_dequantize_sample(mp, hybridIn[0], scalefacs[0], gr_infos2, sfreq, part2bits2) != 0) return clip;
+
             if (stereo == 2) {
                 gr_info_s gr_infos = (sideinfo.ch[1].gr[gr]);
                 int part2bits;
                 if (fr.lsf != 0)
-                    part2bits = III_get_scale_factors_2(mp, scalefacs[1],
-                            gr_infos, i_stereo);
+                    part2bits = III_get_scale_factors_2(mp, scalefacs[1], gr_infos, i_stereo);
                 else {
-                    part2bits = III_get_scale_factors_1(mp, scalefacs[1],
-                            gr_infos);
+                    part2bits = III_get_scale_factors_1(mp, scalefacs[1], gr_infos);
                 }
                 if (mp.pinfo != null) {
-                    int i;
                     mp.pinfo.getSfbits()[gr][1] = part2bits;
-                    for (i = 0; i < 39; i++)
-                        mp.pinfo.getSfb_s()[gr][1][i] = scalefacs[1][i];
+                    for (int i = 0; i < 39; i++) mp.pinfo.getSfb_s()[gr][1][i] = scalefacs[1][i];
                 }
 
-                if (III_dequantize_sample(mp, hybridIn[1], scalefacs[1],
-                        gr_infos, sfreq, part2bits) != 0)
-                    return clip;
+                if (III_dequantize_sample(mp, hybridIn[1], scalefacs[1], gr_infos, sfreq, part2bits) != 0) return clip;
 
                 if (ms_stereo != 0) {
-                    int i;
-                    for (i = 0; i < MPG123.SBLIMIT * MPG123.SSLIMIT; i++) {
+                    for (int i = 0; i < MPG123.SBLIMIT * MPG123.SSLIMIT; i++) {
                         float tmp0, tmp1;
                         tmp0 = hybridIn[0][i];
                         tmp1 = hybridIn[1][i];
@@ -1937,36 +1746,28 @@ public class Layer3 {
                     }
                 }
 
-                if (i_stereo != 0)
-                    III_i_stereo(hybridIn, scalefacs[1], gr_infos, sfreq,
-                            ms_stereo, fr.lsf);
+                if (i_stereo != 0) III_i_stereo(hybridIn, scalefacs[1], gr_infos, sfreq, ms_stereo, fr.lsf);
 
                 if (ms_stereo != 0 || i_stereo != 0 || (single == 3)) {
-                    if (gr_infos.maxb > sideinfo.ch[0].gr[gr].maxb)
+                    if (gr_infos.maxb > sideinfo.ch[0].gr[gr].maxb) {
                         sideinfo.ch[0].gr[gr].maxb = gr_infos.maxb;
-                    else
+                    } else {
                         gr_infos.maxb = sideinfo.ch[0].gr[gr].maxb;
+                    }
                 }
 
                 switch (single) {
                     case 3: {
-                        int i;
-                        float in0[] = (float[]) hybridIn[0], in1[] = (float[]) hybridIn[1];
+                        float in0[] = hybridIn[0], in1[] = hybridIn[1];
                         int in0Pos = 0, in1Pos = 0;
-                        for (i = 0; i < (int) (MPG123.SSLIMIT * gr_infos.maxb); i++, in0Pos++)
-                            in0[in0Pos] = (in0[in0Pos] + in1[in1Pos++]); /*
-																	 * *0.5 done
-																	 * by
-																	 * pow-scale
-																	 */
+                        for (int i = 0; i < MPG123.SSLIMIT * gr_infos.maxb; i++, in0Pos++)
+                            in0[in0Pos] = (in0[in0Pos] + in1[in1Pos++]);
                     }
                     break;
                     case 1: {
-                        int i;
-                        float in0[] = (float[]) hybridIn[0], in1[] = (float[]) hybridIn[1];
+                        float in0[] = hybridIn[0], in1[] = hybridIn[1];
                         int in0Pos = 0, in1Pos = 0;
-                        for (i = 0; i < (int) (MPG123.SSLIMIT * gr_infos.maxb); i++)
-                            in0[in0Pos++] = in1[in1Pos++];
+                        for (int i = 0; i < MPG123.SSLIMIT * gr_infos.maxb; i++) in0[in0Pos++] = in1[in1Pos++];
                     }
                     break;
                 }
@@ -1987,7 +1788,7 @@ public class Layer3 {
                 mp.pinfo.setI_stereo(i_stereo);
                 mp.pinfo.setMaindata(sideinfo.main_data_begin);
 
-                for (ch = 0; ch < stereo1; ch++) {
+                for (int ch = 0; ch < stereo1; ch++) {
                     gr_info_s gr_infos = (sideinfo.ch[ch].gr[gr]);
                     mp.pinfo.getBig_values()[gr][ch] = gr_infos.big_values;
                     mp.pinfo.getScalefac_scale()[gr][ch] = gr_infos.scalefac_scale;
@@ -1998,39 +1799,42 @@ public class Layer3 {
                     if (gr == 1) mp.pinfo.getScfsi()[ch] = gr_infos.scfsi;
                 }
 
-                for (ch = 0; ch < stereo1; ch++) {
+                for (int ch = 0; ch < stereo1; ch++) {
                     gr_info_s gr_infos = (sideinfo.ch[ch].gr[gr]);
                     ifqstep = (mp.pinfo.getScalefac_scale()[gr][ch] == 0) ? .5f : 1.0f;
+                    double[] doubles = mp.pinfo.getSfb_s()[gr][ch];
                     if (2 == gr_infos.block_type) {
                         for (i = 0; i < 3; i++) {
+                            int[] ints = mp.pinfo.getSub_gain()[gr][ch];
                             for (sb = 0; sb < 12; sb++) {
                                 int j = 3 * sb + i;
-								/* scalefac was copied into pinfo.sfb_s[] above */
-                                mp.pinfo.getSfb_s()[gr][ch][j] = -ifqstep * mp.pinfo.getSfb_s()[gr][ch][j - gr_infos.mixed_block_flag];
-                                mp.pinfo.getSfb_s()[gr][ch][j] -= 2 * (mp.pinfo.getSub_gain()[gr][ch][i]);
+                                doubles[j] = -ifqstep * doubles[j - gr_infos.mixed_block_flag];
+                                doubles[j] -= 2 * (ints[i]);
                             }
-                            mp.pinfo.getSfb_s()[gr][ch][3 * sb + i] = -2 * (mp.pinfo.getSub_gain()[gr][ch][i]);
+                            doubles[3 * sb + i] = -2 * (ints[i]);
                         }
                     } else {
+                        double[] doubles1 = mp.pinfo.getSfb()[gr][ch];
                         for (sb = 0; sb < 21; sb++) {
-							/* scalefac was copied into pinfo.sfb[] above */
-                            mp.pinfo.getSfb()[gr][ch][sb] = mp.pinfo.getSfb_s()[gr][ch][sb];
-                            if (gr_infos.preflag != 0) mp.pinfo.getSfb()[gr][ch][sb] += pretab1[sb];
-                            mp.pinfo.getSfb()[gr][ch][sb] *= -ifqstep;
+                            doubles1[sb] = doubles[sb];
+                            if (gr_infos.preflag != 0) doubles1[sb] += pretab1[sb];
+                            doubles1[sb] *= -ifqstep;
                         }
-                        mp.pinfo.getSfb()[gr][ch][21] = 0;
+                        doubles1[21] = 0;
                     }
                 }
 
-                for (ch = 0; ch < stereo1; ch++) {
+                for (int ch = 0; ch < stereo1; ch++) {
                     int j = 0;
-                    for (sb = 0; sb < MPG123.SBLIMIT; sb++)
-                        for (ss = 0; ss < MPG123.SSLIMIT; ss++, j++)
+                    for (sb = 0; sb < MPG123.SBLIMIT; sb++) {
+                        for (ss = 0; ss < MPG123.SSLIMIT; ss++, j++) {
                             mp.pinfo.getMpg123xr()[gr][ch][j] = hybridIn[ch][sb * MPG123.SSLIMIT + ss];
+                        }
+                    }
                 }
             }
 
-            for (ch = 0; ch < stereo1; ch++) {
+            for (int ch = 0; ch < stereo1; ch++) {
                 gr_info_s gr_infos = (sideinfo.ch[ch].gr[gr]);
                 III_antialias(hybridIn[ch], gr_infos);
                 III_hybrid(mp, hybridIn[ch], hybridOut[ch], ch, gr_infos);
@@ -2038,8 +1842,7 @@ public class Layer3 {
 
             for (ss = 0; ss < MPG123.SSLIMIT; ss++) {
                 if (single >= 0) {
-                    clip += synth.synth_1to1_mono_ptr(mp, hybridOut[0], ss
-                            * MPG123.SBLIMIT, pcm_sample, pcm_point);
+                    clip += synth.synth_1to1_mono_ptr(mp, hybridOut[0], ss * MPG123.SBLIMIT, pcm_sample, pcm_point);
                 } else {
                     ProcessedBytes p1 = new ProcessedBytes();
                     p1.pb = pcm_point.pb;

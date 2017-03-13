@@ -7,6 +7,7 @@ import org.junit.Assert
 import org.junit.Test
 
 class MP3DecoderTest {
+    // http://mpgedit.org/mpgedit/testdata/mpegdata.html
     @Test
     fun testDecodeWav() = syncTest {
 
@@ -25,6 +26,13 @@ class MP3DecoderTest {
 
         //LocalVfs("c:/temp/test.mp3").readAudioStream()!!.play()
         //LocalVfs("c:/temp/test3.mp3").readAudioStream()!!.play()
+        //ResourcesVfs["fl1.mp1"].readAudioStream()!!.play()
+        //ResourcesVfs["fl4.mp1"].readAudioStream()!!.play()
+        //ResourcesVfs["fl5.mp1"].readAudioStream()!!.play()
+        ResourcesVfs["fl10.mp2"].readAudioStream()!!.play()
+        ResourcesVfs["fl13.mp2"].readAudioStream()!!.play()
+        ResourcesVfs["fl14.mp2"].readAudioStream()!!.play()
+        ResourcesVfs["fl16.mp2"].readAudioStream()!!.play()
         ResourcesVfs["mp31_joint_stereo_vbr.mp3"].readAudioStream()!!.play()
         LocalVfs("c:/temp/test2.mp3").readAudioStream()!!.play()
     }

@@ -51,7 +51,7 @@ class Common {
         private val MAX_INPUT_FRAMESIZE = 4096
     }
 
-    var muls = Array(27) { FloatArray(64) }
+    @JvmField var muls = Array(27) { FloatArray(64) }
 
     fun head_check(head: Long, check_layer: Int): Boolean {
         /* bits 13-14 = layer 3 */
