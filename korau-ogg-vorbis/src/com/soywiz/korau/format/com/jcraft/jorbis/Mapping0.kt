@@ -50,7 +50,7 @@ internal class Mapping0 : FuncMapping() {
         look.floor_func = Array<FuncFloor>(info.submaps) { Floor0() }
         look.residue_func = Array<FuncResidue>(info.submaps) { Residue0() }
 
-        for (i in 0..info.submaps - 1) {
+        for (i in 0 until info.submaps) {
             val timenum = info.timesubmap[i]
             val floornum = info.floorsubmap[i]
             val resnum = info.residuesubmap[i]
@@ -76,13 +76,6 @@ internal class Mapping0 : FuncMapping() {
     override fun pack(vi: Info, imap: Any, opb: Buffer) {
         val info = imap as InfoMapping0
 
-        /* another 'we meant to do it this way' hack...  up to beta 4, we
-       packed 4 binary zeros here to signify one submapping in use.  We
-       now redefine that to mean four bitflags that indicate use of
-       deeper features; bit0:submappings, bit1:coupling,
-       bit2,3:reserved. This is backward compatable with all actual uses
-       of the beta code. */
-
         if (info.submaps > 1) {
             opb.write(1, 1)
             opb.write(info.submaps - 1, 4)
@@ -93,7 +86,7 @@ internal class Mapping0 : FuncMapping() {
         if (info.coupling_steps > 0) {
             opb.write(1, 1)
             opb.write(info.coupling_steps - 1, 8)
-            for (i in 0..info.coupling_steps - 1) {
+            for (i in 0 until info.coupling_steps) {
                 opb.write(info.coupling_mag[i], Util.ilog2(vi.channels))
                 opb.write(info.coupling_ang[i], Util.ilog2(vi.channels))
             }
@@ -105,10 +98,10 @@ internal class Mapping0 : FuncMapping() {
 
         /* we don't write the channel submappings if we only have one... */
         if (info.submaps > 1) {
-            for (i in 0..vi.channels - 1)
+            for (i in 0 until vi.channels)
                 opb.write(info.chmuxlist[i], 4)
         }
-        for (i in 0..info.submaps - 1) {
+        for (i in 0 until info.submaps) {
             opb.write(info.timesubmap[i], 8)
             opb.write(info.floorsubmap[i], 8)
             opb.write(info.residuesubmap[i], 8)
@@ -148,7 +141,7 @@ internal class Mapping0 : FuncMapping() {
         }
 
         if (info.submaps > 1) {
-            for (i in 0..vi.channels - 1) {
+            for (i in 0 until vi.channels) {
                 info.chmuxlist[i] = opb.read(4)
                 if (info.chmuxlist[i] >= info.submaps) {
                     info.free()
@@ -157,7 +150,7 @@ internal class Mapping0 : FuncMapping() {
             }
         }
 
-        for (i in 0..info.submaps - 1) {
+        for (i in 0 until info.submaps) {
             info.timesubmap[i] = opb.read(8)
             if (info.timesubmap[i] >= vi.times) {
                 info.free()
@@ -221,7 +214,7 @@ internal class Mapping0 : FuncMapping() {
 
         }
 
-        for (i in 0..info.coupling_steps - 1) {
+        for (i in 0 until info.coupling_steps) {
             if (nonzero[info.coupling_mag[i]] != 0 || nonzero[info.coupling_ang[i]] != 0) {
                 nonzero[info.coupling_mag[i]] = 1
                 nonzero[info.coupling_ang[i]] = 1
@@ -230,7 +223,7 @@ internal class Mapping0 : FuncMapping() {
 
         // recover the residue, apply directly to the spectral envelope
 
-        for (i in 0..info.submaps - 1) {
+        for (i in 0 until info.submaps) {
             var ch_in_bundle = 0
             for (j in 0..vi.channels - 1) {
                 if (info.chmuxlist[j] == i) {
@@ -243,8 +236,7 @@ internal class Mapping0 : FuncMapping() {
                 }
             }
 
-            look.residue_func[i].inverse(vb, look.residue_look[i], pcmbundle,
-                    zerobundle, ch_in_bundle)
+            look.residue_func[i].inverse(vb, look.residue_look[i], pcmbundle, zerobundle, ch_in_bundle)
         }
 
         for (i in info.coupling_steps - 1 downTo 0) {
@@ -277,7 +269,7 @@ internal class Mapping0 : FuncMapping() {
 
         //    /* compute and apply spectral envelope */
 
-        for (i in 0..vi.channels - 1) {
+        for (i in 0 until vi.channels) {
             val pcm = vb.pcm[i]
             val submap = info.chmuxlist[i]
             look.floor_func[submap].inverse2(vb, look.floor_look[submap],
@@ -287,7 +279,7 @@ internal class Mapping0 : FuncMapping() {
         // transform the PCM data; takes PCM vector, vb; modifies PCM vector
         // only MDCT right now....
 
-        for (i in 0..vi.channels - 1) {
+        for (i in 0 until vi.channels) {
             val pcm = vb.pcm[i]
             //_analysis_output("out",seq+i,pcm,n/2,0,0);
             (vd.transform[vb.W][0] as Mdct).backward(pcm, pcm)
@@ -297,7 +289,7 @@ internal class Mapping0 : FuncMapping() {
         // NOT IMPLEMENTED
 
         // window the data
-        for (i in 0..vi.channels - 1) {
+        for (i in 0 until vi.channels) {
             val pcm = vb.pcm[i]
             if (nonzero[i] != 0) {
                 for (j in 0..n - 1) {

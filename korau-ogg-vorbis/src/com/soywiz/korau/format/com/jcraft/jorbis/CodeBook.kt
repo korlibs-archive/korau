@@ -29,72 +29,25 @@ package com.soywiz.korau.format.com.jcraft.jorbis
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
 class CodeBook {
-    var dim: Int = 0 // codebook dimensions (elements per vector)
-    var entries: Int = 0 // codebook entries
+    var dim: Int = 0
+    var entries: Int = 0
     var c = StaticCodeBook()
 
-    var valuelist: FloatArray? = null // list of dim*entries actual entry values
-    var codelist: IntArray? = null // list of bitstream codewords for each entry
+    var valuelist: FloatArray? = null
     var decode_tree: DecodeAux? = null
 
-    // returns the number of bits
-    fun encode(a: Int, b: Buffer): Int {
-        b.write(codelist!![a], c.lengthlist[a])
-        return c.lengthlist[a]
-    }
-
-    // One the encode side, our vector writers are each designed for a
-    // specific purpose, and the encoder is not flexible without modification:
-    //
-    // The LSP vector coder uses a single stage nearest-match with no
-    // interleave, so no step and no error return.  This is specced by floor0
-    // and doesn't change.
-    //
-    // Residue0 encoding interleaves, uses multiple stages, and each stage
-    // peels of a specific amount of resolution from a lattice (thus we want
-    // to match by threshhold, not nearest match).  Residue doesn't *have* to
-    // be encoded that way, but to change it, one will need to add more
-    // infrastructure on the encode side (decode side is specced and simpler)
-
-    // floor0 LSP (single stage, non interleaved, nearest match)
-    // returns entry number and *modifies a* to the quantization value
-    fun errorv(a: FloatArray): Int {
-        val best = best(a, 1)
-        for (k in 0 until dim) {
-            a[k] = valuelist!![best * dim + k]
-        }
-        return best
-    }
-
-    // returns the number of bits and *modifies a* to the quantization value
-    fun encodev(best: Int, a: FloatArray, b: Buffer): Int {
-        for (k in 0 until dim) {
-            a[k] = valuelist!![best * dim + k]
-        }
-        return encode(best, b)
-    }
-
-    // res0 (multistage, interleave, lattice)
-    // returns the number of bits and *modifies a* to the remainder value
-    fun encodevs(a: FloatArray, b: Buffer, step: Int, addmul: Int): Int {
-        val best = besterror(a, step, addmul)
-        return encode(best, b)
-    }
-
-    private var t = IntArray(15) // decodevs_add is synchronized for re-using t.
+    private var t = IntArray(15)
 
     @Synchronized fun decodevs_add(a: FloatArray, offset: Int, b: Buffer, n: Int): Int {
         val step = n / dim
         var entry: Int
-        var i: Int
         var j: Int
-        var o: Int
 
         if (t.size < step) {
             t = IntArray(step)
         }
 
-        i = 0
+        var i = 0
         while (i < step) {
             entry = decode(b)
             if (entry == -1) {
@@ -104,7 +57,7 @@ class CodeBook {
             i++
         }
         i = 0
-        o = 0
+        var o = 0
         while (i < dim) {
             j = 0
             while (j < step) {
@@ -199,21 +152,6 @@ class CodeBook {
         return 0
     }
 
-    // Decode side is specced and easier, because we don't need to find
-    // matches using different criteria; we simply read and map.  There are
-    // two things we need to do 'depending':
-    //
-    // We may need to support interleave.  We don't really, but it's
-    // convenient to do it here rather than rebuild the vector later.
-    //
-    // Cascades may be additive or multiplicitive; this is not inherent in
-    // the codebook, but set in the code using the codebook.  Like
-    // interleaving, it's easiest to do it here.
-    // stage==0 -> declarative (set the value)
-    // stage==1 -> additive
-    // stage==2 -> multiplicitive
-
-    // returns the entry number or -1 on eof
     fun decode(b: Buffer): Int {
         var ptr = 0
         val t = decode_tree
@@ -236,7 +174,6 @@ class CodeBook {
         return -ptr
     }
 
-    // returns the entry number or -1 on eof
     fun decodevs(a: FloatArray, index: Int, b: Buffer, step: Int, addmul: Int): Int {
         val entry = decode(b)
         if (entry == -1)
@@ -271,57 +208,6 @@ class CodeBook {
             }
         }//System.err.println("CodeBook.decodeves: addmul="+addmul);
         return entry
-    }
-
-    fun best(a: FloatArray, step: Int): Int {
-        // brute force it!
-        run {
-            var besti = -1
-            var best = 0f
-            var e = 0
-            for (i in 0..entries - 1) {
-                if (c.lengthlist[i] > 0) {
-                    val _this = dist(dim, valuelist!!, e, a, step)
-                    if (besti == -1 || _this < best) {
-                        best = _this
-                        besti = i
-                    }
-                }
-                e += dim
-            }
-            return besti
-        }
-    }
-
-    // returns the entry number and *modifies a* to the remainder value
-    fun besterror(a: FloatArray, step: Int, addmul: Int): Int {
-        val best = best(a, step)
-        when (addmul) {
-            0 -> run {
-                var i = 0
-                var o = 0
-                while (i < dim) {
-                    a[o] -= valuelist!![best * dim + i]
-                    i++
-                    o += step
-                }
-            }
-            1 -> {
-                var i = 0
-                var o = 0
-                while (i < dim) {
-                    val `val` = valuelist!![best * dim + i]
-                    if (`val` == 0f) {
-                        a[o] = 0f
-                    } else {
-                        a[o] /= `val`
-                    }
-                    i++
-                    o += step
-                }
-            }
-        }
-        return best
     }
 
     fun clear() {}
@@ -419,19 +305,6 @@ class CodeBook {
     }
 
     companion object {
-
-        private fun dist(el: Int, ref: FloatArray, index: Int, b: FloatArray, step: Int): Float {
-            var acc = 0.0.toFloat()
-            for (i in 0..el - 1) {
-                val `val` = ref[index + i] - b[i * step]
-                acc += `val` * `val`
-            }
-            return acc
-        }
-
-        // given a list of word lengths, generate a list of codewords.  Works
-        // for length ordered or unordered, always assigns the lowest valued
-        // codewords first.  Extended to handle unused entries (length 0)
         fun make_words(l: IntArray, n: Int): IntArray? {
             val marker = IntArray(33)
             val r = IntArray(n)
@@ -441,39 +314,23 @@ class CodeBook {
                 if (length > 0) {
                     var entry = marker[length]
 
-                    // when we claim a node for an entry, we also claim the nodes
-                    // below it (pruning off the imagined tree that may have dangled
-                    // from it) as well as blocking the use of any nodes directly
-                    // above for leaves
-
-                    // update ourself
-                    if (length < 32 && entry.ushr(length) != 0) {
-                        // error condition; the lengths must specify an overpopulated tree
-                        //free(r);
-                        return null
-                    }
+                    if (length < 32 && entry.ushr(length) != 0) return null
                     r[i] = entry
 
-                    // Look to see if the next shorter marker points to the node
-                    // above. if so, update it and repeat.
                     run {
                         for (j in length downTo 1) {
                             if (marker[j] and 1 != 0) {
-                                // have to jump branches
-                                if (j == 1)
+                                if (j == 1) {
                                     marker[1]++
-                                else
+                                } else {
                                     marker[j] = marker[j - 1] shl 1
-                                break // invariant says next upper marker would already
-                                // have been moved if it was on the same path
+                                }
+                                break
                             }
                             marker[j]++
                         }
                     }
 
-                    // prune the tree; the implicit invariant says all the longer
-                    // markers were dangling from our just-taken node.  Dangle them
-                    // from our *new* node.
                     for (j in length + 1..32) {
                         if (marker[j].ushr(1) == entry) {
                             entry = marker[j]
@@ -485,8 +342,6 @@ class CodeBook {
                 }
             }
 
-            // bitreverse the words because our bitwise packer/unpacker is LSb
-            // endian
             for (i in 0 until n) {
                 var temp = 0
                 for (j in 0 until l[i]) {

@@ -32,16 +32,6 @@ class Packet {
     var bytes: Int = 0
     var b_o_s: Int = 0
     var e_o_s: Int = 0
-
     var granulepos: Long = 0
-
-    /**
-     * sequence number for decode; the framing
-     * knows where there's a hole in the data,
-     * but we need coupling so that the codec
-     * (which is in a seperate abstraction
-     * layer) also knows about the gap
-     */
     var packetno: Long = 0
-
 }

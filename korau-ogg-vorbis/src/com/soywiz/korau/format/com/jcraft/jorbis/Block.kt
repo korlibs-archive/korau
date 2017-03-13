@@ -31,8 +31,7 @@ import com.soywiz.korau.format.com.jcraft.jogg.Packet
 import java.util.*
 
 class Block(var vd: DspState) {
-    ///necessary stream state for linking to the framing abstraction
-    var pcm = arrayOf<FloatArray>() // this is a pointer into local storage
+    var pcm = arrayOf<FloatArray>()
     var opb = Buffer()
 
     var lW: Int = 0
@@ -45,16 +44,13 @@ class Block(var vd: DspState) {
     var granulepos: Long = 0
     var sequence: Long = 0
 
-    // bitmetrics for the frame
     var glue_bits: Int = 0
     var time_bits: Int = 0
     var floor_bits: Int = 0
     var res_bits: Int = 0
 
     init {
-        if (vd.analysisp != 0) {
-            opb.writeinit()
-        }
+        if (vd.analysisp != 0) opb.writeinit()
     }
 
     fun init(vd: DspState) {
@@ -62,28 +58,17 @@ class Block(var vd: DspState) {
     }
 
     fun clear(): Int {
-        if (vd.analysisp != 0) {
-            opb.writeclear()
-        }
+        if (vd.analysisp != 0) opb.writeclear()
         return 0
     }
 
     fun synthesis(op: Packet): Int {
         val vi = vd.vi
-
-        // first things first.  Make sure decode is ready
         opb.readinit(op.packet_base, op.packet, op.bytes)
+        if (opb.read(1) != 0) return -1
 
-        // Check the packet type
-        if (opb.read(1) != 0) {
-            // Oops.  This is not an audio data packet
-            return -1
-        }
-
-        // read our mode and pre/post windowsize
         val _mode = opb.read(vd.modebits)
-        if (_mode == -1)
-            return -1
+        if (_mode == -1) return -1
 
         mode = _mode
         W = vi.mode_param[mode].blockflag
@@ -96,16 +81,12 @@ class Block(var vd: DspState) {
             nW = 0
         }
 
-        // more setup
         granulepos = op.granulepos
-        sequence = op.packetno - 3 // first block is third packet
+        sequence = op.packetno - 3
         eofflag = op.e_o_s
 
-        // alloc pcm passback storage
         pcmend = vi.blocksizes[W]
-        if (pcm.size < vi.channels) {
-            pcm = Array<FloatArray>(vi.channels) { floatArrayOf() }
-        }
+        if (pcm.size < vi.channels) pcm = Array<FloatArray>(vi.channels) { floatArrayOf() }
         for (i in 0 until vi.channels) {
             if (pcm[i].size < pcmend) {
                 pcm[i] = FloatArray(pcmend)
@@ -114,7 +95,6 @@ class Block(var vd: DspState) {
             }
         }
 
-        // unpack_header enforces range checking
         val type = vi.map_type[vi.mode_param[mode].mapping]
         return FuncMapping.mapping_P[type].inverse(this, vd.mode[mode])
     }

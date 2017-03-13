@@ -64,10 +64,10 @@ class Page {
     fun checksum() {
         var crc_reg = 0
 
-        for (i in 0..header_len - 1) {
+        for (i in 0 until header_len) {
             crc_reg = crc_reg shl 8 xor crc_lookup[crc_reg.ushr(24) and 0xff xor (header_base[header + i].toUnsigned())]
         }
-        for (i in 0..body_len - 1) {
+        for (i in 0 until body_len) {
             crc_reg = crc_reg shl 8 xor crc_lookup[crc_reg.ushr(24) and 0xff xor (body_base[body + i].toUnsigned())]
         }
         header_base[header + 22] = crc_reg.toByte()
@@ -91,28 +91,16 @@ class Page {
     }
 
     companion object {
-        private val crc_lookup = IntArray(256)
-
-        init {
-            for (i in crc_lookup.indices) {
-                crc_lookup[i] = crc_entry(i)
-            }
-        }
-
-        private fun crc_entry(index: Int): Int {
-            var r = index shl 24
+        private val crc_lookup = IntArray(256) {
+            var r = it shl 24
             for (i in 0..7) {
                 if (r and 0x80000000.toInt() != 0) {
-                    r = r shl 1 xor 0x04c11db7 /* The same as the ethernet generator
-                                 polynomial, although we use an
-               			  unreflected alg and an init/final
-               			  of 0, not 0xffffffff */
+                    r = r shl 1 xor 0x04c11db7
                 } else {
                     r = r shl 1
                 }
             }
-            return r and 0xffffffff.toInt()
+            r and 0xffffffff.toInt()
         }
     }
-
 }

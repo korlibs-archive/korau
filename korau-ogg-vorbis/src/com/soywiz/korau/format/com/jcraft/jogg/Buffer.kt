@@ -58,19 +58,8 @@ class Buffer {
         }
     }
 
-    internal fun reset() {
-        ptr = 0
-        buffer[0] = '\u0000'.toByte()
-        endbit = 0
-        endbyte = 0
-    }
-
     fun writeclear() {
         buffer = byteArrayOf()
-    }
-
-    fun readinit(buf: ByteArray, bytes: Int) {
-        readinit(buf, 0, bytes)
     }
 
     fun readinit(buf: ByteArray, start: Int, bytes: Int) {
@@ -145,28 +134,12 @@ class Buffer {
         return m and ret
     }
 
-    fun look1(): Int {
-        if (endbyte >= storage) {
-            return -1
-        }
-        return buffer[ptr].toInt() shr endbit and 1
-    }
-
     fun adv(bits: Int) {
         var bits = bits
         bits += endbit
         ptr += bits / 8
         endbyte += bits / 8
         endbit = bits and 7
-    }
-
-    fun adv1() {
-        ++endbit
-        if (endbit > 7) {
-            endbit = 0
-            ptr++
-            endbyte++
-        }
     }
 
     fun read(bits: Int): Int {
@@ -208,45 +181,6 @@ class Buffer {
         return ret
     }
 
-    fun readB(bits: Int): Int {
-        var bits = bits
-        var ret: Int
-        val m = 32 - bits
-
-        bits += endbit
-
-        if (endbyte + 4 >= storage) {
-            /* not the main path */
-            ret = -1
-            if (endbyte * 8 + bits > storage * 8) {
-                ptr += bits / 8
-                endbyte += bits / 8
-                endbit = bits and 7
-                return ret
-            }
-        }
-
-        ret = buffer[ptr].toUnsigned() shl 24 + endbit
-        if (bits > 8) {
-            ret = ret or (buffer[ptr + 1].toUnsigned() shl 16 + endbit)
-            if (bits > 16) {
-                ret = ret or (buffer[ptr + 2].toUnsigned() shl 8 + endbit)
-                if (bits > 24) {
-                    ret = ret or (buffer[ptr + 3].toUnsigned() shl endbit)
-                    if (bits > 32 && endbit != 0) {
-                        ret = ret or (buffer[ptr + 4].toUnsigned() shr 8 - endbit)
-                    }
-                }
-            }
-        }
-        ret = ret.ushr(m shr 1).ushr(m + 1 shr 1)
-
-        ptr += bits / 8
-        endbyte += bits / 8
-        endbit = bits and 7
-        return ret
-    }
-
     fun read1(): Int {
         val ret: Int
         if (endbyte >= storage) {
@@ -275,32 +209,10 @@ class Buffer {
         return endbyte + (endbit + 7) / 8
     }
 
-    fun bits(): Int {
-        return endbyte * 8 + endbit
-    }
-
-    fun buffer(): ByteArray {
-        return buffer
-    }
+    fun buffer(): ByteArray = buffer
 
     companion object {
         private val BUFFER_INCREMENT = 256
-
         private val mask = intArrayOf(0x00000000, 0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff, 0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff, 0x0001ffff, 0x0003ffff, 0x0007ffff, 0x000fffff, 0x001fffff, 0x003fffff, 0x007fffff, 0x00ffffff, 0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff, 0x1fffffff, 0x3fffffff, 0x7fffffff, 0xffffffff.toInt())
-
-        fun ilog(v: Int): Int {
-            var v = v
-            var ret = 0
-            while (v > 0) {
-                ret++
-                v = v ushr 1
-            }
-            return ret
-        }
-
-        fun report(`in`: String) {
-            System.err.println(`in`)
-            System.exit(1)
-        }
     }
 }
