@@ -22,12 +22,12 @@ Many thanks to Gregorio Roper at gmx dot li, who pointed out above problem.
 
 	
 Changes since version 0.0.13:
-- added com.jcraft.jogg.Buffer.readB method for Fluendo's theora decoder.
-- added com.jcraft.jogg.Page.copy method for handling grouped ogg streams.
+- added Buffer.readB method for Fluendo's theora decoder.
+- added Page.copy method for handling grouped ogg streams.
 
 	
 Changes since version 0.0.12:
-- fixed resorce leaks in com.jcraft.jorbis.VorbisFile class.
+- fixed resorce leaks in VorbisFile class.
 	
 	
 Changes since version 0.0.11:

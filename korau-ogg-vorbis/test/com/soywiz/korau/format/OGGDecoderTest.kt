@@ -1,8 +1,7 @@
 package com.soywiz.korau.format
 
-import com.soywiz.korau.format.AudioFormats
-import com.soywiz.korau.format.readAudioData
 import com.soywiz.korio.async.syncTest
+import com.soywiz.korio.vfs.LocalVfs
 import com.soywiz.korio.vfs.ResourcesVfs
 import org.junit.Assert
 import org.junit.Test
@@ -21,5 +20,7 @@ class OGGDecoderTest {
         //output.play()
         //expected.play()
         Assert.assertArrayEquals(expectedBytes, outputBytes)
+
+        LocalVfs("c:/temp/test.ogg").readAudioStream()!!.play()
     }
 }

@@ -92,7 +92,7 @@ How To Try JOrbis
 A sample program DecodeExample.java has been included in an archive.<br>
 If you are on RedHat's GNU/Linux box, just try,
 
-  $ cat foo.ogg | java com.jcraft.jorbis.DecodeExample | esdcat
+  $ cat foo.ogg | java DecodeExample | esdcat
 
 If outputs are noisy, save outputs in a file then cat it to esdcat.
 Ogg files are available at http://vorbis.com/listen.html

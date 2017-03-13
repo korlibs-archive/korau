@@ -1,12 +1,13 @@
 package com.soywiz.korau.format
 
-import com.jcraft.jogg.Packet
-import com.jcraft.jogg.Page
-import com.jcraft.jogg.StreamState
-import com.jcraft.jogg.SyncState
-import com.jcraft.jorbis.Block
-import com.jcraft.jorbis.Comment
-import com.jcraft.jorbis.DspState
+import com.soywiz.korau.format.com.jcraft.jogg.Packet
+import com.soywiz.korau.format.com.jcraft.jogg.Page
+import com.soywiz.korau.format.com.jcraft.jogg.StreamState
+import com.soywiz.korau.format.com.jcraft.jogg.SyncState
+import com.soywiz.korau.format.com.jcraft.jorbis.Block
+import com.soywiz.korau.format.com.jcraft.jorbis.Comment
+import com.soywiz.korau.format.com.jcraft.jorbis.DspState
+import com.soywiz.korau.format.com.jcraft.jorbis.Info
 import com.soywiz.korio.async.asyncGenerate
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.stream.AsyncStream
@@ -28,7 +29,7 @@ class OGGDecoder : OGG() {
         val og = Page()
         val op = Packet()
 
-        val vi = com.jcraft.jorbis.Info()
+        val vi = com.soywiz.korau.format.com.jcraft.jorbis.Info()
         val vc = Comment()
         val vd = DspState()
         val vb = Block(vd)
