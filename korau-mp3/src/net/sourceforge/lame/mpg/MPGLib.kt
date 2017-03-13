@@ -47,10 +47,10 @@ class MPGLib(internal var interf: Interface) {
             pcm_l: FloatArray, pcm_lPos: Int,
             processed_samples: Int, p: FloatArray
     ) {
-        var pcm_lPos = pcm_lPos
+        var lp = pcm_lPos
         var p_samples = 0
-        for (i in 0..processed_samples - 1)
-            pcm_l[pcm_lPos++] = p[p_samples++]
+        for (i in 0 until processed_samples)
+            pcm_l[lp++] = p[p_samples++]
     }
 
     /* copy stereo samples */
@@ -58,12 +58,12 @@ class MPGLib(internal var interf: Interface) {
             pcm_l: FloatArray, pcm_lPos: Int, pcm_r: FloatArray,
             pcm_rPos: Int, processed_samples: Int, p: FloatArray
     ) {
-        var pcm_lPos = pcm_lPos
-        var pcm_rPos = pcm_rPos
+        var lp = pcm_lPos
+        var rp = pcm_rPos
         var p_samples = 0
-        for (i in 0..processed_samples - 1) {
-            pcm_l[pcm_lPos++] = p[p_samples++]
-            pcm_r[pcm_rPos++] = p[p_samples++]
+        for (i in 0 until processed_samples) {
+            pcm_l[lp++] = p[p_samples++]
+            pcm_r[rp++] = p[p_samples++]
         }
     }
 
@@ -90,12 +90,15 @@ class MPGLib(internal var interf: Interface) {
             /* free format, we need the entire frame before we can determine
              * the bitrate.  If we haven't gotten the entire frame, bitrate=0 */
             if (pmp.fsizeold > 0)
-            /* works for free format and fixed, no overrun, temporal results are < 400.e6 */
+            /* works for free format and fixed, no overrun, temporal results are < 400.e6 */ {
                 mp3data.bitrate = (8 * (4 + pmp.fsizeold) * mp3data.samplerate / (1e3 * mp3data.frameSize) + 0.5).toInt()
-            else if (pmp.framesize > 0)
+            }
+            else if (pmp.framesize > 0) {
                 mp3data.bitrate = (8 * (4 + pmp.framesize) * mp3data.samplerate / (1e3 * mp3data.frameSize) + 0.5).toInt()
-            else
+            }
+            else {
                 mp3data.bitrate = Common.tabsel_123[pmp.fr.lsf][pmp.fr.lay - 1][pmp.fr.bitrate_index]
+            }
 
 
             if (pmp.num_frames > 0) {
@@ -138,11 +141,7 @@ class MPGLib(internal var interf: Interface) {
     }
 
     fun hip_decode_exit(hip: mpstr_tag?): Int {
-        var hip = hip
-        if (hip != null) {
-            interf.ExitMP3(hip)
-            hip = null
-        }
+        if (hip != null) interf.ExitMP3(hip)
         return 0
     }
 
@@ -154,15 +153,12 @@ class MPGLib(internal var interf: Interface) {
     ): Int {
         if (hip != null) {
             val dec = object : IDecoder {
-
-                override fun decode(mp: mpstr_tag, `in`: ByteArray, bufferPos: Int, isize: Int,
-                                    out: FloatArray, osize: Int, done: ProcessedBytes): Int {
+                override fun decode(mp: mpstr_tag, `in`: ByteArray, bufferPos: Int, isize: Int, out: FloatArray, osize: Int, done: ProcessedBytes): Int {
                     return interf.decodeMP3(mp, `in`, bufferPos, isize, out, osize, done)
                 }
             }
             val out = FloatArray(OUTSIZE_CLIPPED)
-            return decode1_headersB_clipchoice(hip, buffer, 0, len, pcm_l, 0,
-                    pcm_r, 0, mp3data, enc, out, OUTSIZE_CLIPPED, dec)
+            return decode1_headersB_clipchoice(hip, buffer, 0, len, pcm_l, 0, pcm_r, 0, mp3data, enc, out, OUTSIZE_CLIPPED, dec)
         }
         return -1
     }

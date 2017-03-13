@@ -34,7 +34,7 @@ import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
 
 class Decode {
 
-    private val tab = TabInit()
+    private val tab = TabInit
     private val dct64 = DCT64()
 
     private fun writeSampleClipped(sum: Float, clip: Int, out: FloatArray, outPos: Int): Int {

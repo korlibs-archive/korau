@@ -25,8 +25,6 @@ package net.sourceforge.lame.mp3
 
 class Parse {
     //public int silent;
-    var in_signed = true
-    var in_bitwidth = 16
-    var inputFormat = GetAudio.SoundFileFormat.sf_unknown
+    var inputFormat = GetAudio.SoundFileFormat.sf_mp123
     val mp3InputData = MP3Data()
 }
