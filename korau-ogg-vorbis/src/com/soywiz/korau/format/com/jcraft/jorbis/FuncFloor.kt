@@ -24,29 +24,32 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-package com.soywiz.korau.format.com.jcraft.jorbis;
+package com.soywiz.korau.format.com.jcraft.jorbis
 
-import com.soywiz.korau.format.com.jcraft.jogg.Buffer;
+import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 
 abstract class FuncFloor {
 
-    public static FuncFloor[] floor_P = {new Floor0(), new Floor1()};
+    abstract fun pack(i: Any, opb: Buffer)
 
-    abstract void pack(Object i, Buffer opb);
+    abstract fun unpack(vi: Info, opb: Buffer): Any?
 
-    abstract Object unpack(Info vi, Buffer opb);
+    abstract fun look(vd: DspState, mi: InfoMode, i: Any): Any
 
-    abstract Object look(DspState vd, InfoMode mi, Object i);
+    abstract fun free_info(i: Any)
 
-    abstract void free_info(Object i);
+    abstract fun free_look(i: Any)
 
-    abstract void free_look(Object i);
+    abstract fun free_state(vs: Any)
 
-    abstract void free_state(Object vs);
+    abstract fun forward(vb: Block, i: Any, `in`: FloatArray, out: FloatArray, vs: Any): Int
 
-    abstract int forward(Block vb, Object i, float[] in, float[] out, Object vs);
+    abstract fun inverse1(vb: Block, i: Any, memo: Any?): Any?
 
-    abstract Object inverse1(Block vb, Object i, Object memo);
+    abstract fun inverse2(vb: Block, i: Any, memo: Any?, out: FloatArray): Int
 
-    abstract int inverse2(Block vb, Object i, Object memo, float[] out);
+    companion object {
+
+        var floor_P = arrayOf(Floor0(), Floor1())
+    }
 }

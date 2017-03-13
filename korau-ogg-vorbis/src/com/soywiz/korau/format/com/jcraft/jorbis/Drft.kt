@@ -26,7 +26,7 @@
 
 package com.soywiz.korau.format.com.jcraft.jorbis
 
-internal class Drft {
+class Drft {
     var n: Int = 0
     var trigcache: FloatArray = floatArrayOf()
     var splitcache: IntArray = intArrayOf()

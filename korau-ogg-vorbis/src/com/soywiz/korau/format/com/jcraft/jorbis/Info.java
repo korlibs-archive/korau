@@ -127,7 +127,7 @@ public class Info {
         time_param = null;
 
         for (int i = 0; i < floors; i++) { // unpack does the range checking
-            FuncFloor.floor_P[floor_type[i]].free_info(floor_param[i]);
+            FuncFloor.Companion.getFloor_P()[floor_type[i]].free_info(floor_param[i]);
         }
         floor_param = null;
 
@@ -229,7 +229,7 @@ public class Info {
                 return (-1);
             }
 
-            floor_param[i] = FuncFloor.floor_P[floor_type[i]].unpack(this, opb);
+            floor_param[i] = FuncFloor.Companion.getFloor_P()[floor_type[i]].unpack(this, opb);
             if (floor_param[i] == null) {
                 clear();
                 return (-1);
@@ -404,7 +404,7 @@ public class Info {
         opb.write(floors - 1, 6);
         for (int i = 0; i < floors; i++) {
             opb.write(floor_type[i], 16);
-            FuncFloor.floor_P[floor_type[i]].pack(floor_param[i], opb);
+            FuncFloor.Companion.getFloor_P()[floor_type[i]].pack(floor_param[i], opb);
         }
 
         // residues

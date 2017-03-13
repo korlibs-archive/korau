@@ -26,7 +26,7 @@
 
 package com.soywiz.korau.format.com.jcraft.jorbis
 
-internal class Lpc {
+class Lpc {
     // en/decode lookups
     var fft = Drft()
 

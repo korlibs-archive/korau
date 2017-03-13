@@ -29,9 +29,9 @@ package com.soywiz.korau.format.com.jcraft.jorbis
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 import java.util.*
 
-internal class Floor0 : FuncFloor() {
+class Floor0 : FuncFloor() {
 
-    internal override fun pack(i: Any, opb: Buffer) {
+    override fun pack(i: Any, opb: Buffer) {
         val info = i as InfoFloor0
         opb.write(info.order, 8)
         opb.write(info.rate, 16)
@@ -44,7 +44,7 @@ internal class Floor0 : FuncFloor() {
         }
     }
 
-    internal override fun unpack(vi: Info, opb: Buffer): Any? {
+    override fun unpack(vi: Info, opb: Buffer): Any? {
         val info = InfoFloor0()
         info.order = opb.read(8)
         info.rate = opb.read(16)
@@ -66,7 +66,7 @@ internal class Floor0 : FuncFloor() {
         return info
     }
 
-    internal override fun look(vd: DspState, mi: InfoMode, i: Any): Any {
+    override fun look(vd: DspState, mi: InfoMode, i: Any): Any {
         val scale: Float
         val vi = vd.vi
         val info = i as InfoFloor0
@@ -108,13 +108,13 @@ internal class Floor0 : FuncFloor() {
         return state
     }
 
-    internal override fun free_info(i: Any) {}
+    override fun free_info(i: Any) {}
 
-    internal override fun free_look(i: Any) {}
+    override fun free_look(i: Any) {}
 
-    internal override fun free_state(vs: Any) {}
+    override fun free_state(vs: Any) {}
 
-    internal override fun forward(vb: Block, i: Any, `in`: FloatArray, out: FloatArray, vs: Any): Int {
+    override fun forward(vb: Block, i: Any, `in`: FloatArray, out: FloatArray, vs: Any): Int {
         return 0
     }
 
@@ -178,7 +178,7 @@ internal class Floor0 : FuncFloor() {
         return 0
     }
 
-    internal override fun inverse1(vb: Block, i: Any, memo: Any): Any? {
+    override fun inverse1(vb: Block, i: Any, memo: Any?): Any? {
         val look = i as LookFloor0
         val info = look.vi
         var lsp: FloatArray? = null
@@ -231,7 +231,7 @@ internal class Floor0 : FuncFloor() {
         return null
     }
 
-    internal override fun inverse2(vb: Block, i: Any, memo: Any?, out: FloatArray): Int {
+    override fun inverse2(vb: Block, i: Any, memo: Any?, out: FloatArray): Int {
         val look = i as LookFloor0
         val info = look.vi
 
@@ -248,7 +248,7 @@ internal class Floor0 : FuncFloor() {
         return 0
     }
 
-    internal inner class InfoFloor0 {
+    inner class InfoFloor0 {
         var order: Int = 0
         var rate: Int = 0
         var barkmap: Int = 0
@@ -260,7 +260,7 @@ internal class Floor0 : FuncFloor() {
         var books = IntArray(16)
     }
 
-    internal inner class LookFloor0 {
+    inner class LookFloor0 {
         var n: Int = 0
         var ln: Int = 0
         var m: Int = 0
@@ -270,7 +270,7 @@ internal class Floor0 : FuncFloor() {
         var lpclook = Lpc()
     }
 
-    internal inner class EchstateFloor0 {
+    inner class EchstateFloor0 {
         var codewords: IntArray? = null
         var curve: FloatArray? = null
         var frameno: Long = 0
