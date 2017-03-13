@@ -27,10 +27,7 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
-
-import net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
-import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 class Decode {
 
@@ -54,10 +51,10 @@ class Decode {
         out[outPos] = sum
     }
 
-    fun synth1to1mono(mp: mpstr_tag, bandPtr: FloatArray, bandPos: Int, out: FloatArray, pnt: ProcessedBytes): Int {
+    fun synth1to1mono(mp: MPGLib.mpstr_tag, bandPtr: FloatArray, bandPos: Int, out: FloatArray, pnt: MPGLib.ProcessedBytes): Int {
         val samples = FloatArray(64)
 
-        val clip = synth_1to1(mp, bandPtr, bandPos, 0, samples, ProcessedBytes())
+        val clip = synth_1to1(mp, bandPtr, bandPos, 0, samples, MPGLib.ProcessedBytes())
 
         var i = 0
         while (i < samples.size) {
@@ -67,12 +64,10 @@ class Decode {
         return clip
     }
 
-    fun synth1to1monoUnclipped(mp: mpstr_tag, bandPtr: FloatArray,
-                               bandPos: Int, out: FloatArray, pnt: ProcessedBytes) {
+    fun synth1to1monoUnclipped(mp: MPGLib.mpstr_tag, bandPtr: FloatArray, bandPos: Int, out: FloatArray, pnt: MPGLib.ProcessedBytes) {
         val samples = FloatArray(64)
 
-        synth_1to1_unclipped(mp, bandPtr, bandPos, 0, samples,
-                ProcessedBytes())
+        synth_1to1_unclipped(mp, bandPtr, bandPos, 0, samples, MPGLib.ProcessedBytes())
 
         var i = 0
         while (i < samples.size) {
@@ -81,8 +76,7 @@ class Decode {
         }
     }
 
-    fun synth_1to1(mp: mpstr_tag, bandPtr: FloatArray, bandPos: Int, ch: Int,
-                   out: FloatArray, pnt: ProcessedBytes): Int {
+    fun synth_1to1(mp: MPGLib.mpstr_tag, bandPtr: FloatArray, bandPos: Int, ch: Int, out: FloatArray, pnt: MPGLib.ProcessedBytes): Int {
         val b0: FloatArray
         var clip = 0
         val bo1: Int
@@ -188,7 +182,7 @@ class Decode {
         return clip
     }
 
-    fun synth_1to1_unclipped(mp: mpstr_tag, bandPtr: FloatArray, bandPos: Int, ch: Int, out: FloatArray, pnt: ProcessedBytes) {
+    fun synth_1to1_unclipped(mp: MPGLib.mpstr_tag, bandPtr: FloatArray, bandPos: Int, ch: Int, out: FloatArray, pnt: MPGLib.ProcessedBytes) {
         val b0: FloatArray
         val bo1: Int
 

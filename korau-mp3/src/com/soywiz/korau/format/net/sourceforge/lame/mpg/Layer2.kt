@@ -27,11 +27,11 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
-import net.sourceforge.lame.mpg.Interface.ISynth
-import net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
-import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.Interface.ISynth
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.mpstr_tag
 
 class Layer2(private val common: Common) {
     private val nul_tab = intArrayOf()

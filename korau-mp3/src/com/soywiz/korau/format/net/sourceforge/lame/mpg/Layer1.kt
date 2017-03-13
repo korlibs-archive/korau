@@ -27,14 +27,11 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
-
-import net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
-import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 class Layer1(private val common: Common, private val decode: Decode) {
 
-    private fun I_step_one(mp: mpstr_tag, balloc: IntArray, scale_index: IntArray, fr: Frame) {
+    private fun I_step_one(mp: MPGLib.mpstr_tag, balloc: IntArray, scale_index: IntArray, fr: Frame) {
         var ba = 0
         var sca = 0
 
@@ -86,7 +83,7 @@ class Layer1(private val common: Common, private val decode: Decode) {
         }
     }
 
-    private fun I_step_two(mp: mpstr_tag, fraction: Array<FloatArray>, balloc: IntArray, scale_index: IntArray, fr: Frame) {
+    private fun I_step_two(mp: MPGLib.mpstr_tag, fraction: Array<FloatArray>, balloc: IntArray, scale_index: IntArray, fr: Frame) {
         var i: Int
         var n: Int
         val smpb = IntArray(2 * MPG123.SBLIMIT) /* values: 0-65535 */
@@ -182,7 +179,7 @@ class Layer1(private val common: Common, private val decode: Decode) {
         }
     }
 
-    fun do_layer1(mp: mpstr_tag, pcm_sample: FloatArray, pcm_point: ProcessedBytes): Int {
+    fun do_layer1(mp: MPGLib.mpstr_tag, pcm_sample: FloatArray, pcm_point: MPGLib.ProcessedBytes): Int {
         var clip = 0
         val balloc = IntArray(2 * MPG123.SBLIMIT)
         val scale_index = IntArray(2 * MPG123.SBLIMIT)
@@ -204,7 +201,7 @@ class Layer1(private val common: Common, private val decode: Decode) {
             if (single >= 0) {
                 clip += decode.synth1to1mono(mp, fraction[single], 0, pcm_sample, pcm_point)
             } else {
-                val p1 = ProcessedBytes()
+                val p1 = MPGLib.ProcessedBytes()
                 p1.pb = pcm_point.pb
                 clip += decode.synth_1to1(mp, fraction[0], 0, 0, pcm_sample, p1)
                 clip += decode.synth_1to1(mp, fraction[1], 0, 1, pcm_sample, pcm_point)

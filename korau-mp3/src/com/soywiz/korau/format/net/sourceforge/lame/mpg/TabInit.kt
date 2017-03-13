@@ -1,5 +1,4 @@
-package net.sourceforge.lame.mpg
-
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 object TabInit {
     private val dewin = doubleArrayOf(

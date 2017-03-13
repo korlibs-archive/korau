@@ -21,7 +21,7 @@
 
 /* $Id: Parse.java,v 1.33 2012/03/23 10:02:29 kenchis Exp $ */
 
-package net.sourceforge.lame.mp3
+package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
 class Parse {
     @JvmField var layer: Int = -1;

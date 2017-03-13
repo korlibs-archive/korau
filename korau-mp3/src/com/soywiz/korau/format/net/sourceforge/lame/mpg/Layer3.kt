@@ -27,27 +27,23 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
-import net.sourceforge.lame.mpg.Huffman.newhuff
-import net.sourceforge.lame.mpg.Interface.ISynth
-import net.sourceforge.lame.mpg.MPG123.III_sideinfo
-import net.sourceforge.lame.mpg.MPG123.gr_info_s
-import net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
-import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.Interface.ISynth
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPG123.III_sideinfo
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPG123.gr_info_s
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.mpstr_tag
+import java.util.*
 
-class Layer3
-/*
-     * read scalefactors
-	 */
-(private val common: Common) {
+@Suppress("UNUSED_CHANGED_VALUE")
+class Layer3(private val common: Common) {
     private val ispow = FloatArray(8207)
     private val aa_ca = FloatArray(8)
     private val aa_cs = FloatArray(8)
     private val COS1 = Array(12) { FloatArray(6) }
     private val win = Array(4) { FloatArray(36) }
     private val win1 = Array(4) { FloatArray(36) }
-
     private val gainpow2 = FloatArray(256 + 118 + 4)
     private val COS9 = FloatArray(9)
     private var COS6_1: Float = 0.toFloat()
@@ -59,15 +55,9 @@ class Layer3
     private val mapbuf0 = Array(9) { IntArray(152) }
     private val mapbuf1 = Array(9) { IntArray(156) }
     private val mapbuf2 = Array(9) { IntArray(44) }
-    private val map = Array<Array<IntArray>>(9) { Array<IntArray>(3) { intArrayOf()} }
+    private val map = Array<Array<IntArray>>(9) { Array<IntArray>(3) { intArrayOf() } }
     private val mapend = Array(9) { IntArray(3) }
-    /**
-     * MPEG 2.0 slen for 'normal' mode.
-     */
     private val n_slen2 = IntArray(512)
-    /**
-     * MPEG 2.0 slen for intensity stereo.
-     */
     private val i_slen2 = IntArray(256)
     private val tan1_1 = FloatArray(16)
     private val tan2_1 = FloatArray(16)
@@ -78,12 +68,6 @@ class Layer3
     private val pow1_2 = Array(2) { FloatArray(16) }
     private val pow2_2 = Array(2) { FloatArray(16) }
 
-    /*
-     * read additional side information
-     */
-    /*
-   * main layer3 handler
-   */
     private val sideinfo = III_sideinfo()
     private val hybridIn = Array(2) { FloatArray(MPG123.SBLIMIT * MPG123.SSLIMIT) }
     private val hybridOut = Array(2) { FloatArray(MPG123.SSLIMIT * MPG123.SBLIMIT) }
@@ -97,27 +81,24 @@ class Layer3
         return rval shr 7
     }
 
-    /*
-     * init tables for layer-3
-     */
     fun init_layer3(down_sample_sblimit: Int) {
-        for (i in -256..118 + 4 - 1) gainpow2[i + 256] = Math.pow(2.0, -0.25 * (i + 210).toDouble()).toFloat()
+        for (i in -256 until 118 + 4) gainpow2[i + 256] = Math.pow(2.0, -0.25 * (i + 210).toDouble()).toFloat()
 
         for (i in 0..8206) ispow[i] = Math.pow(i.toDouble(), 4.0 / 3.0).toFloat()
 
-        for (i in 0..7) {
+        for (i in 0 until 8) {
             val sq = Math.sqrt(1.0 + Ci[i] * Ci[i])
             aa_cs[i] = (1.0 / sq).toFloat()
             aa_ca[i] = (Ci[i] / sq).toFloat()
         }
 
-        for (i in 0..17) {
+        for (i in 0 until 18) {
             win[1][i] = (0.5 * Math.sin(MPG123.M_PI / 72.0 * (2 * (i + 0) + 1).toDouble()) / Math.cos(MPG123.M_PI * (2 * (i + 0) + 19).toDouble() / 72.0)).toFloat()
             win[0][i] = win[1][i]
             win[3][i + 18] = (0.5 * Math.sin(MPG123.M_PI / 72.0 * (2 * (i + 18) + 1).toDouble()) / Math.cos(MPG123.M_PI * (2 * (i + 18) + 19).toDouble() / 72.0)).toFloat()
             win[0][i + 18] = win[3][i + 18]
         }
-        for (i in 0..5) {
+        for (i in 0 until 6) {
             win[1][i + 18] = (0.5 / Math.cos(MPG123.M_PI * (2 * (i + 18) + 19).toDouble() / 72.0)).toFloat()
             win[3][i + 12] = (0.5 / Math.cos(MPG123.M_PI * (2 * (i + 12) + 19).toDouble() / 72.0)).toFloat()
             win[1][i + 24] = (0.5 * Math.sin(MPG123.M_PI / 24.0 * (2 * i + 13).toDouble()) / Math.cos(MPG123.M_PI * (2 * (i + 24) + 19).toDouble() / 72.0)).toFloat()
@@ -133,29 +114,17 @@ class Layer3
         COS6_1 = Math.cos(MPG123.M_PI / 6.0 * 1.toDouble()).toFloat()
         COS6_2 = Math.cos(MPG123.M_PI / 6.0 * 2.toDouble()).toFloat()
 
-        for (i in 0..11) {
+        for (i in 0 until 12) {
             win[2][i] = (0.5 * Math.sin(MPG123.M_PI / 24.0 * (2 * i + 1).toDouble()) / Math.cos(MPG123.M_PI * (2 * i + 7).toDouble() / 24.0)).toFloat()
-            for (j in 0..5) {
-                COS1[i][j] = Math.cos(MPG123.M_PI / 24.0 * ((2 * i + 7) * (2 * j + 1)).toDouble()).toFloat()
-            }
+            for (j in 0..5) COS1[i][j] = Math.cos(MPG123.M_PI / 24.0 * ((2 * i + 7) * (2 * j + 1)).toDouble()).toFloat()
         }
 
-        for (j in 0..3) {
-            run {
-                var i = 0
-                while (i < len[j]) {
-                    win1[j][i] = +win[j][i]
-                    i += 2
-                }
-            }
-            var i = 1
-            while (i < len[j]) {
-                win1[j][i] = -win[j][i]
-                i += 2
-            }
+        for (j in 0 until 4) {
+            for (i in 0 until len[j] step 2) win1[j][i] = +win[j][i]
+            for (i in 1 until len[j] step 2) win1[j][i] = -win[j][i]
         }
 
-        for (i in 0..15) {
+        for (i in 0 until 16) {
             val t = Math.tan(i.toDouble() * MPG123.M_PI / 12.0)
             tan1_1[i] = (t / (1.0 + t)).toFloat()
             tan2_1[i] = (1.0 / (1.0 + t)).toFloat()
@@ -182,17 +151,13 @@ class Layer3
 
         for (j in 0..8) {
             val bi = bandInfo[j]
-            var mp: Int
-            var cb: Int
             var lwin: Int
-            var bdf: Int
 
             map[j][0] = mapbuf0[j]
-            mp = 0
-            bdf = 0
-            var i: Int
-            i = 0
-            cb = 0
+            var mp = 0
+            var bdf = 0
+            var i = 0
+            var cb = 0
             while (cb < 8) {
                 map[j][0][mp++] = bi.longDiff[bdf].toInt() shr 1
                 map[j][0][mp++] = i
@@ -262,60 +227,28 @@ class Layer3
             }
         }
 
-        for (i in 0..4) {
-            for (j in 0..5) {
-                for (k in 0..5) {
-                    val n = k + j * 6 + i * 36
-                    i_slen2[n] = i or (j shl 3) or (k shl 6) or (3 shl 12)
-                }
-            }
+        for (i in 0..4) for (j in 0..5) for (k in 0..5) {
+            i_slen2[k + j * 6 + i * 36] = i or (j shl 3) or (k shl 6) or (3 shl 12)
         }
-        for (i in 0..3) {
-            for (j in 0..3) {
-                for (k in 0..3) {
-                    val n = k + j * 4 + i * 16
-                    i_slen2[n + 180] = i or (j shl 3) or (k shl 6) or (4 shl 12)
-                }
-            }
+        for (i in 0..3) for (j in 0..3) for (k in 0..3) {
+            i_slen2[(k + j * 4 + i * 16) + 180] = i or (j shl 3) or (k shl 6) or (4 shl 12)
         }
-        for (i in 0..3) {
-            for (j in 0..2) {
-                val n = j + i * 3
-                i_slen2[n + 244] = i or (j shl 3) or (5 shl 12)
-                n_slen2[n + 500] = i or (j shl 3) or (2 shl 12) or (1 shl 15)
-            }
+        for (i in 0..3) for (j in 0..2) {
+            val n = j + i * 3
+            i_slen2[n + 244] = i or (j shl 3) or (5 shl 12)
+            n_slen2[n + 500] = i or (j shl 3) or (2 shl 12) or (1 shl 15)
         }
 
-        for (i in 0..4) {
-            for (j in 0..4) {
-                for (k in 0..3) {
-                    var l: Int
-                    l = 0
-                    while (l < 4) {
-                        val n = l + k * 4 + j * 16 + i * 80
-                        n_slen2[n] = i or (j shl 3) or (k shl 6) or (l shl 9) or (0 shl 12)
-                        l++
-                    }
-                }
-            }
+        for (i in 0..4) for (j in 0..4) for (k in 0..3) for (l in 0 until 4) {
+            n_slen2[l + k * 4 + j * 16 + i * 80] = i or (j shl 3) or (k shl 6) or (l shl 9) or (0 shl 12)
         }
-        for (i in 0..4) {
-            for (j in 0..4) {
-                for (k in 0..3) {
-                    val n = k + j * 4 + i * 20
-                    n_slen2[n + 400] = i or (j shl 3) or (k shl 6) or (1 shl 12)
-                }
-            }
+        for (i in 0..4) for (j in 0..4) for (k in 0..3) {
+            n_slen2[(k + j * 4 + i * 20) + 400] = i or (j shl 3) or (k shl 6) or (1 shl 12)
         }
     }
 
-    private fun III_get_side_info_1(
-            mp: mpstr_tag, si: III_sideinfo,
-            stereo: Int, ms_stereo: Int, sfreq: Int,
-            single: Int
-    ) {
+    private fun III_get_side_info_1(mp: mpstr_tag, si: III_sideinfo, stereo: Int, ms_stereo: Int, sfreq: Int, single: Int) {
         var ch: Int
-        var gr: Int
         val powdiff = if (single == 3) 4 else 0
 
         si.main_data_begin = common.getbits(mp, 9)
@@ -328,7 +261,7 @@ class Layer3
             ch++
         }
 
-        gr = 0
+        var gr = 0
         while (gr < 2) {
             ch = 0
             while (ch < stereo) {
@@ -337,35 +270,25 @@ class Layer3
                 gr_infos.part2_3_length = common.getbits(mp, 12)
                 gr_infos.big_values = common.getbits_fast(mp, 9)
                 if (gr_infos.big_values > 288) {
-                    System.err.printf("big_values too large! %d\n",
-                            gr_infos.big_values)
+                    System.err.printf("big_values too large! %d\n", gr_infos.big_values)
                     gr_infos.big_values = 288
                 }
-                run {
-                    val qss = common.getbits_fast(mp, 8)
-                    gr_infos.pow2gain = gainpow2
-                    gr_infos.pow2gainPos = 256 - qss + powdiff
-                    mp.pinfo.qss[gr][ch] = qss
-                }
+
+                val qss = common.getbits_fast(mp, 8)
+                gr_infos.pow2gain = gainpow2
+                gr_infos.pow2gainPos = 256 - qss + powdiff
+                mp.pinfo.qss[gr][ch] = qss
+
                 if (ms_stereo != 0) gr_infos.pow2gainPos += 2
                 gr_infos.scalefac_compress = common.getbits_fast(mp, 4)
-                /*
-                 * window-switching flag == 1 for block_Type != 0 .. and
-				 * block-type == 0 . win-sw-flag = 0
-				 */
                 if (get1bit(mp) != 0) {
-                    var i: Int
                     gr_infos.block_type = common.getbits_fast(mp, 2)
                     gr_infos.mixed_block_flag = get1bit(mp)
                     gr_infos.table_select[0] = common.getbits_fast(mp, 5)
                     gr_infos.table_select[1] = common.getbits_fast(mp, 5)
 
-                    /*
-                     * table_select[2] not needed, because there is no region2,
-					 * but to satisfy some verifications tools we set it either.
-					 */
                     gr_infos.table_select[2] = 0
-                    i = 0
+                    var i = 0
                     while (i < 3) {
                         val sbg = common.getbits_fast(mp, 3) shl 3
                         gr_infos.full_gain[i] = gr_infos.pow2gain
@@ -376,32 +299,23 @@ class Layer3
 
                     if (gr_infos.block_type == 0) {
                         System.err.printf("Blocktype == 0 and window-switching == 1 not allowed.\n")
-                        /*
-                         * error seems to be very good recoverable, so don't
-						 * exit
-						 */
-                        /* exit(1); */
                     }
-                    /* region_count/start parameters are implicit in this case. */
                     gr_infos.region1start = 36 shr 1
                     gr_infos.region2start = 576 shr 1
                 } else {
-                    var i: Int
-                    val r0c: Int
-                    val r1c: Int
-                    i = 0
+                    var i = 0
                     while (i < 3) {
                         gr_infos.table_select[i] = common.getbits_fast(mp, 5)
                         i++
                     }
-                    r0c = common.getbits_fast(mp, 4)
-                    r1c = common.getbits_fast(mp, 3)
+                    val r0c = common.getbits_fast(mp, 4)
+                    val r1c = common.getbits_fast(mp, 3)
                     gr_infos.region1start = bandInfo[sfreq].longIdx[r0c + 1].toInt() shr 1
-                    gr_infos.region2start = if (r0c + 1 + r1c + 1 < bandInfo[sfreq].longIdx.size)
-                        bandInfo[sfreq].longIdx[r0c
-                                + 1 + r1c + 1].toInt() shr 1
-                    else
+                    gr_infos.region2start = if (r0c + 1 + r1c + 1 < bandInfo[sfreq].longIdx.size) {
+                        bandInfo[sfreq].longIdx[r0c + 1 + r1c + 1].toInt() shr 1
+                    } else {
                         bandInfo[sfreq].longDiff[r0c + 1 + r1c + 1 - bandInfo[sfreq].longIdx.size].toInt() shr 1
+                    }
                     gr_infos.block_type = 0
                     gr_infos.mixed_block_flag = 0
                 }
@@ -418,86 +332,55 @@ class Layer3
      * Side Info for MPEG 2.0 / LSF
      */
     private fun III_get_side_info_2(mp: mpstr_tag, si: III_sideinfo, stereo: Int, ms_stereo: Int, sfreq: Int, single: Int) {
-        var ch: Int
         val powdiff = if (single == 3) 4 else 0
 
         si.main_data_begin = common.getbits(mp, 8)
 
         si.private_bits = if (stereo == 1) get1bit(mp) else common.getbits_fast(mp, 2)
 
-        ch = 0
+        var ch = 0
         while (ch < stereo) {
             val gr_infos = si.ch[ch].gr[0]
-            val qss: Int
-
             gr_infos.part2_3_length = common.getbits(mp, 12)
             gr_infos.big_values = common.getbits_fast(mp, 9)
             if (gr_infos.big_values > 288) {
                 System.err.printf("big_values too large! %d\n", gr_infos.big_values)
                 gr_infos.big_values = 288
             }
-            qss = common.getbits_fast(mp, 8)
+            val qss = common.getbits_fast(mp, 8)
             gr_infos.pow2gain = gainpow2
             gr_infos.pow2gainPos = 256 - qss + powdiff
             mp.pinfo.qss[0][ch] = qss
 
             if (ms_stereo != 0) gr_infos.pow2gainPos += 2
             gr_infos.scalefac_compress = common.getbits(mp, 9)
-            /*
-             * window-switching flag == 1 for block_Type != 0 .. and block-type
-			 * == 0 . win-sw-flag = 0
-			 */
             if (get1bit(mp) != 0) {
-                var i: Int
                 gr_infos.block_type = common.getbits_fast(mp, 2)
                 gr_infos.mixed_block_flag = get1bit(mp)
                 gr_infos.table_select[0] = common.getbits_fast(mp, 5)
                 gr_infos.table_select[1] = common.getbits_fast(mp, 5)
-                /*
-                 * table_select[2] not needed, because there is no region2, but
-				 * to satisfy some verifications tools we set it either.
-				 */
                 gr_infos.table_select[2] = 0
-                i = 0
-                while (i < 3) {
+                for (i in 0 until 3) {
                     val sbg = common.getbits_fast(mp, 3) shl 3
                     gr_infos.full_gain[i] = gr_infos.pow2gain
                     gr_infos.full_gainPos[i] = gr_infos.pow2gainPos + sbg
                     mp.pinfo.sub_gain[0][ch][i] = sbg / 8
-                    i++
                 }
 
-                if (gr_infos.block_type == 0) {
-                    System.err.printf("Blocktype == 0 and window-switching == 1 not allowed.\n")
-                    /* error seems to be very good recoverable, so don't exit */
-                    /* exit(1); */
-                }
-                /* region_count/start parameters are implicit in this case. */
-                /* check this again! */
-                if (gr_infos.block_type == 2) {
-                    if (sfreq == 8) {
-                        gr_infos.region1start = 36
-                    } else {
-                        gr_infos.region1start = 36 shr 1
-                    }
-                } else if (sfreq == 8)
-                /* check this for 2.5 and sfreq=8 */ {
-                    gr_infos.region1start = 108 shr 1
+                if (gr_infos.block_type == 0) System.err.printf("Blocktype == 0 and window-switching == 1 not allowed.\n")
+
+                gr_infos.region1start = if (gr_infos.block_type == 2) {
+                    if (sfreq == 8) 36 else 36 shr 1
+                } else if (sfreq == 8) {
+                    108 shr 1
                 } else {
-                    gr_infos.region1start = 54 shr 1
+                    54 shr 1
                 }
                 gr_infos.region2start = 576 shr 1
             } else {
-                var i: Int
-                val r0c: Int
-                val r1c: Int
-                i = 0
-                while (i < 3) {
-                    gr_infos.table_select[i] = common.getbits_fast(mp, 5)
-                    i++
-                }
-                r0c = common.getbits_fast(mp, 4)
-                r1c = common.getbits_fast(mp, 3)
+                for (i in 0 until 3) gr_infos.table_select[i] = common.getbits_fast(mp, 5)
+                val r0c = common.getbits_fast(mp, 4)
+                val r1c = common.getbits_fast(mp, 3)
                 gr_infos.region1start = bandInfo[sfreq].longIdx[r0c + 1].toInt() shr 1
                 gr_infos.region2start = bandInfo[sfreq].longIdx[r0c + 1 + r1c + 1].toInt() shr 1
                 gr_infos.block_type = 0
@@ -612,10 +495,8 @@ class Layer3
     private fun III_get_scale_factors_2(mp: mpstr_tag, scf: IntArray, gr_infos: gr_info_s, i_stereo: Int): Int {
         var scfPos = 0
         val pnt: IntArray
-        var i: Int
         var j: Int
         var slen: Int
-        var n = 0
         var numbits = 0
 
         if (i_stereo != 0) {
@@ -626,16 +507,15 @@ class Layer3
 
         gr_infos.preflag = slen shr 15 and 0x1
 
-        n = 0
+        var n = 0
         if (gr_infos.block_type == 2) {
             n++
-            if (gr_infos.mixed_block_flag != 0)
-                n++
+            if (gr_infos.mixed_block_flag != 0) n++
         }
 
         pnt = stab[n][slen shr 12 and 0x7]
 
-        i = 0
+        var i = 0
         while (i < 4) {
             val num = slen and 0x7
             slen = slen shr 3
@@ -657,11 +537,7 @@ class Layer3
         }
 
         n = (n shl 1) + 1
-        i = 0
-        while (i < n) {
-            scf[scfPos++] = 0
-            i++
-        }
+        Arrays.fill(scf, scfPos, scfPos + n, 0)
 
         return numbits
     }
@@ -677,9 +553,7 @@ class Layer3
         val me: Int
 
         run {
-            var i: Int
-
-            i = MPG123.SBLIMIT * MPG123.SSLIMIT - xrpntPos shr 1
+            var i = MPG123.SBLIMIT * MPG123.SSLIMIT - xrpntPos shr 1
             while (i > 0) {
                 xrpnt[xrpntPos++] = 0.0f
                 xrpnt[xrpntPos++] = 0.0f
@@ -714,24 +588,16 @@ class Layer3
                 }
             }
         }
-        /* MDH crash fix */
-        run {
-            var i: Int
-            i = 0
-            while (i < 3) {
-                if (l[i] < 0) {
-                    System.err.printf("hip: Bogus region length (%d)\n", l[i])
-                    l[i] = 0
-                }
-                i++
+
+        // MDH crash fix
+        for (i in 0 until 3) {
+            if (l[i] < 0) {
+                System.err.printf("hip: Bogus region length (%d)\n", l[i])
+                l[i] = 0
             }
         }
-        /* end MDH crash fix */
 
         if (gr_infos.block_type == 2) {
-            /*
-             * decoding with short or mixed mode BandIndex table
-			 */
             var i: Int
             val max = IntArray(4)
             var step = 0
@@ -742,10 +608,10 @@ class Layer3
             var mc: Int
             var mPos = 0
             if (gr_infos.mixed_block_flag != 0) {
-                max[3] = -1
                 max[0] = 2
                 max[1] = 2
                 max[2] = 2
+                max[3] = -1
                 m = map[sfreq][0]
                 mPos = 0
                 me = mapend[sfreq][0]
@@ -754,7 +620,6 @@ class Layer3
                 max[1] = -1
                 max[2] = -1
                 max[3] = -1
-                /* max[3] not really needed in this case */
                 m = map[sfreq][1]
                 mPos = 0
                 me = mapend[sfreq][1]
@@ -784,34 +649,26 @@ class Layer3
                             step = 3
                         }
                     }
-                    run {
-                        val `val` = h[hPos].table
-                        var valPos = 0
-                        while (true) {
-                            y = `val`[valPos++].toInt()
-                            if (y >= 0) break
-                            if (get1bit(mp) != 0) valPos -= y
-                            part2remain--
-                        }
-                        x = y shr 4
-                        y = y and 0xf
+
+                    val val2 = h[hPos].table
+                    var valPos = 0
+                    while (true) {
+                        y = val2[valPos++].toInt()
+                        if (y >= 0) break
+                        if (get1bit(mp) != 0) valPos -= y
+                        part2remain--
                     }
+                    x = y shr 4
+                    y = y and 0xf
+
                     if (x == 15) {
                         max[lwin] = cb
                         part2remain -= h[hPos].linbits + 1
                         x += common.getbits(mp, h[hPos].linbits)
-                        if (get1bit(mp) != 0) {
-                            xrpnt[xrpntPos] = -ispow[x] * v
-                        } else {
-                            xrpnt[xrpntPos] = ispow[x] * v
-                        }
+                        xrpnt[xrpntPos] = if (get1bit(mp) != 0) -ispow[x] * v else ispow[x] * v
                     } else if (x != 0) {
                         max[lwin] = cb
-                        if (get1bit(mp) != 0) {
-                            xrpnt[xrpntPos] = -ispow[x] * v
-                        } else {
-                            xrpnt[xrpntPos] = ispow[x] * v
-                        }
+                        xrpnt[xrpntPos] = if (get1bit(mp) != 0) -ispow[x] * v else ispow[x] * v
                         part2remain--
                     } else
                         xrpnt[xrpntPos] = 0.0f
@@ -820,18 +677,10 @@ class Layer3
                         max[lwin] = cb
                         part2remain -= h[hPos].linbits + 1
                         y += common.getbits(mp, h[hPos].linbits)
-                        if (get1bit(mp) != 0) {
-                            xrpnt[xrpntPos] = -ispow[y] * v
-                        } else {
-                            xrpnt[xrpntPos] = ispow[y] * v
-                        }
+                        xrpnt[xrpntPos] = if (get1bit(mp) != 0) -ispow[y] * v else ispow[y] * v
                     } else if (y != 0) {
                         max[lwin] = cb
-                        if (get1bit(mp) != 0) {
-                            xrpnt[xrpntPos] = -ispow[y] * v
-                        } else {
-                            xrpnt[xrpntPos] = ispow[y] * v
-                        }
+                        xrpnt[xrpntPos] = if (get1bit(mp) != 0) -ispow[y] * v else ispow[y] * v
                         part2remain--
                     } else
                         xrpnt[xrpntPos] = 0.0f
@@ -844,12 +693,12 @@ class Layer3
             while (l3 != 0 && part2remain > 0) {
                 val h = Huffman.htc
                 val hPos = gr_infos.count1table_select
-                val `val` = h[hPos].table
+                val val2 = h[hPos].table
                 var valPos = 0
                 var a: Short
 
                 while (true) {
-                    a = `val`[valPos++]
+                    a = val2[valPos++]
                     if (a >= 0) break
                     part2remain--
                     if (part2remain < 0) {
@@ -908,11 +757,6 @@ class Layer3
                 xrpntPos += step
                 xrpnt[xrpntPos] = 0.0f
                 xrpntPos += step
-                /*
-                 * we could add a little opt. here: if we finished a band for
-				 * window 3 or a long band further bands could copied in a
-				 * simple loop without a special 'map' decoding
-				 */
             }
 
             gr_infos.maxband[0] = max[0] + 1
@@ -920,16 +764,12 @@ class Layer3
             gr_infos.maxband[2] = max[2] + 1
             gr_infos.maxbandl = max[3] + 1
 
-            run {
-                var rmax = if (max[0] > max[1]) max[0] else max[1]
-                rmax = (if (rmax > max[2]) rmax else max[2]) + 1
-                gr_infos.maxb = if (rmax != 0) shortLimit[sfreq][rmax] else longLimit[sfreq][max[3] + 1]
-            }
+
+            var rmax = if (max[0] > max[1]) max[0] else max[1]
+            rmax = (if (rmax > max[2]) rmax else max[2]) + 1
+            gr_infos.maxb = if (rmax != 0) shortLimit[sfreq][rmax] else longLimit[sfreq][max[3] + 1]
 
         } else {
-            /*
-             * decoding with 'long' BandIndex table (block_type != 2)
-			 */
             val pretab = if (gr_infos.preflag != 0) pretab1 else pretab2
             var pretabPos = 0
             var i: Int
@@ -940,9 +780,6 @@ class Layer3
             var v = 0.0f
             var mc = 0
 
-            /*
-             * long hash table values
-			 */
             i = 0
             while (i < 3) {
                 var lp = l[i]
@@ -958,32 +795,26 @@ class Layer3
                         v = gr_infos.pow2gain[gr_infos.pow2gainPos + (scf[scfPos++] + pretab[pretabPos++] shl shift)]
                         cb = m[mPos++]
                     }
-                    run {
-                        val `val` = h[hPos].table
-                        var valPos = 0
-                        while (true) {
-                            y = `val`[valPos++].toInt()
-                            if (y >= 0) break
-                            if (get1bit(mp) != 0) valPos -= y
-                            part2remain--
-                        }
-                        x = y shr 4
-                        y = y and 0xf
+
+                    val val2 = h[hPos].table
+                    var valPos = 0
+                    while (true) {
+                        y = val2[valPos++].toInt()
+                        if (y >= 0) break
+                        if (get1bit(mp) != 0) valPos -= y
+                        part2remain--
                     }
+                    x = y shr 4
+                    y = y and 0xf
+
                     if (x == 15) {
                         max = cb
                         part2remain -= h[hPos].linbits + 1
                         x += common.getbits(mp, h[hPos].linbits)
-                        if (get1bit(mp) != 0)
-                            xrpnt[xrpntPos++] = -ispow[x] * v
-                        else
-                            xrpnt[xrpntPos++] = ispow[x] * v
+                        xrpnt[xrpntPos++] = if (get1bit(mp) != 0) -ispow[x] * v else ispow[x] * v
                     } else if (x != 0) {
                         max = cb
-                        if (get1bit(mp) != 0)
-                            xrpnt[xrpntPos++] = -ispow[x] * v
-                        else
-                            xrpnt[xrpntPos++] = ispow[x] * v
+                        xrpnt[xrpntPos++] = if (get1bit(mp) != 0) -ispow[x] * v else ispow[x] * v
                         part2remain--
                     } else
                         xrpnt[xrpntPos++] = 0.0f
@@ -992,16 +823,10 @@ class Layer3
                         max = cb
                         part2remain -= h[hPos].linbits + 1
                         y += common.getbits(mp, h[hPos].linbits)
-                        if (get1bit(mp) != 0)
-                            xrpnt[xrpntPos++] = -ispow[y] * v
-                        else
-                            xrpnt[xrpntPos++] = ispow[y] * v
+                        xrpnt[xrpntPos++] = if (get1bit(mp) != 0) -ispow[y] * v else ispow[y] * v
                     } else if (y != 0) {
                         max = cb
-                        if (get1bit(mp) != 0)
-                            xrpnt[xrpntPos++] = -ispow[y] * v
-                        else
-                            xrpnt[xrpntPos++] = ispow[y] * v
+                        xrpnt[xrpntPos++] = if (get1bit(mp) != 0) -ispow[y] * v else ispow[y] * v
                         part2remain--
                     } else
                         xrpnt[xrpntPos++] = 0.0f
@@ -1017,12 +842,12 @@ class Layer3
             while (l3 != 0 && part2remain > 0) {
                 val h = Huffman.htc
                 val hPos = gr_infos.count1table_select
-                val `val` = h[hPos].table
+                val val2 = h[hPos].table
                 var valPos = 0
                 var a: Short
 
                 while (true) {
-                    a = `val`[valPos++]
+                    a = val2[valPos++]
                     if (a >= 0) break
                     part2remain--
                     if (part2remain < 0) {
@@ -1078,28 +903,14 @@ class Layer3
             common.getbits(mp, 16) /* Dismiss stuffing Bits */
             part2remain -= 16
         }
-        if (part2remain > 0)
-            common.getbits(mp, part2remain)
+        if (part2remain > 0) common.getbits(mp, part2remain)
         else if (part2remain < 0) {
-            System.err.printf("hip: Can't rewind stream by %d bits!\n",
-                    -part2remain)
-            return 1 /* . error */
+            System.err.printf("hip: Can't rewind stream by %d bits!\n", -part2remain)
+            return 1
         }
         return 0
     }
 
-    /*
-     * DCT insipired by Jeff Tsay's DCT from the maplay package this is an
-	 * optimized version with manual unroll.
-	 *
-	 * References: [1] S. Winograd:
-	 * "On Computing the Discrete Fourier Transform", Mathematics of
-	 * Computation, Volume 32, Number 141, January 1978, Pages 175-199
-	 */
-
-    /*
-     * III_stereo: calculate real channel values for Joint-I-Stereo-mode
-     */
     private fun III_i_stereo(xr_buf: Array<FloatArray>, scalefac: IntArray, gr_infos: gr_info_s, sfreq: Int, ms_stereo: Int, lsf: Int) {
         val xr = xr_buf
         val bi = bandInfo[sfreq]
@@ -1108,30 +919,16 @@ class Layer3
 
         if (lsf != 0) {
             val p = gr_infos.scalefac_compress and 0x1
-            if (ms_stereo != 0) {
-                tabl1 = pow1_2[p]
-                tabl2 = pow2_2[p]
-            } else {
-                tabl1 = pow1_1[p]
-                tabl2 = pow2_1[p]
-            }
+            tabl1 = if (ms_stereo != 0) pow1_2[p] else pow1_1[p]
+            tabl2 = if (ms_stereo != 0) pow2_2[p] else pow2_1[p]
         } else {
-            if (ms_stereo != 0) {
-                tabl1 = tan1_2
-                tabl2 = tan2_2
-            } else {
-                tabl1 = tan1_1
-                tabl2 = tan2_1
-            }
+            tabl1 = if (ms_stereo != 0) tan1_2 else tan1_1
+            tabl2 = if (ms_stereo != 0) tan2_2 else tan2_1
         }
 
         if (gr_infos.block_type == 2) {
-            var lwin: Int
-            var do_l = 0
-            if (gr_infos.mixed_block_flag != 0)
-                do_l = 1
-
-            lwin = 0
+            var do_l = if (gr_infos.mixed_block_flag != 0) 1 else 0
+            var lwin = 0
             while (lwin < 3) { /* process each window */
                 var is_p: Int
                 var sb: Int
@@ -1142,12 +939,10 @@ class Layer3
                 while (sfb < 12) {
                     is_p = scalefac[sfb * 3 + lwin - gr_infos.mixed_block_flag]
                     if (is_p != 7) {
-                        val t1: Float
-                        val t2: Float
                         sb = bi.shortDiff[sfb].toInt()
                         idx = bi.shortIdx[sfb] + lwin
-                        t1 = tabl1[is_p]
-                        t2 = tabl2[is_p]
+                        val t1 = tabl1[is_p]
+                        val t2 = tabl2[is_p]
                         while (sb > 0) {
                             val v = xr[0][idx]
                             xr[0][idx] = v * t1
@@ -1179,10 +974,6 @@ class Layer3
             } /* end for(lwin; .. ; . ) */
 
             if (do_l != 0) {
-                /*
-                 * also check l-part, if ALL bands in the three windows are
-				 * 'empty' and mode = mixed_mode
-				 */
                 var sfb = gr_infos.maxbandl
                 var idx = bi.longIdx[sfb].toInt()
 
@@ -1215,10 +1006,8 @@ class Layer3
                 var sb = bi.longDiff[sfb].toInt()
                 is_p = scalefac[sfb] /* scale: 0-15 */
                 if (is_p != 7) {
-                    val t1: Float
-                    val t2: Float
-                    t1 = tabl1[is_p]
-                    t2 = tabl2[is_p]
+                    val t1 = tabl1[is_p]
+                    val t2 = tabl2[is_p]
                     while (sb > 0) {
                         val v = xr[0][idx]
                         xr[0][idx] = v * t1
@@ -1226,18 +1015,18 @@ class Layer3
                         sb--
                         idx++
                     }
-                } else
+                } else {
                     idx += sb
+                }
                 sfb++
             }
 
             is_p = scalefac[20] /* copy l-band 20 to l-band 21 */
             if (is_p != 7) {
-                var sb: Int
                 val t1 = tabl1[is_p]
                 val t2 = tabl2[is_p]
 
-                sb = bi.longDiff[21].toInt()
+                var sb = bi.longDiff[21].toInt()
                 while (sb > 0) {
                     val v = xr[0][idx]
                     xr[0][idx] = v * t1
@@ -1250,80 +1039,70 @@ class Layer3
     }
 
     private fun III_antialias(xr: FloatArray, gr_infos: gr_info_s) {
-        val sblim: Int
+        val xr1 = xr
+        var xr1Pos = MPG123.SSLIMIT
 
-        if (gr_infos.block_type == 2) {
-            if (0 == gr_infos.mixed_block_flag)
-                return
-            sblim = 1
+        var sb = if (gr_infos.block_type == 2) {
+            if (0 == gr_infos.mixed_block_flag) return
+            1
         } else {
-            sblim = gr_infos.maxb - 1
+            gr_infos.maxb - 1
         }
+        while (sb != 0) {
+            val cs = aa_cs
+            val ca = aa_ca
+            var caPos = 0
+            var csPos = 0
+            val xr2 = xr1
+            var xr2Pos = xr1Pos
 
-        /* 31 alias-reduction operations between each pair of sub-bands */
-        /* with 8 butterflies between each pair */
-
-        run {
-            var sb: Int
-            val xr1 = xr
-            var xr1Pos = MPG123.SSLIMIT
-
-            sb = sblim
-            while (sb != 0) {
-                var ss: Int
-                val cs = aa_cs
-                val ca = aa_ca
-                var caPos = 0
-                var csPos = 0
-                val xr2 = xr1
-                var xr2Pos = xr1Pos
-
-                ss = 7
-                while (ss >= 0) { /* upper and lower butterfly inputs */
-                    val bu = xr2[--xr2Pos]
-                    val bd = xr1[xr1Pos]
-                    xr2[xr2Pos] = bu * cs[csPos] - bd * ca[caPos]
-                    xr1[xr1Pos++] = bd * cs[csPos++] + bu * ca[caPos++]
-                    ss--
-                }
-                sb--
-                xr1Pos += 10
+            var ss = 7
+            while (ss >= 0) { /* upper and lower butterfly inputs */
+                val bu = xr2[--xr2Pos]
+                val bd = xr1[xr1Pos]
+                xr2[xr2Pos] = bu * cs[csPos] - bd * ca[caPos]
+                xr1[xr1Pos++] = bd * cs[csPos++] + bu * ca[caPos++]
+                ss--
             }
+            sb--
+            xr1Pos += 10
         }
     }
 
-    private fun dct36(inbuf: FloatArray, inbufPos: Int, o1: FloatArray, o1Pos: Int,
-                      o2: FloatArray, o2Pos: Int, wintab: FloatArray, tsbuf: FloatArray, tsPos: Int) {
+    private fun dct36(
+            inbuf: FloatArray, inbufPos: Int, o1: FloatArray, o1Pos: Int,
+            o2: FloatArray, o2Pos: Int, wintab: FloatArray, tsbuf: FloatArray, tsPos: Int
+    ) {
         run {
-            val `in` = inbuf
+            val inn = inbuf
             val inPos = inbufPos
 
-            `in`[inPos + 17] += `in`[inPos + 16]
-            `in`[inPos + 16] += `in`[inPos + 15]
-            `in`[inPos + 15] += `in`[inPos + 14]
-            `in`[inPos + 14] += `in`[inPos + 13]
-            `in`[inPos + 13] += `in`[inPos + 12]
-            `in`[inPos + 12] += `in`[inPos + 11]
-            `in`[inPos + 11] += `in`[inPos + 10]
-            `in`[inPos + 10] += `in`[inPos + 9]
-            `in`[inPos + 9] += `in`[inPos + 8]
-            `in`[inPos + 8] += `in`[inPos + 7]
-            `in`[inPos + 7] += `in`[inPos + 6]
-            `in`[inPos + 6] += `in`[inPos + 5]
-            `in`[inPos + 5] += `in`[inPos + 4]
-            `in`[inPos + 4] += `in`[inPos + 3]
-            `in`[inPos + 3] += `in`[inPos + 2]
-            `in`[inPos + 2] += `in`[inPos + 1]
-            `in`[inPos + 1] += `in`[inPos + 0]
+            inn[inPos + 17] += inn[inPos + 16]
+            inn[inPos + 16] += inn[inPos + 15]
+            inn[inPos + 15] += inn[inPos + 14]
+            inn[inPos + 14] += inn[inPos + 13]
+            inn[inPos + 13] += inn[inPos + 12]
+            inn[inPos + 12] += inn[inPos + 11]
+            inn[inPos + 11] += inn[inPos + 10]
+            inn[inPos + 10] += inn[inPos + 9]
+            inn[inPos + 9] += inn[inPos + 8]
+            inn[inPos + 8] += inn[inPos + 7]
+            inn[inPos + 7] += inn[inPos + 6]
+            inn[inPos + 6] += inn[inPos + 5]
+            inn[inPos + 5] += inn[inPos + 4]
+            inn[inPos + 4] += inn[inPos + 3]
+            inn[inPos + 3] += inn[inPos + 2]
+            inn[inPos + 2] += inn[inPos + 1]
+            inn[inPos + 1] += inn[inPos + 0]
 
-            `in`[inPos + 17] += `in`[inPos + 15]
-            `in`[inPos + 15] += `in`[inPos + 13]
-            `in`[inPos + 13] += `in`[inPos + 11]
-            `in`[inPos + 11] += `in`[inPos + 9]
-            `in`[inPos + 9] += `in`[inPos + 7]
-            `in`[inPos + 7] += `in`[inPos + 5]
-            `in`[inPos + 5] += `in`[inPos + 3]
-            `in`[inPos + 3] += `in`[inPos + 1]
+            inn[inPos + 17] += inn[inPos + 15]
+            inn[inPos + 15] += inn[inPos + 13]
+            inn[inPos + 13] += inn[inPos + 11]
+            inn[inPos + 11] += inn[inPos + 9]
+            inn[inPos + 9] += inn[inPos + 7]
+            inn[inPos + 7] += inn[inPos + 5]
+            inn[inPos + 5] += inn[inPos + 3]
+            inn[inPos + 3] += inn[inPos + 1]
 
             run {
                 val c = COS9
@@ -1334,25 +1113,16 @@ class Layer3
                 val out1Pos = o1Pos
                 val ts = tsbuf
 
-                val ta33: Float
-                val ta66: Float
-                val tb33: Float
-                val tb66: Float
-
-                ta33 = `in`[inPos + 2 * 3 + 0] * c[3]
-                ta66 = `in`[inPos + 2 * 6 + 0] * c[6]
-                tb33 = `in`[inPos + 2 * 3 + 1] * c[3]
-                tb66 = `in`[inPos + 2 * 6 + 1] * c[6]
+                val ta33 = inn[inPos + 2 * 3 + 0] * c[3]
+                val ta66 = inn[inPos + 2 * 6 + 0] * c[6]
+                val tb33 = inn[inPos + 2 * 3 + 1] * c[3]
+                val tb66 = inn[inPos + 2 * 6 + 1] * c[6]
 
                 run {
-                    val tmp1a: Float
-                    val tmp2a: Float
-                    val tmp1b: Float
-                    val tmp2b: Float
-                    tmp1a = `in`[inPos + 2 * 1 + 0] * c[1] + ta33 + `in`[inPos + 2 * 5 + 0] * c[5] + `in`[inPos + 2 * 7 + 0] * c[7]
-                    tmp1b = `in`[inPos + 2 * 1 + 1] * c[1] + tb33 + `in`[inPos + 2 * 5 + 1] * c[5] + `in`[inPos + 2 * 7 + 1] * c[7]
-                    tmp2a = `in`[inPos + 2 * 0 + 0] + `in`[inPos + 2 * 2 + 0] * c[2] + `in`[inPos + 2 * 4 + 0] * c[4] + ta66 + `in`[inPos + 2 * 8 + 0] * c[8]
-                    tmp2b = `in`[inPos + 2 * 0 + 1] + `in`[inPos + 2 * 2 + 1] * c[2] + `in`[inPos + 2 * 4 + 1] * c[4] + tb66 + `in`[inPos + 2 * 8 + 1] * c[8]
+                    val tmp1a = inn[inPos + 2 * 1 + 0] * c[1] + ta33 + inn[inPos + 2 * 5 + 0] * c[5] + inn[inPos + 2 * 7 + 0] * c[7]
+                    val tmp1b = inn[inPos + 2 * 1 + 1] * c[1] + tb33 + inn[inPos + 2 * 5 + 1] * c[5] + inn[inPos + 2 * 7 + 1] * c[7]
+                    val tmp2a = inn[inPos + 2 * 0 + 0] + inn[inPos + 2 * 2 + 0] * c[2] + inn[inPos + 2 * 4 + 0] * c[4] + ta66 + inn[inPos + 2 * 8 + 0] * c[8]
+                    val tmp2b = inn[inPos + 2 * 0 + 1] + inn[inPos + 2 * 2 + 1] * c[2] + inn[inPos + 2 * 4 + 1] * c[4] + tb66 + inn[inPos + 2 * 8 + 1] * c[8]
 
                     // MACRO1(0);
                     run {
@@ -1367,10 +1137,8 @@ class Layer3
                     }
                     // MACRO2(8);
                     run {
-                        var sum0: Float
-                        val sum1: Float
-                        sum0 = tmp2a - tmp1a
-                        sum1 = (tmp2b - tmp1b) * tfcos36[8]
+                        var sum0 = tmp2a - tmp1a
+                        val sum1 = (tmp2b - tmp1b) * tfcos36[8]
                         val tmp = sum0 + sum1
                         out2[out2Pos + 9 + 8] = tmp * w[27 + 8]
                         out2[out2Pos + 8 - 8] = tmp * w[26 - 8]
@@ -1381,14 +1149,10 @@ class Layer3
                 }
 
                 run {
-                    val tmp1a: Float
-                    val tmp2a: Float
-                    val tmp1b: Float
-                    val tmp2b: Float
-                    tmp1a = (`in`[inPos + 2 * 1 + 0] - `in`[inPos + 2 * 5 + 0] - `in`[inPos + 2 * 7 + 0]) * c[3]
-                    tmp1b = (`in`[inPos + 2 * 1 + 1] - `in`[inPos + 2 * 5 + 1] - `in`[inPos + 2 * 7 + 1]) * c[3]
-                    tmp2a = (`in`[inPos + 2 * 2 + 0] - `in`[inPos + 2 * 4 + 0] - `in`[inPos + 2 * 8 + 0]) * c[6] - `in`[inPos + 2 * 6 + 0] + `in`[inPos + 2 * 0 + 0]
-                    tmp2b = (`in`[inPos + 2 * 2 + 1] - `in`[inPos + 2 * 4 + 1] - `in`[inPos + 2 * 8 + 1]) * c[6] - `in`[inPos + 2 * 6 + 1] + `in`[inPos + 2 * 0 + 1]
+                    val tmp1a = (inn[inPos + 2 * 1 + 0] - inn[inPos + 2 * 5 + 0] - inn[inPos + 2 * 7 + 0]) * c[3]
+                    val tmp1b = (inn[inPos + 2 * 1 + 1] - inn[inPos + 2 * 5 + 1] - inn[inPos + 2 * 7 + 1]) * c[3]
+                    val tmp2a = (inn[inPos + 2 * 2 + 0] - inn[inPos + 2 * 4 + 0] - inn[inPos + 2 * 8 + 0]) * c[6] - inn[inPos + 2 * 6 + 0] + inn[inPos + 2 * 0 + 0]
+                    val tmp2b = (inn[inPos + 2 * 2 + 1] - inn[inPos + 2 * 4 + 1] - inn[inPos + 2 * 8 + 1]) * c[6] - inn[inPos + 2 * 6 + 1] + inn[inPos + 2 * 0 + 1]
 
                     // MACRO1(1);
                     run {
@@ -1417,14 +1181,10 @@ class Layer3
                 }
 
                 run {
-                    val tmp1a: Float
-                    val tmp2a: Float
-                    val tmp1b: Float
-                    val tmp2b: Float
-                    tmp1a = `in`[inPos + 2 * 1 + 0] * c[5] - ta33 - `in`[inPos + 2 * 5 + 0] * c[7] + `in`[inPos + 2 * 7 + 0] * c[1]
-                    tmp1b = `in`[inPos + 2 * 1 + 1] * c[5] - tb33 - `in`[inPos + 2 * 5 + 1] * c[7] + `in`[inPos + 2 * 7 + 1] * c[1]
-                    tmp2a = `in`[inPos + 2 * 0 + 0] - `in`[inPos + 2 * 2 + 0] * c[8] - `in`[inPos + 2 * 4 + 0] * c[2] + ta66 + `in`[inPos + 2 * 8 + 0] * c[4]
-                    tmp2b = `in`[inPos + 2 * 0 + 1] - `in`[inPos + 2 * 2 + 1] * c[8] - `in`[inPos + 2 * 4 + 1] * c[2] + tb66 + `in`[inPos + 2 * 8 + 1] * c[4]
+                    val tmp1a = inn[inPos + 2 * 1 + 0] * c[5] - ta33 - inn[inPos + 2 * 5 + 0] * c[7] + inn[inPos + 2 * 7 + 0] * c[1]
+                    val tmp1b = inn[inPos + 2 * 1 + 1] * c[5] - tb33 - inn[inPos + 2 * 5 + 1] * c[7] + inn[inPos + 2 * 7 + 1] * c[1]
+                    val tmp2a = inn[inPos + 2 * 0 + 0] - inn[inPos + 2 * 2 + 0] * c[8] - inn[inPos + 2 * 4 + 0] * c[2] + ta66 + inn[inPos + 2 * 8 + 0] * c[4]
+                    val tmp2b = inn[inPos + 2 * 0 + 1] - inn[inPos + 2 * 2 + 1] * c[8] - inn[inPos + 2 * 4 + 1] * c[2] + tb66 + inn[inPos + 2 * 8 + 1] * c[4]
 
                     // MACRO1(2);
                     run {
@@ -1439,10 +1199,8 @@ class Layer3
                     }
                     // MACRO2(6);
                     run {
-                        var sum0: Float
-                        val sum1: Float
-                        sum0 = tmp2a - tmp1a
-                        sum1 = (tmp2b - tmp1b) * tfcos36[6]
+                        var sum0 = tmp2a - tmp1a
+                        val sum1 = (tmp2b - tmp1b) * tfcos36[6]
                         val tmp = sum0 + sum1
                         out2[out2Pos + 9 + 6] = tmp * w[27 + 6]
                         out2[out2Pos + 8 - 6] = tmp * w[26 - 6]
@@ -1453,14 +1211,10 @@ class Layer3
                 }
 
                 run {
-                    val tmp1a: Float
-                    val tmp2a: Float
-                    val tmp1b: Float
-                    val tmp2b: Float
-                    tmp1a = `in`[inPos + 2 * 1 + 0] * c[7] - ta33 + `in`[inPos + 2 * 5 + 0] * c[1] - `in`[inPos + 2 * 7 + 0] * c[5]
-                    tmp1b = `in`[inPos + 2 * 1 + 1] * c[7] - tb33 + `in`[inPos + 2 * 5 + 1] * c[1] - `in`[inPos + 2 * 7 + 1] * c[5]
-                    tmp2a = `in`[inPos + 2 * 0 + 0] - `in`[inPos + 2 * 2 + 0] * c[4] + `in`[inPos + 2 * 4 + 0] * c[8] + ta66 - `in`[inPos + 2 * 8 + 0] * c[2]
-                    tmp2b = `in`[inPos + 2 * 0 + 1] - `in`[inPos + 2 * 2 + 1] * c[4] + `in`[inPos + 2 * 4 + 1] * c[8] + tb66 - `in`[inPos + 2 * 8 + 1] * c[2]
+                    val tmp1a = inn[inPos + 2 * 1 + 0] * c[7] - ta33 + inn[inPos + 2 * 5 + 0] * c[1] - inn[inPos + 2 * 7 + 0] * c[5]
+                    val tmp1b = inn[inPos + 2 * 1 + 1] * c[7] - tb33 + inn[inPos + 2 * 5 + 1] * c[1] - inn[inPos + 2 * 7 + 1] * c[5]
+                    val tmp2a = inn[inPos + 2 * 0 + 0] - inn[inPos + 2 * 2 + 0] * c[4] + inn[inPos + 2 * 4 + 0] * c[8] + ta66 - inn[inPos + 2 * 8 + 0] * c[2]
+                    val tmp2b = inn[inPos + 2 * 0 + 1] - inn[inPos + 2 * 2 + 1] * c[4] + inn[inPos + 2 * 4 + 1] * c[8] + tb66 - inn[inPos + 2 * 8 + 1] * c[2]
 
                     // MACRO1(3);
                     run {
@@ -1475,10 +1229,8 @@ class Layer3
                     }
                     // MACRO2(5);
                     run {
-                        var sum0: Float
-                        val sum1: Float
-                        sum0 = tmp2a - tmp1a
-                        sum1 = (tmp2b - tmp1b) * tfcos36[5]
+                        var sum0 = tmp2a - tmp1a
+                        val sum1 = (tmp2b - tmp1b) * tfcos36[5]
                         val tmp = sum0 + sum1
                         out2[out2Pos + 9 + 5] = tmp * w[27 + 5]
                         out2[out2Pos + 8 - 5] = tmp * w[26 - 5]
@@ -1489,10 +1241,8 @@ class Layer3
                 }
 
                 run {
-                    var sum0: Float
-                    val sum1: Float
-                    sum0 = `in`[inPos + 2 * 0 + 0] - `in`[inPos + 2 * 2 + 0] + `in`[inPos + 2 * 4 + 0] - `in`[inPos + 2 * 6 + 0] + `in`[inPos + 2 * 8 + 0]
-                    sum1 = (`in`[inPos + 2 * 0 + 1] - `in`[inPos + 2 * 2 + 1] + `in`[inPos + 2 * 4 + 1] - `in`[inPos + 2 * 6 + 1] + `in`[inPos + 2 * 8 + 1]) * tfcos36[4]
+                    var sum0 = inn[inPos + 2 * 0 + 0] - inn[inPos + 2 * 2 + 0] + inn[inPos + 2 * 4 + 0] - inn[inPos + 2 * 6 + 0] + inn[inPos + 2 * 8 + 0]
+                    val sum1 = (inn[inPos + 2 * 0 + 1] - inn[inPos + 2 * 2 + 1] + inn[inPos + 2 * 4 + 1] - inn[inPos + 2 * 6 + 1] + inn[inPos + 2 * 8 + 1]) * tfcos36[4]
                     // MACRO0(4)
                     run {
                         val tmp = sum0 + sum1
@@ -1512,18 +1262,12 @@ class Layer3
      * new DCT12
      */
     private fun dct12(
-            `in`: FloatArray, inbufPos: Int, rawout1: FloatArray,
+            inn: FloatArray, inbufPos: Int, rawout1: FloatArray,
             rawout1Pos: Int, rawout2: FloatArray, rawout2Pos: Int, wi: FloatArray,
             ts: FloatArray, tsPos: Int
     ) {
         var inbufPos = inbufPos
         run {
-            var in0: Float
-            var in1: Float
-            var in2: Float
-            var in3: Float
-            var in4: Float
-            var in5: Float
             val out1 = rawout1
             val out1Pos = rawout1Pos
             ts[tsPos + MPG123.SBLIMIT * 0] = out1[out1Pos + 0]
@@ -1535,16 +1279,16 @@ class Layer3
 
             // DCT12_PART1
 
-            in5 = `in`[inbufPos + 5 * 3]
-            in4 = `in`[inbufPos + 4 * 3]
+            var in5 = inn[inbufPos + 5 * 3]
+            var in4 = inn[inbufPos + 4 * 3]
             in5 += in4
-            in3 = `in`[inbufPos + 3 * 3]
+            var in3 = inn[inbufPos + 3 * 3]
             in4 += in3
-            in2 = `in`[inbufPos + 2 * 3]
+            var in2 = inn[inbufPos + 2 * 3]
             in3 += in2
-            in1 = `in`[inbufPos + 1 * 3]
+            var in1 = inn[inbufPos + 1 * 3]
             in2 += in1
-            in0 = `in`[inbufPos + 0 * 3]
+            var in0 = inn[inbufPos + 0 * 3]
             in1 += in0
 
             in5 += in3
@@ -1598,26 +1342,20 @@ class Layer3
         inbufPos++
 
         run {
-            var in0: Float
-            var in1: Float
-            var in2: Float
-            var in3: Float
-            var in4: Float
-            var in5: Float
             val out2 = rawout2
             val out2Pos = rawout2Pos
 
             // DCT12_PART1
-            in5 = `in`[inbufPos + 5 * 3]
-            in4 = `in`[inbufPos + 4 * 3]
+            var in5 = inn[inbufPos + 5 * 3]
+            var in4 = inn[inbufPos + 4 * 3]
             in5 += in4
-            in3 = `in`[inbufPos + 3 * 3]
+            var in3 = inn[inbufPos + 3 * 3]
             in4 += in3
-            in2 = `in`[inbufPos + 2 * 3]
+            var in2 = inn[inbufPos + 2 * 3]
             in3 += in2
-            in1 = `in`[inbufPos + 1 * 3]
+            var in1 = inn[inbufPos + 1 * 3]
             in2 += in1
-            in0 = `in`[inbufPos + 0 * 3]
+            var in0 = inn[inbufPos + 0 * 3]
             in1 += in0
 
             in5 += in3
@@ -1671,12 +1409,6 @@ class Layer3
         inbufPos++
 
         run {
-            var in0: Float
-            var in1: Float
-            var in2: Float
-            var in3: Float
-            var in4: Float
-            var in5: Float
             val out2 = rawout2
             val out2Pos = rawout2Pos
             out2[out2Pos + 12] = 0.0f
@@ -1688,16 +1420,16 @@ class Layer3
 
             // DCT12_PART1
 
-            in5 = `in`[inbufPos + 5 * 3]
-            in4 = `in`[inbufPos + 4 * 3]
+            var in5 = inn[inbufPos + 5 * 3]
+            var in4 = inn[inbufPos + 4 * 3]
             in5 += in4
-            in3 = `in`[inbufPos + 3 * 3]
+            var in3 = inn[inbufPos + 3 * 3]
             in4 += in3
-            in2 = `in`[inbufPos + 2 * 3]
+            var in2 = inn[inbufPos + 2 * 3]
             in3 += in2
-            in1 = `in`[inbufPos + 1 * 3]
+            var in1 = inn[inbufPos + 1 * 3]
             in2 += in1
-            in0 = `in`[inbufPos + 0 * 3]
+            var in0 = inn[inbufPos + 0 * 3]
             in1 += in0
 
             in5 += in3
@@ -1754,19 +1486,14 @@ class Layer3
         var tspntPos = 0
         val block = mp.hybrid_block
         val blc = mp.hybrid_blc
-        val rawout1: FloatArray
-        val rawout2: FloatArray
-        var rawout1Pos: Int
-        var rawout2Pos: Int
-        val bt: Int
         var sb = 0
 
         var b = blc[ch]
-        rawout1 = block[b][ch]
-        rawout1Pos = 0
+        val rawout1 = block[b][ch]
+        var rawout1Pos = 0
         b = -b + 1
-        rawout2 = block[b][ch]
-        rawout2Pos = 0
+        val rawout2 = block[b][ch]
+        var rawout2Pos = 0
         blc[ch] = b
 
         if (gr_infos.mixed_block_flag != 0) {
@@ -1778,7 +1505,7 @@ class Layer3
             tspntPos += 2
         }
 
-        bt = gr_infos.block_type
+        val bt = gr_infos.block_type
         if (bt == 2) {
             while (sb < gr_infos.maxb) {
                 dct12(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2, rawout2Pos, win[2], tspnt, tspntPos + 0)
@@ -1847,7 +1574,6 @@ class Layer3
     }
 
     fun do_layer3(mp: mpstr_tag, pcm_sample: FloatArray, pcm_point: ProcessedBytes, synth: ISynth): Int {
-        var gr: Int
         var ss: Int
         var clip = 0
         val scalefacs = Array(2) { IntArray(39) }
@@ -1857,19 +1583,12 @@ class Layer3
         val ms_stereo: Int
         val i_stereo: Int
         val sfreq = fr.sampling_frequency
-        val stereo1: Int
         val granules: Int
 
         if (common.set_pointer(mp, sideinfo.main_data_begin) == MPGLib.MP3_ERR) return 0
 
-        if (stereo == 1) { /* stream is mono */
-            stereo1 = 1
-            single = 0
-        } else if (single >= 0)
-        /* stream is stereo, but force to mono */
-            stereo1 = 1
-        else
-            stereo1 = 2
+        if (stereo == 1) single = 0
+        val stereo1 = if (stereo == 1) 1 else if (single >= 0) 1 else 2
 
         if (fr.mode == MPG123.MPG_MD_JOINT_STEREO) {
             ms_stereo = fr.mode_ext and 0x2
@@ -1881,7 +1600,7 @@ class Layer3
 
         granules = if (fr.lsf != 0) 1 else 2
 
-        gr = 0
+        var gr = 0
         while (gr < granules) {
 
             val gr_infos2 = sideinfo.ch[0].gr[gr]
@@ -1893,11 +1612,9 @@ class Layer3
                 part2bits2 = III_get_scale_factors_1(mp, scalefacs[0], gr_infos2)
             }
 
-            if (mp.pinfo != null) {
-                mp.pinfo.sfbits[gr][0] = part2bits2
-                for (i in 0..38) {
-                    mp.pinfo.sfb_s[gr][0][i] = scalefacs[0][i].toDouble()
-                }
+            mp.pinfo.sfbits[gr][0] = part2bits2
+            for (i in 0..38) {
+                mp.pinfo.sfb_s[gr][0][i] = scalefacs[0][i].toDouble()
             }
 
             if (III_dequantize_sample(mp, hybridIn[0], scalefacs[0], gr_infos2, sfreq, part2bits2) != 0) return clip
@@ -1910,10 +1627,8 @@ class Layer3
                 else {
                     part2bits = III_get_scale_factors_1(mp, scalefacs[1], gr_infos)
                 }
-                if (mp.pinfo != null) {
-                    mp.pinfo.sfbits[gr][1] = part2bits
-                    for (i in 0..38) mp.pinfo.sfb_s[gr][1][i] = scalefacs[1][i].toDouble()
-                }
+                mp.pinfo.sfbits[gr][1] = part2bits
+                for (i in 0..38) mp.pinfo.sfb_s[gr][1][i] = scalefacs[1][i].toDouble()
 
                 if (III_dequantize_sample(mp, hybridIn[1], scalefacs[1], gr_infos, sfreq, part2bits) != 0) return clip
 
@@ -1961,82 +1676,78 @@ class Layer3
                 }
             }
 
-            if (mp.pinfo != null) {
-                var i: Int
+
+            var i: Int
+            var ifqstep: Float
+
+            mp.pinfo.bitrate = Common.tabsel_123[fr.lsf][fr.lay - 1][fr.bitrate_index]
+            mp.pinfo.sampfreq = Common.freqs[sfreq]
+            mp.pinfo.emph = fr.emphasis
+            mp.pinfo.crc = if (fr.error_protection) 1 else 0
+            mp.pinfo.padding = fr.padding
+            mp.pinfo.stereo = fr.stereo
+            mp.pinfo.js = if (fr.mode == MPG123.MPG_MD_JOINT_STEREO) 1 else 0
+            mp.pinfo.ms_stereo = ms_stereo
+            mp.pinfo.i_stereo = i_stereo
+            mp.pinfo.maindata = sideinfo.main_data_begin
+
+            for (ch in 0 until stereo1) {
+                val gr_infos = sideinfo.ch[ch].gr[gr]
+                mp.pinfo.big_values[gr][ch] = gr_infos.big_values
+                mp.pinfo.scalefac_scale[gr][ch] = gr_infos.scalefac_scale
+                mp.pinfo.mixed[gr][ch] = gr_infos.mixed_block_flag
+                mp.pinfo.mpg123blocktype[gr][ch] = gr_infos.block_type
+                mp.pinfo.mainbits[gr][ch] = gr_infos.part2_3_length
+                mp.pinfo.preflag[gr][ch] = gr_infos.preflag
+                if (gr == 1) mp.pinfo.scfsi[ch] = gr_infos.scfsi
+            }
+
+            for (ch in 0 until stereo1) {
                 var sb: Int
-                var ifqstep: Float
-
-                mp.pinfo.bitrate = Common.tabsel_123[fr.lsf][fr.lay - 1][fr.bitrate_index]
-                mp.pinfo.sampfreq = Common.freqs[sfreq]
-                mp.pinfo.emph = fr.emphasis
-                mp.pinfo.crc = if (fr.error_protection) 1 else 0
-                mp.pinfo.padding = fr.padding
-                mp.pinfo.stereo = fr.stereo
-                mp.pinfo.js = if (fr.mode == MPG123.MPG_MD_JOINT_STEREO) 1 else 0
-                mp.pinfo.ms_stereo = ms_stereo
-                mp.pinfo.i_stereo = i_stereo
-                mp.pinfo.maindata = sideinfo.main_data_begin
-
-                for (ch in 0..stereo1 - 1) {
-                    val gr_infos = sideinfo.ch[ch].gr[gr]
-                    mp.pinfo.big_values[gr][ch] = gr_infos.big_values
-                    mp.pinfo.scalefac_scale[gr][ch] = gr_infos.scalefac_scale
-                    mp.pinfo.mixed[gr][ch] = gr_infos.mixed_block_flag
-                    mp.pinfo.mpg123blocktype[gr][ch] = gr_infos.block_type
-                    mp.pinfo.mainbits[gr][ch] = gr_infos.part2_3_length
-                    mp.pinfo.preflag[gr][ch] = gr_infos.preflag
-                    if (gr == 1) {
-                        mp.pinfo.scfsi[ch] = gr_infos.scfsi
-                    }
-                }
-
-                for (ch in 0..stereo1 - 1) {
-                    val gr_infos = sideinfo.ch[ch].gr[gr]
-                    ifqstep = if (mp.pinfo.scalefac_scale[gr][ch] == 0) .5f else 1.0f
-                    val doubles = mp.pinfo.sfb_s[gr][ch]
-                    if (2 == gr_infos.block_type) {
-                        i = 0
-                        while (i < 3) {
-                            val ints = mp.pinfo.sub_gain[gr][ch]
-                            sb = 0
-                            while (sb < 12) {
-                                val j = 3 * sb + i
-                                doubles[j] = -ifqstep * doubles[j - gr_infos.mixed_block_flag]
-                                doubles[j] -= (2 * ints[i]).toDouble()
-                                sb++
-                            }
-                            doubles[3 * sb + i] = (-2 * ints[i]).toDouble()
-                            i++
-                        }
-                    } else {
-                        val doubles1 = mp.pinfo.sfb[gr][ch]
+                val gr_infos = sideinfo.ch[ch].gr[gr]
+                ifqstep = if (mp.pinfo.scalefac_scale[gr][ch] == 0) .5f else 1.0f
+                val doubles = mp.pinfo.sfb_s[gr][ch]
+                if (2 == gr_infos.block_type) {
+                    i = 0
+                    while (i < 3) {
+                        val ints = mp.pinfo.sub_gain[gr][ch]
                         sb = 0
-                        while (sb < 21) {
-                            doubles1[sb] = doubles[sb]
-                            if (gr_infos.preflag != 0) doubles1[sb] += pretab1[sb].toDouble()
-                            doubles1[sb] *= (-ifqstep).toDouble()
+                        while (sb < 12) {
+                            val j = 3 * sb + i
+                            doubles[j] = -ifqstep * doubles[j - gr_infos.mixed_block_flag]
+                            doubles[j] -= (2 * ints[i]).toDouble()
                             sb++
                         }
-                        doubles1[21] = 0.0
+                        doubles[3 * sb + i] = (-2 * ints[i]).toDouble()
+                        i++
                     }
-                }
-
-                for (ch in 0..stereo1 - 1) {
-                    var j = 0
+                } else {
+                    val doubles1 = mp.pinfo.sfb[gr][ch]
                     sb = 0
-                    while (sb < MPG123.SBLIMIT) {
-                        ss = 0
-                        while (ss < MPG123.SSLIMIT) {
-                            mp.pinfo.mpg123xr[gr][ch][j] = hybridIn[ch][sb * MPG123.SSLIMIT + ss].toDouble()
-                            ss++
-                            j++
-                        }
+                    while (sb < 21) {
+                        doubles1[sb] = doubles[sb]
+                        if (gr_infos.preflag != 0) doubles1[sb] += pretab1[sb].toDouble()
+                        doubles1[sb] *= (-ifqstep).toDouble()
                         sb++
+                    }
+                    doubles1[21] = 0.0
+                }
+            }
+
+            for (ch in 0 until stereo1) {
+                var j = 0
+                for (sb in 0 until MPG123.SBLIMIT) {
+                    ss = 0
+                    while (ss < MPG123.SSLIMIT) {
+                        mp.pinfo.mpg123xr[gr][ch][j] = hybridIn[ch][sb * MPG123.SSLIMIT + ss].toDouble()
+                        ss++
+                        j++
                     }
                 }
             }
 
-            for (ch in 0..stereo1 - 1) {
+
+            for (ch in 0 until stereo1) {
                 val gr_infos = sideinfo.ch[ch].gr[gr]
                 III_antialias(hybridIn[ch], gr_infos)
                 III_hybrid(mp, hybridIn[ch], hybridOut[ch], ch, gr_infos)
@@ -2130,17 +1841,20 @@ class Layer3
                         shortArrayOf(6, 6, 6, 6, 6, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 38, 46, 52, 60, 68, 58, 54),
                         shortArrayOf(0, 12, 24, 36, 54, 78, 108, 144, 186, 240, 312, 402, 522, 576),
                         shortArrayOf(4, 4, 4, 6, 8, 10, 12, 14, 18, 24, 30, 40, 18)
-                ), bandInfoStruct(
-                shortArrayOf(0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 116, 140, 168, 200, 238, 284, 336, 396, 464, 522, 576),
-                shortArrayOf(6, 6, 6, 6, 6, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 38, 46, 52, 60, 68, 58, 54),
-                shortArrayOf(0, 12, 24, 36, 54, 78, 108, 144, 186, 240, 312, 402, 522, 576),
-                shortArrayOf(4, 4, 4, 6, 8, 10, 12, 14, 18, 24, 30, 40, 18)
-        ), bandInfoStruct(
-                shortArrayOf(0, 12, 24, 36, 48, 60, 72, 88, 108, 132, 160, 192, 232, 280, 336, 400, 476, 566, 568, 570, 572, 574, 576),
-                shortArrayOf(12, 12, 12, 12, 12, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 76, 90, 2, 2, 2, 2, 2),
-                shortArrayOf(0, 24, 48, 72, 108, 156, 216, 288, 372, 480, 486, 492, 498, 576),
-                shortArrayOf(8, 8, 8, 12, 16, 20, 24, 28, 36, 2, 2, 2, 26)
-        ))
+                ),
+                bandInfoStruct(
+                        shortArrayOf(0, 6, 12, 18, 24, 30, 36, 44, 54, 66, 80, 96, 116, 140, 168, 200, 238, 284, 336, 396, 464, 522, 576),
+                        shortArrayOf(6, 6, 6, 6, 6, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 38, 46, 52, 60, 68, 58, 54),
+                        shortArrayOf(0, 12, 24, 36, 54, 78, 108, 144, 186, 240, 312, 402, 522, 576),
+                        shortArrayOf(4, 4, 4, 6, 8, 10, 12, 14, 18, 24, 30, 40, 18)
+                ),
+                bandInfoStruct(
+                        shortArrayOf(0, 12, 24, 36, 48, 60, 72, 88, 108, 132, 160, 192, 232, 280, 336, 400, 476, 566, 568, 570, 572, 574, 576),
+                        shortArrayOf(12, 12, 12, 12, 12, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 76, 90, 2, 2, 2, 2, 2),
+                        shortArrayOf(0, 24, 48, 72, 108, 156, 216, 288, 372, 480, 486, 492, 498, 576),
+                        shortArrayOf(8, 8, 8, 12, 16, 20, 24, 28, 36, 2, 2, 2, 26)
+                )
+        )
         private val Ci = doubleArrayOf(-0.6, -0.535, -0.33, -0.185, -0.095, -0.041, -0.0142, -0.0037)
         private val len = intArrayOf(36, 36, 12, 36)
     }

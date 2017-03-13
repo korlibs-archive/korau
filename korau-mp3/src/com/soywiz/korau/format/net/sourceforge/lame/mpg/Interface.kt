@@ -24,16 +24,12 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
+import com.soywiz.korau.format.net.sourceforge.lame.mp3.VBRTag
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.*
 import com.soywiz.korio.util.toUnsigned
-import net.sourceforge.lame.mp3.VBRTag
-import net.sourceforge.lame.mp3.VBRTagData
-import net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
-import net.sourceforge.lame.mpg.MPGLib.buf
-import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
-
-import java.util.ArrayList
+import java.util.*
 
 class Interface(private val vbr: VBRTag) {
     companion object {
@@ -559,7 +555,7 @@ class Interface(private val vbr: VBRTag) {
     }
 
     fun decodeMP3(mp: mpstr_tag, `in`: ByteArray, bufferPos: Int, isize: Int,
-                           out: FloatArray, osize: Int, done: ProcessedBytes): Int {
+                  out: FloatArray, osize: Int, done: ProcessedBytes): Int {
         if (osize < 2304) {
             System.err.printf(
                     "hip: Insufficient memory for decoding buffer %d\n", osize)
@@ -584,7 +580,7 @@ class Interface(private val vbr: VBRTag) {
     }
 
     fun decodeMP3_unclipped(mp: mpstr_tag, `in`: ByteArray, bufferPos: Int,
-                                     isize: Int, out: FloatArray, osize: Int, done: ProcessedBytes): Int {
+                            isize: Int, out: FloatArray, osize: Int, done: ProcessedBytes): Int {
         /*
 		 * we forbid input with more than 1152 samples per channel for output in
 		 * unclipped mode

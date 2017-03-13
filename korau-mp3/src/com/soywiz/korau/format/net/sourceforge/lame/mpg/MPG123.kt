@@ -1,4 +1,4 @@
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 object MPG123 {
     const val M_SQRT2 = 1.41421356237309504880

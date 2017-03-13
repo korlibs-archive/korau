@@ -1,4 +1,4 @@
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 class Frame {
     @JvmField var stereo: Int = 0

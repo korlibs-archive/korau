@@ -1,8 +1,8 @@
 package com.soywiz.korau.format
 
+import com.soywiz.korau.format.net.sourceforge.lame.mp3.FrameSkip
+import com.soywiz.korau.format.net.sourceforge.lame.mp3.Lame
 import com.soywiz.korio.stream.AsyncStream
-import net.sourceforge.lame.mp3.FrameSkip
-import net.sourceforge.lame.mp3.Lame
 
 class MP3Decoder : MP3() {
     suspend override fun decodeStream(data: AsyncStream): AudioStream? {

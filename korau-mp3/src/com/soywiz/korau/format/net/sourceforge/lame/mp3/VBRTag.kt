@@ -19,7 +19,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-package net.sourceforge.lame.mp3
+package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
 import com.soywiz.korio.util.toUnsigned
 import java.nio.charset.Charset

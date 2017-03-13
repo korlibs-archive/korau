@@ -27,10 +27,9 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 import com.soywiz.korio.util.toUnsigned
-import net.sourceforge.lame.mpg.MPGLib.mpstr_tag
 
 class Common {
     companion object {
@@ -145,7 +144,7 @@ class Common {
         return 1
     }
 
-    fun getbits(mp: mpstr_tag, number_of_bits: Int): Int {
+    fun getbits(mp: MPGLib.mpstr_tag, number_of_bits: Int): Int {
         var rval: Long
 
         if (number_of_bits <= 0 || null == mp.wordpointer) return 0
@@ -169,7 +168,7 @@ class Common {
         return rval.toInt()
     }
 
-    fun getbits_fast(mp: mpstr_tag, number_of_bits: Int): Int {
+    fun getbits_fast(mp: MPGLib.mpstr_tag, number_of_bits: Int): Int {
         var rval: Long
 
         rval = (mp.wordpointer[mp.wordpointerPos + 0].toUnsigned()).toLong()
@@ -187,7 +186,7 @@ class Common {
         return rval.toInt()
     }
 
-    fun set_pointer(mp: mpstr_tag, backstep: Int): Int {
+    fun set_pointer(mp: MPGLib.mpstr_tag, backstep: Int): Int {
         if (mp.fsizeold < 0 && backstep > 0) {
             System.err.printf("hip: Can't step back %d bytes!\n", backstep)
             return MPGLib.MP3_ERR

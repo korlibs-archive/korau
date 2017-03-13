@@ -1,4 +1,4 @@
-package net.sourceforge.lame.mp3
+package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
 class FrameSkip {
     var encoderDelay = -1

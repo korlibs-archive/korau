@@ -23,7 +23,7 @@
  * not ISO-conform) .. 
  * Layer-3 huffman table is in Huffman.java
  */
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 
 object L2Tables {

@@ -21,13 +21,13 @@
 
 /* $Id: GetAudio.java,v 1.30 2012/03/12 18:38:59 kenchis Exp $ */
 
-package net.sourceforge.lame.mp3
+package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib
 import com.soywiz.korio.stream.AsyncStream
 import com.soywiz.korio.stream.readExact
 import com.soywiz.korio.stream.skip
 import com.soywiz.korio.util.toUnsigned
-import net.sourceforge.lame.mpg.MPGLib
 import java.io.IOException
 import java.util.*
 import kotlin.experimental.and

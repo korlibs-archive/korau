@@ -1,4 +1,4 @@
-package net.sourceforge.lame.mp3
+package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
 /**
  * Control Parameters set by User. These parameters are here for backwards

@@ -26,11 +26,11 @@
 
  * @author Ken H�ndel
  */
-package net.sourceforge.lame.mpg
+package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
-import net.sourceforge.lame.mp3.FrameSkip
-import net.sourceforge.lame.mp3.MP3Data
-import net.sourceforge.lame.mp3.PlottingData
+import com.soywiz.korau.format.net.sourceforge.lame.mp3.FrameSkip
+import com.soywiz.korau.format.net.sourceforge.lame.mp3.MP3Data
+import com.soywiz.korau.format.net.sourceforge.lame.mp3.PlottingData
 
 class MPGLib(internal var interf: Interface) {
     companion object {

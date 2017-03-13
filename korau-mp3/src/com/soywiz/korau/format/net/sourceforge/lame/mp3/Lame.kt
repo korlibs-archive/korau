@@ -25,10 +25,10 @@
 
 /* $Id: Lame.java,v 1.44 2012/03/23 10:02:29 kenchis Exp $ */
 
-package net.sourceforge.lame.mp3
+package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
-import net.sourceforge.lame.mpg.Interface
-import net.sourceforge.lame.mpg.MPGLib
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.Interface
+import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib
 
 class Lame {
     val flags = LameGlobalFlags()
