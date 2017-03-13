@@ -109,7 +109,7 @@ class Residue0 extends FuncResidue {
         look.fullbooks = vd.fullbooks;
         look.phrasebook = vd.fullbooks[info.groupbook];
 
-        dim = look.phrasebook.dim;
+        dim = look.phrasebook.getDim();
 
         look.partbooks = new int[look.parts][];
 
@@ -163,7 +163,7 @@ class Residue0 extends FuncResidue {
 
         // move all this setup out later
         int samples_per_partition = info.grouping;
-        int partitions_per_word = look.phrasebook.dim;
+        int partitions_per_word = look.phrasebook.getDim();
         int n = info.end - info.begin;
 
         int partvals = n / samples_per_partition;
@@ -233,7 +233,7 @@ class Residue0 extends FuncResidue {
 
         // move all this setup out later
         int samples_per_partition = info.grouping;
-        int partitions_per_word = look.phrasebook.dim;
+        int partitions_per_word = look.phrasebook.getDim();
         int n = info.end - info.begin;
 
         int partvals = n / samples_per_partition;

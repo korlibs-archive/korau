@@ -88,10 +88,10 @@ class OGGDecoder : OGG() {
         val ptr = vc.user_comments
         val sb: StringBuffer = StringBuffer()
 
-        for (j in ptr.indices) {
+        for (j in ptr!!.indices) {
             if (ptr[j] == null) break
             //System.err.println("Comment: " + String(ptr[j], 0, ptr[j].size - 1))
-            sb.append(" " + String(ptr[j], 0, ptr[j].size - 1))
+            sb.append(" " + String(ptr[j]!!, 0, ptr[j]!!.size - 1))
         }
         //System.err.println("Bitstream is ${vi.channels} channel, ${vi.rate}Hz")
         //System.err.println("Encoded by: ${String(vc.vendor, 0, vc.vendor.size - 1)}\n")

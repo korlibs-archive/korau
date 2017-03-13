@@ -154,7 +154,7 @@ class Floor0 extends FuncFloor {
                         out[j] = 0.0f;
                     }
 
-                    for (int j = 0; j < look.m; j += b.dim) {
+                    for (int j = 0; j < look.m; j += b.getDim()) {
                         if (b.decodevs(lsp, j, vb.getOpb(), 1, -1) == -1) {
                             for (int k = 0; k < look.n; k++) {
                                 out[k] = 0.0f;
@@ -163,13 +163,13 @@ class Floor0 extends FuncFloor {
                         }
                     }
                     for (int j = 0; j < look.m; ) {
-                        for (int k = 0; k < b.dim; k++, j++) {
+                        for (int k = 0; k < b.getDim(); k++, j++) {
                             lsp[j] += last;
                         }
                         last = lsp[j - 1];
                     }
                     // take the coefficients back to a spectral envelope curve
-                    Lsp.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m, amp, info.ampdB);
+                    Lsp.INSTANCE.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m, amp, info.ampdB);
 
                     return (1);
                 }
@@ -204,14 +204,14 @@ class Floor0 extends FuncFloor {
                     }
                 }
 
-                for (int j = 0; j < look.m; j += b.dim) {
-                    if (b.decodev_set(lsp, j, vb.getOpb(), b.dim) == -1) {
+                for (int j = 0; j < look.m; j += b.getDim()) {
+                    if (b.decodev_set(lsp, j, vb.getOpb(), b.getDim()) == -1) {
                         return (null);
                     }
                 }
 
                 for (int j = 0; j < look.m; ) {
-                    for (int k = 0; k < b.dim; k++, j++) {
+                    for (int k = 0; k < b.getDim(); k++, j++) {
                         lsp[j] += last;
                     }
                     last = lsp[j - 1];
@@ -231,7 +231,7 @@ class Floor0 extends FuncFloor {
             float[] lsp = (float[]) memo;
             float amp = lsp[look.m];
 
-            Lsp.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m, amp,
+            Lsp.INSTANCE.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m, amp,
                     info.ampdB);
             return (1);
         }

@@ -344,7 +344,7 @@ public class Info {
                         }
                         return (vc.unpack(opb));
                     case 0x05: // least significant *bit* is read first
-                        if (rate == 0 || vc.vendor == null) {
+                        if (rate == 0 || vc.getVendor() == null) {
                             // um... we didn;t get the initial header or comments yet
                             return (-1);
                         }

@@ -74,10 +74,11 @@ class Drft {
             switch (state) {
                 case 101:
                     j++;
-                    if (j < 4)
+                    if (j < 4) {
                         ntry = ntryh[j];
-                    else
+                    } else {
                         ntry += 2;
+                    }
                 case 104:
                     nq = nl / ntry;
                     nr = nl - ntry * nq;
@@ -196,7 +197,9 @@ class Drft {
                 return;
         }
 
-        t3 = (t2 = (t1 = ido) - 1);
+        t1 = ido;
+        t2 = t1 - 1;
+        t3 = t2;
         t2 += t0;
         for (k = 0; k < l1; k++) {
             ch[t1] = -cc[t2];
@@ -240,7 +243,8 @@ class Drft {
             for (k = 0; k < l1; k++) {
                 t2 = t1;
                 t4 = t1 << 2;
-                t5 = (t6 = ido << 1) + t4;
+                t6 = ido << 1;
+                t5 = (t6) + t4;
                 for (i = 2; i < ido; i += 2) {
                     t3 = (t2 += 2);
                     t4 += 2;
@@ -284,7 +288,8 @@ class Drft {
                 return;
         }
 
-        t2 = (t1 = t0 + ido - 1) + (t0 << 1);
+        t1 = t0 + ido - 1;
+        t2 = t1 + (t0 << 1);
         t3 = ido << 2;
         t4 = ido;
         t5 = ido << 1;
@@ -654,10 +659,11 @@ class Drft {
 
                         ix2 = iw + ido;
                         ix3 = ix2 + ido;
-                        if (na != 0)
+                        if (na != 0) {
                             dradf4(ido, l1, ch, c, wa, iw - 1, wa, ix2 - 1, wa, ix3 - 1);
-                        else
+                        } else {
                             dradf4(ido, l1, c, ch, wa, iw - 1, wa, ix2 - 1, wa, ix3 - 1);
+                        }
                         state = 110;
                         break;
                     case 102:
@@ -723,7 +729,8 @@ class Drft {
             t2 = 0;
             for (k = 0; k < l1; k++) {
                 t3 = t1;
-                t5 = (t4 = t2) + (ido << 1);
+                t4 = t2;
+                t5 = t4 + (ido << 1);
                 t6 = t0 + t1;
                 for (i = 2; i < ido; i += 2) {
                     t3 += 2;
@@ -783,9 +790,11 @@ class Drft {
         t3 = ido << 1;
         for (k = 0; k < l1; k++) {
             t7 = t1 + (t1 << 1);
-            t6 = (t5 = t7 + t3);
+            t5 = t7 + t3;
+            t6 = t5;
             t8 = t1;
-            t10 = (t9 = t1 + t0) + t0;
+            t9 = t1 + t0;
+            t10 = t9 + t0;
 
             for (i = 2; i < ido; i += 2) {
                 t5 += 2;
@@ -845,7 +854,10 @@ class Drft {
         if (ido != 2) {
             t1 = 0;
             for (k = 0; k < l1; k++) {
-                t5 = (t4 = (t3 = (t2 = t1 << 2) + t6)) + t6;
+                t2 = t1 << 2;
+                t3 = t2 + t6;
+                t4 = t3;
+                t5 = t4 + t6;
                 t7 = t1;
                 for (i = 2; i < ido; i += 2) {
                     t2 += 2;
