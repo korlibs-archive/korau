@@ -33,14 +33,14 @@ object MPG123 {
         @JvmField var preflag: Int = 0
         @JvmField var scalefac_scale: Int = 0
         @JvmField var count1table_select: Int = 0
-        @JvmField var full_gain = arrayOfNulls<FloatArray>(3)
+        @JvmField var full_gain = Array<FloatArray>(3) { floatArrayOf() }
         @JvmField var full_gainPos = IntArray(3)
-        @JvmField var pow2gain: FloatArray? = null
+        @JvmField var pow2gain: FloatArray = floatArrayOf()
         @JvmField var pow2gainPos: Int = 0
     }
 
     internal class grT {
-        @JvmField var gr = arrayOfNulls<gr_info_s>(2)
+        @JvmField var gr = Array<gr_info_s>(2) { gr_info_s() }
 
         init {
             gr[0] = gr_info_s()
@@ -51,7 +51,7 @@ object MPG123 {
     internal class III_sideinfo {
         @JvmField var main_data_begin: Int = 0
         @JvmField var private_bits: Int = 0
-        @JvmField var ch = arrayOfNulls<grT>(2)
+        @JvmField var ch = Array<grT>(2) { grT() }
 
         init {
             ch[0] = grT()
