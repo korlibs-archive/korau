@@ -58,11 +58,9 @@ internal class Mapping0 : FuncMapping() {
             look.time_func[i] = FuncTime.time_P[vi.time_type[timenum]]
             look.time_look[i] = look.time_func[i].look(vd, vm, vi.time_param[timenum])
             look.floor_func[i] = FuncFloor.floor_P[vi.floor_type[floornum]]
-            look.floor_look[i] = look.floor_func[i].look(vd, vm,
-                    vi.floor_param[floornum])
+            look.floor_look[i] = look.floor_func[i].look(vd, vm, vi.floor_param[floornum]!!)
             look.residue_func[i] = FuncResidue.residue_P[vi.residue_type[resnum]]
-            look.residue_look[i] = look.residue_func[i].look(vd, vm,
-                    vi.residue_param[resnum])
+            look.residue_look[i] = look.residue_func[i].look(vd, vm, vi.residue_param[resnum]!!)
 
         }
 

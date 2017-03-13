@@ -30,7 +30,6 @@ import com.soywiz.korau.format.com.jcraft.jogg.Buffer
 import java.util.*
 
 class Floor0 : FuncFloor() {
-
     override fun pack(i: Any, opb: Buffer) {
         val info = i as InfoFloor0
         opb.write(info.order, 8)

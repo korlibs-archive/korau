@@ -71,17 +71,11 @@ class Comment {
         user_comments!![comments] = null
     }
 
-    fun add_tag(tag: String, contents: String?) {
-        var contents = contents
-        if (contents == null)
-            contents = ""
-        add(tag + "=" + contents)
-    }
+    fun add_tag(tag: String, contents: String?) = add(tag + "=" + (contents ?: ""))
 
     @JvmOverloads fun query(tag: String, count: Int = 0): String? {
         val foo = query(tag.toByteArray(), count)
-        if (foo == -1)
-            return null
+        if (foo == -1) return null
         val comment = user_comments!![foo]
         for (i in 0 until comment_lengths!![foo]) {
             if (comment!![i] == '='.toByte()) {
@@ -203,17 +197,15 @@ class Comment {
     }
 
     fun getComment(i: Int): String? {
-        if (comments <= i)
-            return null
-        return String(user_comments!![i]!!, 0, user_comments!![i]!!.size - 1)
+        return if (comments > i) String(user_comments!![i]!!, 0, user_comments!![i]!!.size - 1) else null
     }
 
     override fun toString(): String {
         var foo = "Vendor: " + String(vendor!!, 0, vendor!!.size - 1)
         for (i in 0..comments - 1) {
-            foo = foo + "\nComment: "+String(user_comments!![i]!!, 0, user_comments!![i]!!.size - 1)
+            foo = "$foo\nComment: ${String(user_comments!![i]!!, 0, user_comments!![i]!!.size - 1)}"
         }
-        foo = foo + "\n"
+        foo += "\n"
         return foo
     }
 
@@ -225,18 +217,12 @@ class Comment {
 
         internal fun tagcompare(s1: ByteArray, s2: ByteArray, n: Int): Boolean {
             var c = 0
-            var u1: Char
-            var u2: Char
             while (c < n) {
-                u1 = s1[c].toUnsigned().toChar()
-                u2 = s2[c].toUnsigned().toChar()
-                if (u1 in 'A'..'Z')
-                    u1 = (u1 - 'A'.toInt() + 'a'.toInt()).toChar()
-                if (u2 in 'A'..'Z')
-                    u2 = (u2 - 'A'.toInt() + 'a'.toInt()).toChar()
-                if (u1 != u2) {
-                    return false
-                }
+                var u1 = s1[c].toUnsigned().toChar()
+                var u2 = s2[c].toUnsigned().toChar()
+                if (u1 in 'A'..'Z') u1 = (u1 - 'A'.toInt() + 'a'.toInt())
+                if (u2 in 'A'..'Z') u2 = (u2 - 'A'.toInt() + 'a'.toInt())
+                if (u1 != u2) return false
                 c++
             }
             return true

@@ -157,7 +157,7 @@ class DspState() {
         for (i in 0..vi.modes - 1) {
             val mapnum = vi.mode_param[i].mapping
             val maptype = vi.map_type[mapnum]
-            mode[i] = FuncMapping.mapping_P[maptype].look(this, vi.mode_param[i], vi.map_param[mapnum])
+            mode[i] = FuncMapping.mapping_P[maptype].look(this, vi.mode_param[i], vi.map_param[mapnum]!!)
         }
         return 0
     }
