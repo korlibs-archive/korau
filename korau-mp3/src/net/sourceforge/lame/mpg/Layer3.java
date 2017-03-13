@@ -917,7 +917,7 @@ public class Layer3 {
                 xrpnt[xrpntPos] = 0.0f;
                 xrpntPos += step;
                 /*
-				 * we could add a little opt. here: if we finished a band for
+                 * we could add a little opt. here: if we finished a band for
 				 * window 3 or a long band further bands could copied in a
 				 * simple loop without a special 'map' decoding
 				 */
@@ -936,8 +936,8 @@ public class Layer3 {
             }
 
         } else {
-			/*
-			 * decoding with 'long' BandIndex table (block_type != 2)
+            /*
+             * decoding with 'long' BandIndex table (block_type != 2)
 			 */
             int[] pretab = (int[]) (gr_infos.preflag != 0 ? pretab1 : pretab2);
             int pretabPos = 0;
@@ -949,7 +949,7 @@ public class Layer3 {
             int mc = 0;
 
 			/*
-			 * long hash table values
+             * long hash table values
 			 */
             for (i = 0; i < 3; i++) {
                 int lp = l[i];
@@ -1015,7 +1015,7 @@ public class Layer3 {
             }
 
 			/*
-			 * short (count1table) values
+             * short (count1table) values
 			 */
             for (; l3 != 0 && (part2remain > 0); l3--) {
                 newhuff[] h = Huffman.htc;
@@ -1542,9 +1542,11 @@ public class Layer3 {
     /*
      * new DCT12
      */
-    private void dct12(float[] in, int inbufPos, float[] rawout1,
-                       int rawout1Pos, float[] rawout2, int rawout2Pos, float[] wi,
-                       float[] ts, int tsPos) {
+    private void dct12(
+            float[] in, int inbufPos, float[] rawout1,
+            int rawout1Pos, float[] rawout2, int rawout2Pos, float[] wi,
+            float[] ts, int tsPos
+    ) {
         {
             float in0, in1, in2, in3, in4, in5;
             float[] out1 = rawout1;
@@ -1606,23 +1608,14 @@ public class Layer3 {
                 in2 = in0 + in1;
                 in0 -= in1;
             }
-            ts[tsPos + (17 - 0) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 0]
-                    + in2 * wi[11 - 0];
-            ts[tsPos + (12 + 0) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 0]
-                    + in2 * wi[6 + 0];
-            ts[tsPos + (12 + 2) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 2]
-                    + in3 * wi[6 + 2];
-            ts[tsPos + (17 - 2) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 2]
-                    + in3 * wi[11 - 2];
-
-            ts[tsPos + (6 + 0) * MPG123.SBLIMIT] = out1[out1Pos + 6 + 0] + in0
-                    * wi[0];
-            ts[tsPos + (11 - 0) * MPG123.SBLIMIT] = out1[out1Pos + 11 - 0]
-                    + in0 * wi[5 - 0];
-            ts[tsPos + (6 + 2) * MPG123.SBLIMIT] = out1[out1Pos + 6 + 2] + in4
-                    * wi[2];
-            ts[tsPos + (11 - 2) * MPG123.SBLIMIT] = out1[out1Pos + 11 - 2]
-                    + in4 * wi[5 - 2];
+            ts[tsPos + (17 - 0) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 0] + in2 * wi[11 - 0];
+            ts[tsPos + (12 + 0) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 0] + in2 * wi[6 + 0];
+            ts[tsPos + (12 + 2) * MPG123.SBLIMIT] = out1[out1Pos + 12 + 2] + in3 * wi[6 + 2];
+            ts[tsPos + (17 - 2) * MPG123.SBLIMIT] = out1[out1Pos + 17 - 2] + in3 * wi[11 - 2];
+            ts[tsPos + (6 + 0) * MPG123.SBLIMIT] = out1[out1Pos + 6 + 0] + in0 * wi[0];
+            ts[tsPos + (11 - 0) * MPG123.SBLIMIT] = out1[out1Pos + 11 - 0] + in0 * wi[5 - 0];
+            ts[tsPos + (6 + 2) * MPG123.SBLIMIT] = out1[out1Pos + 6 + 2] + in4 * wi[2];
+            ts[tsPos + (11 - 2) * MPG123.SBLIMIT] = out1[out1Pos + 11 - 2] + in4 * wi[5 - 2];
         }
 
         inbufPos++;
@@ -1759,12 +1752,9 @@ public class Layer3 {
         }
     }
 
-    /*
-     * III_hybrid
-     */
     private void III_hybrid(mpstr_tag mp, float fsIn[], float tsOut[], int ch,
                             gr_info_s gr_infos) {
-        float[] tspnt = (float[]) tsOut;
+        float[] tspnt = tsOut;
         int tspntPos = 0;
         float block[][][] = mp.hybrid_block;
         int[] blc = mp.hybrid_blc;
@@ -1796,7 +1786,7 @@ public class Layer3 {
 
         bt = gr_infos.block_type;
         if (bt == 2) {
-            for (; sb < (int) gr_infos.maxb; sb += 2, tspntPos += 2, rawout1Pos += 36, rawout2Pos += 36) {
+            for (; sb < gr_infos.maxb; sb += 2, tspntPos += 2, rawout1Pos += 36, rawout2Pos += 36) {
                 dct12(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2,
                         rawout2Pos, win[2], tspnt, tspntPos + 0);
                 dct12(fsIn, (sb + 1) * MPG123.SSLIMIT, rawout1,
@@ -1804,7 +1794,7 @@ public class Layer3 {
                         tspnt, tspntPos + 1);
             }
         } else {
-            for (; sb < (int) gr_infos.maxb; sb += 2, tspntPos += 2, rawout1Pos += 36, rawout2Pos += 36) {
+            for (; sb < gr_infos.maxb; sb += 2, tspntPos += 2, rawout1Pos += 36, rawout2Pos += 36) {
                 dct36(fsIn, sb * MPG123.SSLIMIT, rawout1, rawout1Pos, rawout2,
                         rawout2Pos, win[bt], tspnt, tspntPos + 0);
                 dct36(fsIn, (sb + 1) * MPG123.SSLIMIT, rawout1,
@@ -1861,11 +1851,7 @@ public class Layer3 {
     public int do_layer3(mpstr_tag mp, float[] pcm_sample,
                          ProcessedBytes pcm_point, ISynth synth) {
         int gr, ch, ss, clip = 0;
-        int scalefacs[][] = new int[2][39]; /*
-											 * max 39 for short[13][3] mode,
-											 * mixed: 38, long: 22
-											 */
-		/* struct III_sideinfo sideinfo; */
+        int scalefacs[][] = new int[2][39];
         Frame fr = (mp.fr);
         int stereo = fr.stereo;
         int single = fr.single;
@@ -1903,11 +1889,9 @@ public class Layer3 {
                 int part2bits;
 
                 if (fr.lsf != 0)
-                    part2bits = III_get_scale_factors_2(mp, scalefacs[0],
-                            gr_infos, 0);
+                    part2bits = III_get_scale_factors_2(mp, scalefacs[0], gr_infos, 0);
                 else {
-                    part2bits = III_get_scale_factors_1(mp, scalefacs[0],
-                            gr_infos);
+                    part2bits = III_get_scale_factors_1(mp, scalefacs[0], gr_infos);
                 }
 
                 if (mp.pinfo != null) {
@@ -1946,10 +1930,10 @@ public class Layer3 {
                     int i;
                     for (i = 0; i < MPG123.SBLIMIT * MPG123.SSLIMIT; i++) {
                         float tmp0, tmp1;
-                        tmp0 = ((float[]) hybridIn[0])[i];
-                        tmp1 = ((float[]) hybridIn[1])[i];
-                        ((float[]) hybridIn[1])[i] = tmp0 - tmp1;
-                        ((float[]) hybridIn[0])[i] = tmp0 + tmp1;
+                        tmp0 = hybridIn[0][i];
+                        tmp1 = hybridIn[1][i];
+                        hybridIn[1][i] = tmp0 - tmp1;
+                        hybridIn[0][i] = tmp0 + tmp1;
                     }
                 }
 
@@ -2011,33 +1995,27 @@ public class Layer3 {
                     mp.pinfo.mpg123blocktype[gr][ch] = gr_infos.block_type;
                     mp.pinfo.mainbits[gr][ch] = gr_infos.part2_3_length;
                     mp.pinfo.preflag[gr][ch] = gr_infos.preflag;
-                    if (gr == 1)
-                        mp.pinfo.scfsi[ch] = gr_infos.scfsi;
+                    if (gr == 1) mp.pinfo.scfsi[ch] = gr_infos.scfsi;
                 }
 
                 for (ch = 0; ch < stereo1; ch++) {
                     gr_info_s gr_infos = (sideinfo.ch[ch].gr[gr]);
-                    ifqstep = (mp.pinfo.scalefac_scale[gr][ch] == 0) ? .5f
-                            : 1.0f;
+                    ifqstep = (mp.pinfo.scalefac_scale[gr][ch] == 0) ? .5f : 1.0f;
                     if (2 == gr_infos.block_type) {
                         for (i = 0; i < 3; i++) {
                             for (sb = 0; sb < 12; sb++) {
                                 int j = 3 * sb + i;
 								/* scalefac was copied into pinfo.sfb_s[] above */
-                                mp.pinfo.sfb_s[gr][ch][j] = -ifqstep
-                                        * mp.pinfo.sfb_s[gr][ch][j
-                                        - gr_infos.mixed_block_flag];
+                                mp.pinfo.sfb_s[gr][ch][j] = -ifqstep * mp.pinfo.sfb_s[gr][ch][j - gr_infos.mixed_block_flag];
                                 mp.pinfo.sfb_s[gr][ch][j] -= 2 * (mp.pinfo.sub_gain[gr][ch][i]);
                             }
-                            mp.pinfo.sfb_s[gr][ch][3 * sb + i] = -2
-                                    * (mp.pinfo.sub_gain[gr][ch][i]);
+                            mp.pinfo.sfb_s[gr][ch][3 * sb + i] = -2 * (mp.pinfo.sub_gain[gr][ch][i]);
                         }
                     } else {
                         for (sb = 0; sb < 21; sb++) {
 							/* scalefac was copied into pinfo.sfb[] above */
                             mp.pinfo.sfb[gr][ch][sb] = mp.pinfo.sfb_s[gr][ch][sb];
-                            if (gr_infos.preflag != 0)
-                                mp.pinfo.sfb[gr][ch][sb] += pretab1[sb];
+                            if (gr_infos.preflag != 0) mp.pinfo.sfb[gr][ch][sb] += pretab1[sb];
                             mp.pinfo.sfb[gr][ch][sb] *= -ifqstep;
                         }
                         mp.pinfo.sfb[gr][ch][21] = 0;
@@ -2048,8 +2026,7 @@ public class Layer3 {
                     int j = 0;
                     for (sb = 0; sb < MPG123.SBLIMIT; sb++)
                         for (ss = 0; ss < MPG123.SSLIMIT; ss++, j++)
-                            mp.pinfo.mpg123xr[gr][ch][j] = hybridIn[ch][sb
-                                    * MPG123.SSLIMIT + ss];
+                            mp.pinfo.mpg123xr[gr][ch][j] = hybridIn[ch][sb * MPG123.SSLIMIT + ss];
                 }
             }
 
@@ -2066,10 +2043,8 @@ public class Layer3 {
                 } else {
                     ProcessedBytes p1 = new ProcessedBytes();
                     p1.pb = pcm_point.pb;
-                    clip += synth.synth_1to1_ptr(mp, hybridOut[0], ss
-                            * MPG123.SBLIMIT, 0, pcm_sample, p1);
-                    clip += synth.synth_1to1_ptr(mp, hybridOut[1], ss
-                            * MPG123.SBLIMIT, 1, pcm_sample, pcm_point);
+                    clip += synth.synth_1to1_ptr(mp, hybridOut[0], ss * MPG123.SBLIMIT, 0, pcm_sample, p1);
+                    clip += synth.synth_1to1_ptr(mp, hybridOut[1], ss * MPG123.SBLIMIT, 1, pcm_sample, pcm_point);
                 }
             }
         }
@@ -2083,8 +2058,7 @@ public class Layer3 {
         short shortIdx[] = new short[14];
         short shortDiff[] = new short[13];
 
-        public bandInfoStruct(final short[] lIdx, final short[] lDiff,
-                              final short[] sIdx, final short[] sDiff) {
+        public bandInfoStruct(final short[] lIdx, final short[] lDiff, final short[] sIdx, final short[] sDiff) {
             longIdx = lIdx;
             longDiff = lDiff;
             shortIdx = sIdx;

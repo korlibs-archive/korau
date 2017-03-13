@@ -24,9 +24,11 @@ package net.sourceforge.lame.mp3;
  * used by the frame analyzer
  */
 public class PlottingData {
+    public static final int SBMAX_l = 22;
+    public static final int SBMAX_s = 13;
     public double mpg123xr[][][] = new double[2][2][576];
-    public double sfb[][][] = new double[2][2][Encoder.SBMAX_l];
-    public double sfb_s[][][] = new double[2][2][3 * Encoder.SBMAX_s];
+    public double sfb[][][] = new double[2][2][SBMAX_l];
+    public double sfb_s[][][] = new double[2][2][3 * SBMAX_s];
     public int qss[][] = new int[2][2];
     public int big_values[][] = new int[2][2];
     public int sub_gain[][][] = new int[2][2][3];

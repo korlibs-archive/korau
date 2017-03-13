@@ -1,7 +1,0 @@
-package net.sourceforge.lame.mp3;
-
-public final class Inf {
-    String l;
-    int dim;
-    int enc; // 0:Latin-1, 1:UCS-2, 2:RAW
-}

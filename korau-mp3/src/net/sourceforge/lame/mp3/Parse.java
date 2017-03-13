@@ -31,15 +31,8 @@ public class Parse {
     public boolean in_signed = true;
     public ByteOrder in_endian = ByteOrder.LITTLE_ENDIAN;
     public int in_bitwidth = 16;
-    ID3Tag id3;
-    Presets pre;
     private GetAudio.SoundFileFormat inputFormat;
     private MP3Data mp3InputData = new MP3Data();
-
-    public final void setModules(ID3Tag id32, Presets pre2) {
-        this.id3 = id32;
-        this.pre = pre2;
-    }
 
     public GetAudio.SoundFileFormat getInputFormat() {
         return inputFormat;

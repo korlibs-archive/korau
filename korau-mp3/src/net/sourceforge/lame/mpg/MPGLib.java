@@ -36,15 +36,8 @@ public class MPGLib {
     public final static int MP3_OK = 0;
     final static int MP3_NEED_MORE = 1;
 
-    ;
-    private static final int smpls[][] = {
-        /* Layer   I    II   III */
-            {0, 384, 1152, 1152}, /* MPEG-1     */
-            {0, 384, 1152, 576} /* MPEG-2(.5) */
-    };
+    private static final int smpls[][] = {{0, 384, 1152, 1152}, {0, 384, 1152, 576}};
     private static final int OUTSIZE_CLIPPED = 4096;
-    /* we forbid input with more than 1152 samples per channel for output in the unclipped mode */
-    private final static int OUTSIZE_UNCLIPPED = 1152 * 2;
     Interface interf;
 
     public void setModules(Interface i) {
@@ -52,16 +45,20 @@ public class MPGLib {
     }
 
     /* copy mono samples */
-    protected void COPY_MONO(float[] pcm_l, int pcm_lPos,
-                             int processed_samples, float[] p) {
+    protected void COPY_MONO(
+            float[] pcm_l, int pcm_lPos,
+            int processed_samples, float[] p
+    ) {
         int p_samples = 0;
         for (int i = 0; i < processed_samples; i++)
             pcm_l[pcm_lPos++] = p[p_samples++];
     }
 
     /* copy stereo samples */
-    protected void COPY_STEREO(float[] pcm_l, int pcm_lPos, float[] pcm_r,
-                               int pcm_rPos, int processed_samples, float[] p) {
+    protected void COPY_STEREO(
+            float[] pcm_l, int pcm_lPos, float[] pcm_r,
+            int pcm_rPos, int processed_samples, float[] p
+    ) {
         int p_samples = 0;
         for (int i = 0; i < processed_samples; i++) {
             pcm_l[pcm_lPos++] = p[p_samples++];
@@ -69,10 +66,12 @@ public class MPGLib {
         }
     }
 
-    private int decode1_headersB_clipchoice(mpstr_tag pmp, byte[] buffer,
-                                            int bufferPos, int len, float[] pcm_l, int pcm_lPos, float[] pcm_r,
-                                            int pcm_rPos, MP3Data mp3data, FrameSkip enc, float[] p, int psize,
-                                            IDecoder decodeMP3_ptr) {
+    private int decode1_headersB_clipchoice(
+            mpstr_tag pmp, byte[] buffer,
+            int bufferPos, int len, float[] pcm_l, int pcm_lPos, float[] pcm_r,
+            int pcm_rPos, MP3Data mp3data, FrameSkip enc, float[] p, int psize,
+            IDecoder decodeMP3_ptr
+    ) {
 
         mp3data.header_parsed = false;
 

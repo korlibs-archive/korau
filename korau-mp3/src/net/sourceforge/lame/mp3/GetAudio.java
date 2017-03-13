@@ -33,8 +33,6 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public class GetAudio {
-
-    private static final String type_name = "MP3 file";
     private static final int IFF_ID_FORM = 0x464f524d;
     private static final int IFF_ID_AIFF = 0x41494646;
     private static final int IFF_ID_AIFC = 0x41494643;
@@ -50,8 +48,7 @@ public class GetAudio {
     private static final short WAVE_FORMAT_PCM = 0x0001;
     private static final short WAVE_FORMAT_EXTENSIBLE = (short) 0xFFFE;
     private static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
-    private static final char abl2[] = {0, 7, 7, 7, 0, 7, 0, 0, 0, 0, 0, 8, 8,
-            8, 8, 8};
+    private static final char abl2[] = {0, 7, 7, 7, 0, 7, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8};
     Parse parse;
     MPGLib mpg;
     private boolean count_samples_carefully;
@@ -93,34 +90,11 @@ public class GetAudio {
         }
     }
 
-    /**
-     * reads a frame of audio data from a file to the buffer, aligns the data
-     * for future processing, and separates the left and right channels
-     */
-    public final int get_audio(final LameGlobalFlags gfp, float buffer[][]) {
-        return get_audio_common(gfp, buffer, null);
-    }
-
-    /**
-     * behave as the original get_audio function, with a limited 16 bit per
-     * sample output
-     */
-    public final int get_audio16(final LameGlobalFlags gfp,
-                                 final float buffer[][]) {
+    public final int get_audio16(final LameGlobalFlags gfp, final float buffer[][]) {
         return (get_audio_common(gfp, null, buffer));
     }
 
-    /**
-     * central functionality of get_audio* note: either buffer or buffer16 must
-     * be allocated upon call
-     *
-     * @param gfp      global flags
-     * @param buffer   buffer output to the int buffer or 16-bit buffer
-     * @param buffer16 16-bit output (if buffer == NULL)
-     * @return samples read
-     */
-    private int get_audio_common(final LameGlobalFlags gfp,
-                                 final float buffer[][], final float buffer16[][]) {
+    private int get_audio_common(final LameGlobalFlags gfp, final float buffer[][], final float buffer16[][]) {
         int num_channels = gfp.getInNumChannels();
         int insamp[] = new int[2 * 1152];
         float buf_tmp16[][] = new float[2][1152];
@@ -129,49 +103,23 @@ public class GetAudio {
         int samples_to_read;
         int remaining, tmp_num_samples;
 
-		/*
-         * NOTE: LAME can now handle arbritray size input data packets, so there
-		 * is no reason to read the input data in chuncks of size "framesize".
-		 * EXCEPT: the LAME graphical frame analyzer will get out of sync if we
-		 * read more than framesize worth of data.
-		 */
-
-        samples_to_read = framesize = gfp.getFrameSize();
-        assert (framesize <= 1152);
+        //samples_to_read = framesize = 1152;
+        samples_to_read = framesize = 0;
+        //assert (framesize <= 1152);
 
 		/* get num_samples */
         tmp_num_samples = gfp.num_samples;
 
-		/*
-         * if this flag has been set, then we are carefull to read exactly
-		 * num_samples and no more. This is useful for .wav and .aiff files
-		 * which have id3 or other tags at the end. Note that if you are using
-		 * LIBSNDFILE, this is not necessary
-		 */
         if (count_samples_carefully) {
-            remaining = tmp_num_samples
-                    - Math.min(tmp_num_samples, num_samples_read);
-            if (remaining < framesize && 0 != tmp_num_samples)
-                /*
-                 * in case the input is a FIFO (at least it's reproducible with
-				 * a FIFO) tmp_num_samples may be 0 and therefore remaining
-				 * would be 0, but we need to read some samples, so don't change
-				 * samples_to_read to the wrong value in this case
-				 */
-                samples_to_read = remaining;
+            remaining = tmp_num_samples - Math.min(tmp_num_samples, num_samples_read);
+            if (remaining < framesize && 0 != tmp_num_samples) samples_to_read = remaining;
         }
 
         if (is_mpeg_file_format(parse.getInputFormat())) {
-            if (buffer != null)
-                samples_read = read_samples_mp3(gfp, musicin, buf_tmp16);
-            else
-                samples_read = read_samples_mp3(gfp, musicin, buffer16);
-            if (samples_read < 0) {
-                return samples_read;
-            }
+            samples_read = read_samples_mp3(gfp, musicin, (buffer != null) ? buf_tmp16 : buffer16);
+            if (samples_read < 0) return samples_read;
         } else { /* convert from int; output to 16-bit buffer */
-            samples_read = read_samples_pcm(musicin, insamp, num_channels
-                    * samples_to_read);
+            samples_read = read_samples_pcm(musicin, insamp, num_channels * samples_to_read);
             if (samples_read < 0) {
                 return samples_read;
             }
@@ -262,19 +210,11 @@ public class GetAudio {
         return out;
     }
 
-    /**
-     * read and unpack signed low-to-high byte or unsigned single byte input.
-     * (used for read_samples function) Output integers are stored in the native
-     * byte order (little or big endian). -jd
-     *
-     * @param swap_order    set for high-to-low byte order input stream
-     * @param sample_buffer (must be allocated up to samples_to_read upon call)
-     * @return number of samples read
-     */
-    private int unpack_read_samples(final int samples_to_read,
-                                    final int bytes_per_sample, final boolean swap_order,
-                                    final int[] sample_buffer, final RandomReader pcm_in)
-            throws IOException {
+    private int unpack_read_samples(
+            final int samples_to_read,
+            final int bytes_per_sample, final boolean swap_order,
+            final int[] sample_buffer, final RandomReader pcm_in
+    ) throws IOException {
         byte[] bytes = new byte[bytes_per_sample * samples_to_read];
         pcm_in.readFully(bytes);
         int samples_read = samples_to_read;
@@ -401,7 +341,7 @@ public class GetAudio {
                 /* avg_bytes_per_sec = */
                 Read32BitsLowHigh(sf);
                 subSize -= 4;
-				/* block_align = */
+                /* block_align = */
                 Read16BitsLowHigh(sf);
                 subSize -= 2;
                 bits_per_sample = Read16BitsLowHigh(sf);
@@ -412,7 +352,7 @@ public class GetAudio {
                     Read16BitsLowHigh(sf); /* cbSize */
                     Read16BitsLowHigh(sf); /* ValidBitsPerSample */
                     Read32BitsLowHigh(sf); /* ChannelMask */
-					/* SubType coincident with format_tag for PCM int or float */
+                    /* SubType coincident with format_tag for PCM int or float */
                     format_tag = Read16BitsLowHigh(sf);
                     subSize -= 10;
                 }
@@ -429,7 +369,7 @@ public class GetAudio {
                 subSize = Read32BitsLowHigh(sf);
                 data_length = subSize;
                 is_wav = true;
-				/* We've found the audio data. Read no further! */
+                /* We've found the audio data. Read no further! */
                 break;
 
             } else {
@@ -445,7 +385,7 @@ public class GetAudio {
         if (is_wav) {
             if (format_tag != WAVE_FORMAT_PCM) {
                 //System.err.printf("Unsupported data format: 0x%04X\n", format_tag);
-				/* oh no! non-supported format */
+                /* oh no! non-supported format */
                 return 0;
             }
 
@@ -573,7 +513,7 @@ public class GetAudio {
                     } catch (IOException e) {
                         return -1;
                     }
-					/* We've found the audio data. Read no further! */
+                    /* We've found the audio data. Read no further! */
                     break;
                 }
                 try {
