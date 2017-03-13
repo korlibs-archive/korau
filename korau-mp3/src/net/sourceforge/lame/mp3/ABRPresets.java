@@ -5,9 +5,6 @@ class ABRPresets {
     int quant_comp_s;
     int safejoint;
     float nsmsfix;
-    /**
-     * short threshold
-     */
     float st_lrm;
     float st_s;
     float nsbass;

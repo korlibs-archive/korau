@@ -3,19 +3,8 @@ package net.sourceforge.lame.mp3;
 import net.sourceforge.lame.mpg.MPGLib;
 
 public class LameInternalFlags {
-
     public static final int MFSIZE = (3 * 1152 + Encoder.ENCDELAY - Encoder.MDCTDELAY);
-    public float mfbuf[][] = new float[2][MFSIZE];
-    public static final int MAX_BITS_PER_CHANNEL = 4095;
-    public static final int MAX_BITS_PER_GRANULE = 7680;
 
-    /********************************************************************
-     * internal variables NOT set by calling program, and should not be *
-     * modified by the calling program *
-     ********************************************************************/
-  /* BPC = maximum number of filter convolution windows to precompute */
-    public static final int BPC = 320;
-    public float[][] blackfilt = new float[2 * BPC + 1][];
     /**
      * also, max_header_buf has to be a power of two
      */
@@ -25,22 +14,9 @@ public class LameInternalFlags {
      * max size of header is 38
      */
     private static final int MAX_HEADER_LEN = 40;
-    /**
-     * Some remarks to the Class_ID field: The Class ID is an Identifier for a
-     * pointer to this struct. It is very unlikely that a pointer to
-     * lame_global_flags has the same 32 bits in it's structure (large and other
-     * special properties, for instance prime).
-     * <p/>
-     * To test that the structure is right and initialized, use: if ( gfc .
-     * Class_ID == LAME_ID ) ... Other remark: If you set a flag to 0 for uninit
-     * data and 1 for init data, the right test should be "if (flag == 1)" and
-     * NOT "if (flag)". Unintended modification of this element will be
-     * otherwise misinterpreted as an init.
-     */
+
     public long Class_ID;
-    public int lame_encode_frame_init;
     public int iteration_init_init;
-    public int fill_buffer_resample_init;
     /**
      * granules per frame
      */
@@ -141,105 +117,18 @@ public class LameInternalFlags {
     public int OldValue[] = new int[2];
     public int CurrentStep[] = new int[2];
     public float masking_lower;
-    public int bv_scf[] = new int[576];
-    public int pseudohalf[] = new int[L3Side.SFBMAX];
     /**
      * will be set in Lame.initParams
      */
     public boolean sfb21_extra;
-    public float[][] inbuf_old = new float[2][];
-    public double itime[] = new double[2];
     public int sideinfo_len;
 
-	/* variables for BitStream */
-
-    /**
-     * <PRE>
-     * mpeg1: buffer=511 bytes  smallest frame: 96-38(sideinfo)=58
-     * max number of frames in reservoir:  8
-     * mpeg2: buffer=255 bytes.  smallest frame: 24-23bytes=1
-     * with VBR, if you are encoding all silence, it is possible to
-     * have 8kbs/24khz frames with 1byte of data each, which means we need
-     * to buffer up to 255 headers!
-     * </PRE>
-     */
-  /* variables for newmdct.c */
-    public float sb_sample[][][][] = new float[2][2][18][Encoder.SBLIMIT];
     public float amp_filter[] = new float[32];
     public int h_ptr;
     public int w_ptr;
-    public int ancillary_flag;
-    /**
-     * in bits
-     */
-    public int ResvSize;
-    /**
-     * in bits
-     */
-    public int ResvMax;
-
-    /* variables for Reservoir */
     public ScaleFac scalefac_band = new ScaleFac();
-    /* daa from PsyModel */
-  /* The static variables "r", "phi_sav", "new", "old" and "oldest" have */
-    /* to be remembered for the unpredictability measure. For "r" and */
-	/* "phi_sav", the first index from the left is the channel select and */
-	/* the second index is the "age" of the data. */
-    public float minval_l[] = new float[Encoder.CBANDS];
-    public float minval_s[] = new float[Encoder.CBANDS];
-    public float nb_1[][] = new float[4][Encoder.CBANDS],
-            nb_2[][] = new float[4][Encoder.CBANDS];
-    public float nb_s1[][] = new float[4][Encoder.CBANDS],
-            nb_s2[][] = new float[4][Encoder.CBANDS];
-    public float[] s3_ss;
-    public float[] s3_ll;
-    public float decay;
     public III_psy_xmin[] thm = new III_psy_xmin[4];
     public III_psy_xmin[] en = new III_psy_xmin[4];
-    /**
-     * fft and energy calculation
-     */
-    public float tot_ener[] = new float[4];
-    /**
-     * loudness^2 approx. per granule and channel
-     */
-    public float loudness_sq[][] = new float[2][2];
-    /**
-     * account for granule delay of L3psycho_anal
-     */
-    public float loudness_sq_save[] = new float[2];
-
-	/* loudness calculation (for adaptive threshold of hearing) */
-    /**
-     * Scale Factor Bands
-     */
-    public float mld_l[] = new float[Encoder.SBMAX_l],
-            mld_s[] = new float[Encoder.SBMAX_s];
-    public int bm_l[] = new int[Encoder.SBMAX_l],
-            bo_l[] = new int[Encoder.SBMAX_l];
-    public int bm_s[] = new int[Encoder.SBMAX_s],
-            bo_s[] = new int[Encoder.SBMAX_s];
-    public int npart_l, npart_s;
-    public int s3ind[][] = new int[Encoder.CBANDS][2];
-    public int s3ind_s[][] = new int[Encoder.CBANDS][2];
-    public int numlines_s[] = new int[Encoder.CBANDS];
-    public int numlines_l[] = new int[Encoder.CBANDS];
-    public float rnumlines_l[] = new float[Encoder.CBANDS];
-    public float mld_cb_l[] = new float[Encoder.CBANDS],
-            mld_cb_s[] = new float[Encoder.CBANDS];
-    public int numlines_s_num1;
-    public int numlines_l_num1;
-    /* ratios */
-    public float pe[] = new float[4];
-    public float ms_ratio_s_old, ms_ratio_l_old;
-    public float ms_ener_ratio_old;
-    /**
-     * block type
-     */
-    public int blocktype_old[] = new int[2];
-    /**
-     * variables used for --nspsytune
-     */
     public NsPsy nsPsy = new NsPsy();
     /**
      * used for Xing VBR header
@@ -276,10 +165,6 @@ public class LameInternalFlags {
     public int bitrate_blockType_Hist[][] = new int[16][4 + 1 + 1];
     public PlottingData pinfo;
     public MPGLib.mpstr_tag hip;
-    public int in_buffer_nsamples;
-    public float[] in_buffer_0;
-    public float[] in_buffer_1;
-    public IIterationLoop iteration_loop;
 
     public LameInternalFlags() {
         for (int i = 0; i < en.length; i++) {

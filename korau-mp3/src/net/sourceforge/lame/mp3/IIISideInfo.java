@@ -3,7 +3,6 @@ package net.sourceforge.lame.mp3;
 public class IIISideInfo {
     GrInfo tt[][] = new GrInfo[2][2];
     int main_data_begin;
-    int private_bits;
     int resvDrain_pre;
     int resvDrain_post;
     int scfsi[][] = new int[2][4];

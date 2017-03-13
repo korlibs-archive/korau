@@ -355,7 +355,6 @@ public class VBRTag {
      * Get VBR tag information
      *
      * @param buf    header to analyze
-     * @param bufPos offset into the header
      * @return VBR tag data
      */
     public final VBRTagData getVbrTag(final byte[] buf) {

@@ -283,16 +283,6 @@ public class Interface {
         return -1;
     }
 
-    int audiodata_precedesframes(mpstr_tag mp) {
-        if (mp.fr.lay == 3)
-            return layer3.layer3_audiodata_precedesframes(mp);
-        else
-            return 0; /*
-					 * For Layer 1 & 2 the audio data starts at the frame that
-					 * describes it, so no audio data precedes.
-					 */
-    }
-
     int decodeMP3_clipchoice(mpstr_tag mp, byte[] in, int inPos, int isize,
                              float[] out, ProcessedBytes done, ISynth synth) {
         int i, iret, bits, bytes;

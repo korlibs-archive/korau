@@ -21,10 +21,5 @@
 package net.sourceforge.lame.mp3;
 
 public class L3Side {
-
-    /**
-     * max scalefactor band, max(SBMAX_l, SBMAX_s*3, (SBMAX_s-3)*3+8)
-     */
-    public static final int SFBMAX = (Encoder.SBMAX_s * 3);
-
+    public static final int SFBMAX = (Encoder.SBMAX_s * 3); // max scalefactor band, max(SBMAX_l, SBMAX_s*3, (SBMAX_s-3)*3+8)
 }

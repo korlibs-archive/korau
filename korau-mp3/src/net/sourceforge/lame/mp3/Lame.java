@@ -76,26 +76,20 @@ public class Lame {
     private BitStream bs;
     private Presets p;
     private QuantizePVT qupvt;
-    private Quantize qu;
 
     /* presets */
   /* values from 8 to 320 should be reserved for abr bitrates */
     /* for abr I'd suggest to directly use the targeted bitrate as a value */
-    private PsyModel psy;
     private VBRTag vbr;
     private ID3Tag id3;
     private MPGLib mpglib;
     private Encoder enc;
     private GetAudio gaud;
-    private Reservoir rv;
-    private Takehiro tak;
     private Parse parse;
-    private BRHist hist;
 
     /* still there for compatibility */
     private MPGLib mpg;
     private Interface intf;
-    private Version version = new Version();
 
     public Lame() {
         gfp = new LameGlobalFlags();
@@ -104,27 +98,18 @@ public class Lame {
         bs = new BitStream();
         p = new Presets();
         qupvt = new QuantizePVT();
-        qu = new Quantize();
         vbr = new VBRTag();
         id3 = new ID3Tag();
-        rv = new Reservoir();
-        tak = new Takehiro();
         parse = new Parse();
-        hist = new BRHist();
-        psy = new PsyModel();
         enc = new Encoder();
 
         mpg = new MPGLib();
         intf = new Interface();
 
-        enc.setModules(bs, psy, qupvt, vbr);
+        enc.setModules(bs, qupvt, vbr);
         bs.setModules(ga, mpg, vbr);
         id3.setModules(bs);
         p.setModules(this);
-        qu.setModules(bs, rv, qupvt, tak);
-        qupvt.setModules(tak, rv, enc.psy);
-        rv.setModules(bs);
-        tak.setModules(qupvt);
         vbr.setModules(this, bs);
         gaud.setModules(parse, mpg);
         parse.setModules(id3, p);
@@ -156,10 +141,6 @@ public class Lame {
         return id3;
     }
 
-    public BRHist getHist() {
-        return hist;
-    }
-
     private float filter_coef(final float x) {
         if (x > 1.0)
             return 0.0f;
@@ -172,7 +153,7 @@ public class Lame {
     private void lame_init_params_ppflt() {
         final LameInternalFlags gfc = gfp.internal_flags;
         /***************************************************************/
-		/* compute info needed for polyphase filter (filter type==0, default) */
+        /* compute info needed for polyphase filter (filter type==0, default) */
         /***************************************************************/
 
         int lowpass_band = 32;
@@ -182,7 +163,7 @@ public class Lame {
             int minband = 999;
             for (int band = 0; band <= 31; band++) {
                 float freq = (float) (band / 31.0);
-				/* this band and above will be zeroed: */
+                /* this band and above will be zeroed: */
                 if (freq >= gfc.lowpass2) {
                     lowpass_band = Math.min(lowpass_band, band);
                 }
@@ -192,7 +173,7 @@ public class Lame {
             }
 
 			/*
-			 * compute the *actual* transition band implemented by the polyphase
+             * compute the *actual* transition band implemented by the polyphase
 			 * filter
 			 */
             if (minband == 999) {
@@ -204,7 +185,7 @@ public class Lame {
         }
 
 		/*
-		 * make sure highpass filter is within 90% of what the effective
+         * make sure highpass filter is within 90% of what the effective
 		 * highpass frequency will be
 		 */
         if (gfc.highpass2 > 0) {
@@ -220,7 +201,7 @@ public class Lame {
             int maxband = -1;
             for (int band = 0; band <= 31; band++) {
                 float freq = band / 31.0f;
-				/* this band and below will be zereod */
+                /* this band and below will be zereod */
                 if (freq <= gfc.highpass1) {
                     highpass_band = Math.max(highpass_band, band);
                 }
@@ -653,187 +634,6 @@ public class Lame {
         return -1;
     }
 
-    /**
-     * Resampling via FIR filter, blackman window.
-     */
-    private float blackman(float x, final float fcn, final int l) {
-		/*
-		 * This algorithm from: SIGNAL PROCESSING ALGORITHMS IN FORTRAN AND C
-		 * S.D. Stearns and R.A. David, Prentice-Hall, 1992
-		 */
-        float wcn = (float) (Math.PI * fcn);
-
-        x /= l;
-        if (x < 0)
-            x = 0;
-        if (x > 1)
-            x = 1;
-        float x2 = x - .5f;
-
-        float bkwn = 0.42f - 0.5f * (float) Math.cos(2 * x * Math.PI) + 0.08f
-                * (float) Math.cos(4 * x * Math.PI);
-        if (Math.abs(x2) < 1e-9)
-            return (float) (wcn / Math.PI);
-        else
-            return (float) (bkwn * Math.sin(l * wcn * x2) / (Math.PI * l * x2));
-    }
-
-    /**
-     * Greatest common divisor.
-     * <p/>
-     * Joint work of Euclid and M. Hendry
-     */
-    private int gcd(final int i, final int j) {
-        return j != 0 ? gcd(j, i % j) : i;
-    }
-
-    private int fill_buffer_resample(
-            final float[] outbuf, final int outbufPos, final int desired_len,
-            final float[] inbuf, final int in_bufferPos, final int len,
-            final NumUsed num_used, final int ch) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        int i, j = 0, k;
-		/* number of convolution functions to pre-compute */
-        int bpc = gfp.getOutSampleRate()
-                / gcd(gfp.getOutSampleRate(), gfp.getInSampleRate());
-        if (bpc > LameInternalFlags.BPC)
-            bpc = LameInternalFlags.BPC;
-
-        float intratio = (Math.abs(gfc.resample_ratio
-                - Math.floor(.5 + gfc.resample_ratio)) < .0001) ? 1 : 0;
-        float fcn = 1.00f / (float) gfc.resample_ratio;
-        if (fcn > 1.00)
-            fcn = 1.00f;
-        int filter_l = 31;
-        if (0 == filter_l % 2)
-            --filter_l; /* must be odd */
-        filter_l += intratio; /* unless resample_ratio=int, it must be even */
-
-        int BLACKSIZE = filter_l + 1; /* size of data needed for FIR */
-
-        if (gfc.fill_buffer_resample_init == 0) {
-            gfc.inbuf_old[0] = new float[BLACKSIZE];
-            gfc.inbuf_old[1] = new float[BLACKSIZE];
-            for (i = 0; i <= 2 * bpc; ++i)
-                gfc.blackfilt[i] = new float[BLACKSIZE];
-
-            gfc.itime[0] = 0;
-            gfc.itime[1] = 0;
-
-			/* precompute blackman filter coefficients */
-            for (j = 0; j <= 2 * bpc; j++) {
-                float sum = 0.f;
-                float offset = (j - bpc) / (2.f * bpc);
-                for (i = 0; i <= filter_l; i++)
-                    sum += gfc.blackfilt[j][i] = blackman(i - offset, fcn,
-                            filter_l);
-                for (i = 0; i <= filter_l; i++)
-                    gfc.blackfilt[j][i] /= sum;
-            }
-            gfc.fill_buffer_resample_init = 1;
-        }
-
-        float[] inbuf_old = gfc.inbuf_old[ch];
-
-		/* time of j'th element in inbuf = itime + j/ifreq; */
-		/* time of k'th element in outbuf = j/ofreq */
-        for (k = 0; k < desired_len; k++) {
-            double time0;
-            int joff;
-
-            time0 = k * gfc.resample_ratio; /* time of k'th output sample */
-            j = (int) Math.floor(time0 - gfc.itime[ch]);
-
-			/* check if we need more input data */
-            if ((filter_l + j - filter_l / 2) >= len)
-                break;
-
-			/* blackman filter. by default, window centered at j+.5(filter_l%2) */
-			/* but we want a window centered at time0. */
-            float offset = (float) (time0 - gfc.itime[ch] - (j + .5 * (filter_l % 2)));
-            assert (Math.abs(offset) <= .501);
-
-			/* find the closest precomputed window for this offset: */
-            joff = (int) Math.floor((offset * 2 * bpc) + bpc + .5);
-
-            float xvalue = 0.f;
-            for (i = 0; i <= filter_l; ++i) {
-                int j2 = i + j - filter_l / 2;
-                float y;
-                assert (j2 < len);
-                assert (j2 + BLACKSIZE >= 0);
-                y = (j2 < 0) ? inbuf_old[BLACKSIZE + j2] : inbuf[in_bufferPos
-                        + j2];
-                xvalue += y * gfc.blackfilt[joff][i];
-            }
-            outbuf[outbufPos + k] = xvalue;
-        }
-
-		/* k = number of samples added to outbuf */
-		/* last k sample used data from [j-filter_l/2,j+filter_l-filter_l/2] */
-
-		/* how many samples of input data were used: */
-        num_used.num_used = Math.min(len, filter_l + j - filter_l / 2);
-
-		/*
-		 * adjust our input time counter. Incriment by the number of samples
-		 * used, then normalize so that next output sample is at time 0, next
-		 * input buffer is at time itime[ch]
-		 */
-        gfc.itime[ch] += num_used.num_used - k * gfc.resample_ratio;
-
-		/* save the last BLACKSIZE samples into the inbuf_old buffer */
-        if (num_used.num_used >= BLACKSIZE) {
-            for (i = 0; i < BLACKSIZE; i++)
-                inbuf_old[i] = inbuf[in_bufferPos + num_used.num_used + i
-                        - BLACKSIZE];
-        } else {
-			/* shift in num_used.num_used samples into inbuf_old */
-            int n_shift = BLACKSIZE - num_used.num_used; /*
-														 * number of samples to
-														 * shift
-														 */
-
-			/*
-			 * shift n_shift samples by num_used.num_used, to make room for the
-			 * num_used new samples
-			 */
-            for (i = 0; i < n_shift; ++i)
-                inbuf_old[i] = inbuf_old[i + num_used.num_used];
-
-			/* shift in the num_used.num_used samples */
-            for (j = 0; i < BLACKSIZE; ++i, ++j)
-                inbuf_old[i] = inbuf[in_bufferPos + j];
-
-            assert (j == num_used.num_used);
-        }
-        return k; /* return the number samples created at the new samplerate */
-    }
-
-    private void fill_buffer(float mfbuf[][],
-                             final float in_buffer[][], final int in_bufferPos,
-                             final int nsamples, final InOut io) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-
-		/* copy in new samples into mfbuf, with resampling if necessary */
-        if ((gfc.resample_ratio < .9999) || (gfc.resample_ratio > 1.0001)) {
-            for (int ch = 0; ch < gfc.channels_out; ch++) {
-                NumUsed numUsed = new NumUsed();
-                io.n_out = fill_buffer_resample(mfbuf[ch], gfc.mf_size,
-                        gfp.getFrameSize(), in_buffer[ch], in_bufferPos, nsamples,
-                        numUsed, ch);
-                io.n_in = numUsed.num_used;
-            }
-        } else {
-            io.n_out = Math.min(gfp.getFrameSize(), nsamples);
-            io.n_in = io.n_out;
-            for (int i = 0; i < io.n_out; ++i) {
-                mfbuf[0][gfc.mf_size + i] = in_buffer[0][in_bufferPos + i];
-                if (gfc.channels_out == 2)
-                    mfbuf[1][gfc.mf_size + i] = in_buffer[1][in_bufferPos + i];
-            }
-        }
-    }
 
     /**
      * *****************************************************************
@@ -1287,7 +1087,6 @@ public class Lame {
                 else
                     gfc.sfb21_extra = (gfp.getOutSampleRate() > 44000);
 
-                gfc.iteration_loop = new VBRNewIterationLoop(qu);
                 break;
 
             }
@@ -1317,7 +1116,6 @@ public class Lame {
                 if (gfp.getQuality() < 0)
                     gfp.setQuality(QUALITY_DEFAULT);
 
-                gfc.iteration_loop = new VBROldIterationLoop(qu);
                 break;
             }
 
@@ -1343,9 +1141,7 @@ public class Lame {
                 gfc.PSY.mask_adjust_short = gfp.maskingadjust_short;
 
                 if (vbrmode == VbrMode.vbr_off) {
-                    gfc.iteration_loop = new CBRNewIterationLoop(qu);
                 } else {
-                    gfc.iteration_loop = new ABRIterationLoop(qu);
                 }
                 break;
             }
@@ -1402,33 +1198,15 @@ public class Lame {
 		/* initialize internal qval settings */
         lame_init_qval();
 
-		/*
-		 * automatic ATH adjustment on
-		 */
-        if (gfp.athaa_type < 0)
-            gfc.ATH.useAdjust = 3;
-        else
-            gfc.ATH.useAdjust = gfp.athaa_type;
+        gfc.ATH.useAdjust = (gfp.athaa_type < 0) ? 3 : gfp.athaa_type;
 
 		/* initialize internal adaptive ATH settings -jd */
-        gfc.ATH.aaSensitivityP = (float) Math.pow(10.0, gfp.athaa_sensitivity
-                / -10.0);
+        gfc.ATH.aaSensitivityP = (float) Math.pow(10.0, gfp.athaa_sensitivity / -10.0);
 
         if (gfp.short_blocks == null) {
             gfp.short_blocks = ShortBlock.short_block_allowed;
         }
 
-		/*
-		 * Note Jan/2003: Many hardware decoders cannot handle short blocks in
-		 * regular stereo mode unless they are coupled (same type in both
-		 * channels) it is a rare event (1 frame per min. or so) that LAME would
-		 * use uncoupled short blocks, so lets turn them off until we decide how
-		 * to handle this. No other encoders allow uncoupled short blocks, even
-		 * though it is in the standard.
-		 */
-		/*
-		 * rh 20040217: coupling makes no sense for mono and dual-mono streams
-		 */
         if (gfp.short_blocks == ShortBlock.short_block_allowed
                 && (gfp.getMode() == MPEGMode.JOINT_STEREO || gfp.getMode() == MPEGMode.STEREO)) {
             gfp.short_blocks = ShortBlock.short_block_coupled;
@@ -1481,515 +1259,10 @@ public class Lame {
         if (gfp.getVBR() == VbrMode.vbr_off)
             gfc.slot_lag = gfc.frac_SpF = (int) (((gfp.getMpegVersion() + 1) * 72000L * gfp.getBitRate()) % gfp.getOutSampleRate());
 
-        qupvt.iteration_init(gfp);
-        psy.psymodel_init(gfp);
+        //qupvt.iteration_init(gfp);
+        //psy.psymodel_init(gfp);
 
         return 0;
-    }
-
-    /**
-     * Prints some selected information about the coding parameters via the
-     * macro command MSGF(), which is currently mapped to lame_errorf (reports
-     * via a error function?), which is a printf-like function for <stderr>.
-     */
-    public final void lame_print_config() {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        double out_samplerate = gfp.getOutSampleRate();
-        double in_samplerate = gfp.getOutSampleRate() * gfc.resample_ratio;
-
-        System.out.println(version.getVersion());
-
-        if (gfp.getInNumChannels() == 2 && gfc.channels_out == 1 /* mono */) {
-            System.out
-                    .printf("Autoconverting from stereo to mono. Setting encoding to mono mode.\n");
-        }
-
-        if (BitStream.NEQ((float) gfc.resample_ratio, 1.f)) {
-            System.out.printf("Resampling:  input %g kHz  output %g kHz\n",
-                    1.e-3 * in_samplerate, 1.e-3 * out_samplerate);
-        }
-
-        if (gfc.highpass2 > 0.) {
-            System.out
-                    .printf("Using polyphase highpass filter, transition band: %5.0f Hz - %5.0f Hz\n",
-                            0.5 * gfc.highpass1 * out_samplerate, 0.5
-                                    * gfc.highpass2 * out_samplerate);
-        }
-        if (0. < gfc.lowpass1 || 0. < gfc.lowpass2) {
-            System.out
-                    .printf("Using polyphase lowpass filter, transition band: %5.0f Hz - %5.0f Hz\n",
-                            0.5 * gfc.lowpass1 * out_samplerate, 0.5
-                                    * gfc.lowpass2 * out_samplerate);
-        } else {
-            System.out.printf("polyphase lowpass filter disabled\n");
-        }
-
-        if (gfp.free_format) {
-            System.err
-                    .printf("Warning: many decoders cannot handle free format bitstreams\n");
-            if (gfp.getBitRate() > 320) {
-                System.err
-                        .printf("Warning: many decoders cannot handle free format bitrates >320 kbps (see documentation)\n");
-            }
-        }
-    }
-
-	/*
-	 * copy in new samples from in_buffer into mfbuf, with resampling if
-	 * necessary. n_in = number of samples from the input buffer that were used.
-	 * n_out = number of samples copied into mfbuf
-	 */
-
-    /**
-     * rh: some pretty printing is very welcome at this point! so, if someone is
-     * willing to do so, please do it! add more, if you see more...
-     */
-    public final void lame_print_internals() {
-        final LameInternalFlags gfc = gfp.internal_flags;
-
-		/*
-		 * compiler/processor optimizations, operational, etc.
-		 */
-        System.err.printf("\nmisc:\n\n");
-
-        System.err.printf("\tscaling: %g\n", gfp.scale);
-        System.err.printf("\tch0 (left) scaling: %g\n", gfp.scale_left);
-        System.err.printf("\tch1 (right) scaling: %g\n", gfp.scale_right);
-        String pc;
-        switch (gfc.use_best_huffman) {
-            default:
-                pc = "normal";
-                break;
-            case 1:
-                pc = "best (outside loop)";
-                break;
-            case 2:
-                pc = "best (inside loop, slow)";
-                break;
-        }
-        System.err.printf("\thuffman search: %s\n", pc);
-        System.err.printf("\texperimental Y=%d\n", gfp.experimentalY);
-        System.err.printf("\t...\n");
-
-		/*
-		 * everything controlling the stream format
-		 */
-        System.err.printf("\nstream format:\n\n");
-        switch (gfp.getMpegVersion()) {
-            case 0:
-                pc = "2.5";
-                break;
-            case 1:
-                pc = "1";
-                break;
-            case 2:
-                pc = "2";
-                break;
-            default:
-                pc = "?";
-                break;
-        }
-        System.err.printf("\tMPEG-%s Layer 3\n", pc);
-        switch (gfp.getMode()) {
-            case JOINT_STEREO:
-                pc = "joint stereo";
-                break;
-            case STEREO:
-                pc = "stereo";
-                break;
-            case DUAL_CHANNEL:
-                pc = "dual channel";
-                break;
-            case MONO:
-                pc = "mono";
-                break;
-            case NOT_SET:
-                pc = "not set (error)";
-                break;
-            default:
-                pc = "unknown (error)";
-                break;
-        }
-        System.err.printf("\t%d channel - %s\n", gfc.channels_out, pc);
-
-        switch (gfp.getVBR()) {
-            case vbr_off:
-                pc = "off";
-                break;
-            default:
-                pc = "all";
-                break;
-        }
-        System.err.printf("\tpadding: %s\n", pc);
-
-        if (VbrMode.vbr_default == gfp.getVBR())
-            pc = "(default)";
-        else if (gfp.free_format)
-            pc = "(free format)";
-        else
-            pc = "";
-        switch (gfp.getVBR()) {
-            case vbr_off:
-                System.err.printf("\tconstant bitrate - CBR %s\n", pc);
-                break;
-            case vbr_abr:
-                System.err.printf("\tvariable bitrate - ABR %s\n", pc);
-                break;
-            case vbr_rh:
-                System.err.printf("\tvariable bitrate - VBR rh %s\n", pc);
-                break;
-            case vbr_mt:
-                System.err.printf("\tvariable bitrate - VBR mt %s\n", pc);
-                break;
-            case vbr_mtrh:
-                System.err.printf("\tvariable bitrate - VBR mtrh %s\n", pc);
-                break;
-            default:
-                System.err.printf("\t ?? oops, some new one ?? \n");
-                break;
-        }
-        if (gfp.bWriteVbrTag) {
-            System.err.printf("\tusing LAME Tag\n");
-        }
-        System.err.printf("\t...\n");
-
-		/*
-		 * everything controlling psychoacoustic settings, like ATH, etc.
-		 */
-        System.err.printf("\npsychoacoustic:\n\n");
-
-        switch (gfp.short_blocks) {
-            default:
-                pc = "?";
-                break;
-            case short_block_allowed:
-                pc = "allowed";
-                break;
-            case short_block_coupled:
-                pc = "channel coupled";
-                break;
-            case short_block_dispensed:
-                pc = "dispensed";
-                break;
-            case short_block_forced:
-                pc = "forced";
-                break;
-        }
-        System.err.printf("\tusing short blocks: %s\n", pc);
-        System.err.printf("\tsubblock gain: %d\n", gfc.subblock_gain);
-        System.err.printf("\tadjust masking: %g dB\n", gfc.PSY.mask_adjust);
-        System.err.printf("\tadjust masking short: %g dB\n",
-                gfc.PSY.mask_adjust_short);
-        System.err.printf("\tquantization comparison: %d\n", gfp.quant_comp);
-        System.err.printf("\t ^ comparison short blocks: %d\n",
-                gfp.quant_comp_short);
-        System.err.printf("\tnoise shaping: %d\n", gfc.noise_shaping);
-        System.err.printf("\t ^ amplification: %d\n", gfc.noise_shaping_amp);
-        System.err.printf("\t ^ stopping: %d\n", gfc.noise_shaping_stop);
-
-        pc = "using";
-        if (gfp.ATHshort)
-            pc = "the only masking for short blocks";
-        if (gfp.ATHonly)
-            pc = "the only masking";
-        if (gfp.noATH)
-            pc = "not used";
-        System.err.printf("\tATH: %s\n", pc);
-        System.err.printf("\t ^ type: %d\n", gfp.ATHtype);
-        System.err.printf("\t ^ shape: %g%s\n", gfp.ATHcurve,
-                " (only for type 4)");
-        System.err.printf("\t ^ level adjustement: %g\n", gfp.ATHlower);
-        System.err.printf("\t ^ adjust type: %d\n", gfc.ATH.useAdjust);
-        System.err.printf("\t ^ adjust sensitivity power: %f\n",
-                gfc.ATH.aaSensitivityP);
-        System.err.printf("\t ^ adapt threshold type: %d\n",
-                gfp.athaa_loudapprox);
-
-        System.err.printf("\texperimental psy tunings by Naoki Shibata\n");
-        System.err
-                .printf("\t   adjust masking bass=%g dB, alto=%g dB, treble=%g dB, sfb21=%g dB\n",
-                        10 * Math.log10(gfc.nsPsy.longfact[0]),
-                        10 * Math.log10(gfc.nsPsy.longfact[7]),
-                        10 * Math.log10(gfc.nsPsy.longfact[14]),
-                        10 * Math.log10(gfc.nsPsy.longfact[21]));
-
-        pc = gfp.useTemporal ? "yes" : "no";
-        System.err.printf("\tusing temporal masking effect: %s\n", pc);
-        System.err.printf("\tinterchannel masking ratio: %g\n",
-                gfp.interChRatio);
-        System.err.printf("\t...\n");
-
-		/*
-		 * that's all ?
-		 */
-        System.err.printf("\n");
-    }
-
-    /**
-     * routine to feed exactly one frame (gfp.framesize) worth of data to the
-     * encoding engine. All buffering, resampling, etc, handled by calling
-     * program.
-     */
-    private int lame_encode_frame(
-            final float inbuf_l[], final float inbuf_r[], final byte[] mp3buf,
-            final int mp3bufPos, final int mp3buf_size) {
-        int ret = enc.lame_encode_mp3_frame(gfp, inbuf_l, inbuf_r, mp3buf,
-                mp3bufPos, mp3buf_size);
-        gfp.frameNum++;
-        return ret;
-    }
-
-    private void update_inbuffer_size(final LameInternalFlags gfc,
-                                      final int nsamples) {
-        if (gfc.in_buffer_0 == null || gfc.in_buffer_nsamples < nsamples) {
-            gfc.in_buffer_0 = new float[nsamples];
-            gfc.in_buffer_1 = new float[nsamples];
-            gfc.in_buffer_nsamples = nsamples;
-        }
-    }
-
-    private int calcNeeded() {
-        int mf_needed = Encoder.BLKSIZE + gfp.getFrameSize() - Encoder.FFTOFFSET;
-		/*
-		 * amount needed for FFT
-		 */
-        mf_needed = Math.max(mf_needed, 512 + gfp.getFrameSize() - 32);
-        assert (LameInternalFlags.MFSIZE >= mf_needed);
-
-        return mf_needed;
-    }
-
-    /**
-     * <PRE>
-     * THE MAIN LAME ENCODING INTERFACE
-     * mt 3/00
-     * <p/>
-     * input pcm data, output (maybe) mp3 frames.
-     * This routine handles all buffering, resampling and filtering for you.
-     * The required mp3buffer_size can be computed from num_samples,
-     * samplerate and encoding rate, but here is a worst case estimate:
-     * <p/>
-     * mp3buffer_size in bytes = 1.25*num_samples + 7200
-     * <p/>
-     * return code = number of bytes output in mp3buffer.  can be 0
-     * <p/>
-     * NOTE: this routine uses LAME's internal PCM data representation,
-     * 'sample_t'.  It should not be used by any application.
-     * applications should use lame_encode_buffer(),
-     * lame_encode_buffer_float()
-     * lame_encode_buffer_int()
-     * etc... depending on what type of data they are working with.
-     * </PRE>
-     */
-    private int lame_encode_buffer_sample(
-            final float buffer_l[], final float buffer_r[], int nsamples,
-            final byte[] mp3buf, int mp3bufPos, final int mp3buf_size) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        int mp3size = 0, ret, i, ch, mf_needed;
-        int mp3out;
-        float mfbuf[][] = new float[2][];
-        float in_buffer[][] = new float[2][];
-
-        if (gfc.Class_ID != LAME_ID)
-            return -3;
-
-        if (nsamples == 0)
-            return 0;
-
-		/* copy out any tags that may have been written into bitstream */
-        mp3out = bs.copy_buffer(gfc, mp3buf, mp3bufPos, mp3buf_size, 0);
-        if (mp3out < 0)
-            return mp3out; /* not enough buffer space */
-        mp3bufPos += mp3out;
-        mp3size += mp3out;
-
-        in_buffer[0] = buffer_l;
-        in_buffer[1] = buffer_r;
-
-		/* Apply user defined re-scaling */
-
-		/* user selected scaling of the samples */
-        if (BitStream.NEQ(gfp.scale, 0) && BitStream.NEQ(gfp.scale, 1.0f)) {
-            for (i = 0; i < nsamples; ++i) {
-                in_buffer[0][i] *= gfp.scale;
-                if (gfc.channels_out == 2)
-                    in_buffer[1][i] *= gfp.scale;
-            }
-        }
-
-		/* user selected scaling of the channel 0 (left) samples */
-        if (BitStream.NEQ(gfp.scale_left, 0)
-                && BitStream.NEQ(gfp.scale_left, 1.0f)) {
-            for (i = 0; i < nsamples; ++i) {
-                in_buffer[0][i] *= gfp.scale_left;
-            }
-        }
-
-		/* user selected scaling of the channel 1 (right) samples */
-        if (BitStream.NEQ(gfp.scale_right, 0)
-                && BitStream.NEQ(gfp.scale_right, 1.0f)) {
-            for (i = 0; i < nsamples; ++i) {
-                in_buffer[1][i] *= gfp.scale_right;
-            }
-        }
-
-		/* Downsample to Mono if 2 channels in and 1 channel out */
-        if (gfp.getInNumChannels() == 2 && gfc.channels_out == 1) {
-            for (i = 0; i < nsamples; ++i) {
-                in_buffer[0][i] = 0.5f * ((float) in_buffer[0][i] + in_buffer[1][i]);
-                in_buffer[1][i] = 0.0f;
-            }
-        }
-
-        mf_needed = calcNeeded();
-
-        mfbuf[0] = gfc.mfbuf[0];
-        mfbuf[1] = gfc.mfbuf[1];
-
-        int in_bufferPos = 0;
-        while (nsamples > 0) {
-            final float in_buffer_ptr[][] = new float[2][];
-            int n_in = 0; /* number of input samples processed with fill_buffer */
-            int n_out = 0; /* number of samples output with fill_buffer */
-			/* n_in <> n_out if we are resampling */
-
-            in_buffer_ptr[0] = in_buffer[0];
-            in_buffer_ptr[1] = in_buffer[1];
-			/* copy in new samples into mfbuf, with resampling */
-            InOut inOut = new InOut();
-            fill_buffer(mfbuf, in_buffer_ptr, in_bufferPos, nsamples,
-                    inOut);
-            n_in = inOut.n_in;
-            n_out = inOut.n_out;
-
-			/* compute ReplayGain of resampled input if requested */
-            if (gfc.findReplayGain && !gfc.decode_on_the_fly)
-                if (ga.AnalyzeSamples(gfc.rgdata, mfbuf[0], gfc.mf_size,
-                        mfbuf[1], gfc.mf_size, n_out, gfc.channels_out) == GainAnalysis.GAIN_ANALYSIS_ERROR)
-                    return -6;
-
-			/* update in_buffer counters */
-            nsamples -= n_in;
-            in_bufferPos += n_in;
-            if (gfc.channels_out == 2)
-                ;// in_bufferPos += n_in;
-
-			/* update mfbuf[] counters */
-            gfc.mf_size += n_out;
-            assert (gfc.mf_size <= LameInternalFlags.MFSIZE);
-
-			/*
-			 * lame_encode_flush may have set gfc.mf_sample_to_encode to 0 so we
-			 * have to reinitialize it here when that happened.
-			 */
-            if (gfc.mf_samples_to_encode < 1) {
-                gfc.mf_samples_to_encode = Encoder.ENCDELAY + Encoder.POSTDELAY;
-            }
-            gfc.mf_samples_to_encode += n_out;
-
-            if (gfc.mf_size >= mf_needed) {
-				/* encode the frame. */
-				/* mp3buf = pointer to current location in buffer */
-				/* mp3buf_size = size of original mp3 output buffer */
-				/* = 0 if we should not worry about the */
-				/* buffer size because calling program is */
-				/* to lazy to compute it */
-				/* mp3size = size of data written to buffer so far */
-				/* mp3buf_size-mp3size = amount of space avalable */
-
-                int buf_size = mp3buf_size - mp3size;
-                if (mp3buf_size == 0)
-                    buf_size = 0;
-
-                ret = lame_encode_frame(mfbuf[0], mfbuf[1], mp3buf,
-                        mp3bufPos, buf_size);
-
-                if (ret < 0)
-                    return ret;
-                mp3bufPos += ret;
-                mp3size += ret;
-
-				/* shift out old samples */
-                gfc.mf_size -= gfp.getFrameSize();
-                gfc.mf_samples_to_encode -= gfp.getFrameSize();
-                for (ch = 0; ch < gfc.channels_out; ch++)
-                    for (i = 0; i < gfc.mf_size; i++)
-                        mfbuf[ch][i] = mfbuf[ch][i + gfp.getFrameSize()];
-            }
-        }
-        assert (nsamples == 0);
-
-        return mp3size;
-    }
-
-    private int lame_encode_buffer(
-            final short buffer_l[], final short buffer_r[], final int nsamples,
-            final byte[] mp3buf, final int mp3bufPos, final int mp3buf_size) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        float in_buffer[][] = new float[2][];
-
-        if (gfc.Class_ID != LAME_ID)
-            return -3;
-
-        if (nsamples == 0)
-            return 0;
-
-        update_inbuffer_size(gfc, nsamples);
-
-        in_buffer[0] = gfc.in_buffer_0;
-        in_buffer[1] = gfc.in_buffer_1;
-
-		/* make a copy of input buffer, changing type to sample_t */
-        for (int i = 0; i < nsamples; i++) {
-            in_buffer[0][i] = buffer_l[i];
-            if (gfc.channels_in > 1)
-                in_buffer[1][i] = buffer_r[i];
-        }
-
-        return lame_encode_buffer_sample(in_buffer[0], in_buffer[1],
-                nsamples, mp3buf, mp3bufPos, mp3buf_size);
-    }
-
-    public int encodeBuffer(final float buffer_l[], final float buffer_r[],
-                            final int nsamples, byte[] mp3buf) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        float[][] in_buffer = new float[2][];
-
-        if (gfc.Class_ID != LAME_ID)
-            return -3;
-
-        if (nsamples == 0)
-            return 0;
-
-        update_inbuffer_size(gfc, nsamples);
-
-        in_buffer[0] = gfc.in_buffer_0;
-        in_buffer[1] = gfc.in_buffer_1;
-
-		/* make a copy of input buffer, changing type to sample_t */
-        for (int i = 0; i < nsamples; i++) {
-			/* internal code expects +/- 32768.0 */
-            in_buffer[0][i] = buffer_l[i] * (1.0f / (1L << (16)));
-            if (gfc.channels_in > 1)
-                in_buffer[1][i] = buffer_r[i] * (1.0f / (1L << (16)));
-        }
-
-        return lame_encode_buffer_sample(in_buffer[0], in_buffer[1],
-                nsamples, mp3buf, 0, mp3buf.length);
-    }
-
-    /**
-     * Flush mp3 buffer, pad with ancillary data so last frame is complete.
-     * Reset reservoir size to 0 but keep all PCM samples and MDCT data in
-     * memory This option is used to break a large file into several mp3 files
-     * that when concatenated together will decode with no gaps Because we set
-     * the reservoir=0, they will also decode seperately with no errors.
-     */
-    public final int lame_encode_flush_nogap(
-            final byte[] mp3buffer, final int mp3buffer_size) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        bs.flush_bitstream(gfp);
-        return bs.copy_buffer(gfc, mp3buffer, 0, mp3buffer_size, 1);
     }
 
     /*
@@ -2016,120 +1289,6 @@ public class Lame {
     }
 
     /**
-     * flush internal PCM sample buffers, then mp3 buffers then write id3 v1
-     * tags into bitstream.
-     */
-    public final int encodeFlush(final byte[] mp3buffer) {
-        final LameInternalFlags gfc = gfp.internal_flags;
-        short buffer[][] = new short[2][1152];
-        int imp3 = 0, mp3count, mp3buffer_size_remaining;
-
-		/*
-		 * we always add POSTDELAY=288 padding to make sure granule with real
-		 * data can be complety decoded (because of 50% overlap with next
-		 * granule
-		 */
-        int end_padding;
-        int frames_left;
-        int samples_to_encode = gfc.mf_samples_to_encode - Encoder.POSTDELAY;
-        int mf_needed = calcNeeded();
-
-		/* Was flush already called? */
-        if (gfc.mf_samples_to_encode < 1) {
-            return 0;
-        }
-        mp3count = 0;
-
-        if (gfp.getInSampleRate() != gfp.getOutSampleRate()) {
-			/*
-			 * delay due to resampling; needs to be fixed, if resampling code
-			 * gets changed
-			 */
-            samples_to_encode += 16. * gfp.getOutSampleRate() / gfp.getInSampleRate();
-        }
-        end_padding = gfp.getFrameSize() - (samples_to_encode % gfp.getFrameSize());
-        if (end_padding < 576)
-            end_padding += gfp.getFrameSize();
-        gfp.encoder_padding = end_padding;
-
-        frames_left = (samples_to_encode + end_padding) / gfp.getFrameSize();
-
-        int mp3bufferPos = 0;
-		/*
-		 * send in a frame of 0 padding until all internal sample buffers are
-		 * flushed
-		 */
-        while (frames_left > 0 && imp3 >= 0) {
-            int bunch = mf_needed - gfc.mf_size;
-            int frame_num = gfp.frameNum;
-
-            bunch *= gfp.getInSampleRate();
-            bunch /= gfp.getOutSampleRate();
-            if (bunch > 1152)
-                bunch = 1152;
-            if (bunch < 1)
-                bunch = 1;
-
-            mp3buffer_size_remaining = mp3buffer.length - mp3count;
-
-			/* if user specifed buffer size = 0, dont check size */
-            if (mp3buffer.length == 0)
-                mp3buffer_size_remaining = 0;
-
-            imp3 = lame_encode_buffer(buffer[0], buffer[1], bunch,
-                    mp3buffer, mp3bufferPos, mp3buffer_size_remaining);
-
-            mp3bufferPos += imp3;
-            mp3count += imp3;
-            frames_left -= (frame_num != gfp.frameNum) ? 1 : 0;
-        }
-		/*
-		 * Set gfc.mf_samples_to_encode to 0, so we may detect and break loops
-		 * calling it more than once in a row.
-		 */
-        gfc.mf_samples_to_encode = 0;
-
-        if (imp3 < 0) {
-			/* some type of fatal error */
-            return imp3;
-        }
-
-        mp3buffer_size_remaining = mp3buffer.length - mp3count;
-		/* if user specifed buffer size = 0, dont check size */
-        if (mp3buffer.length == 0)
-            mp3buffer_size_remaining = 0;
-
-		/* mp3 related stuff. bit buffer might still contain some mp3 data */
-        bs.flush_bitstream(gfp);
-        imp3 = bs.copy_buffer(gfc, mp3buffer, mp3bufferPos,
-                mp3buffer_size_remaining, 1);
-        if (imp3 < 0) {
-			/* some type of fatal error */
-            return imp3;
-        }
-        mp3bufferPos += imp3;
-        mp3count += imp3;
-        mp3buffer_size_remaining = mp3buffer.length - mp3count;
-		/* if user specifed buffer size = 0, dont check size */
-        if (mp3buffer.length == 0)
-            mp3buffer_size_remaining = 0;
-
-        if (gfp.isWriteId3tagAutomatic()) {
-			/* write a id3 tag to the bitstream */
-            id3.id3tag_write_v1(gfp);
-
-            imp3 = bs.copy_buffer(gfc, mp3buffer, mp3bufferPos,
-                    mp3buffer_size_remaining, 0);
-
-            if (imp3 < 0) {
-                return imp3;
-            }
-            mp3count += imp3;
-        }
-        return mp3count;
-    }
-
-    /**
      * frees internal buffers
      */
     public final int close() {
@@ -2147,7 +1306,7 @@ public class Lame {
         return ret;
     }
 
-    private void lame_init_old() {
+    private final void lame_init() {
         LameInternalFlags gfc;
 
         gfp.class_id = LAME_ID;
@@ -2245,152 +1404,8 @@ public class Lame {
         gfp.preset = 0;
 
         gfp.setWriteId3tagAutomatic(true);
-    }
-
-    private final void lame_init() {
-        lame_init_old();
 
         gfp.lame_allocated_gfp = 1;
-    }
-
-    /**
-     * <PRE>
-     * histogram of used bitrate indexes:
-     * One has to weight them to calculate the average bitrate in kbps
-     * <p/>
-     * bitrate indices:
-     * there are 14 possible bitrate indices, 0 has the special meaning
-     * "free format" which is not possible to mix with VBR and 15 is forbidden
-     * anyway.
-     * <p/>
-     * stereo modes:
-     * 0: LR   number of left-right encoded frames
-     * 1: LR-I number of left-right and intensity encoded frames
-     * 2: MS   number of mid-side encoded frames
-     * 3: MS-I number of mid-side and intensity encoded frames
-     * <p/>
-     * 4: number of encoded frames
-     * </PRE>
-     */
-    public final void lame_bitrate_kbps(final int bitrate_kbps[]) {
-        final LameInternalFlags gfc;
-
-        if (null == bitrate_kbps)
-            return;
-        if (null == gfp)
-            return;
-        gfc = gfp.internal_flags;
-        if (null == gfc)
-            return;
-
-        if (gfp.free_format) {
-            for (int i = 0; i < 14; i++)
-                bitrate_kbps[i] = -1;
-            bitrate_kbps[0] = gfp.getBitRate();
-        } else {
-            for (int i = 0; i < 14; i++)
-                bitrate_kbps[i] = Tables.bitrate_table[gfp.getMpegVersion()][i + 1];
-        }
-    }
-
-    public final void lame_bitrate_hist(final int bitrate_count[]) {
-
-        if (null == bitrate_count)
-            return;
-        if (null == gfp)
-            return;
-        final LameInternalFlags gfc = gfp.internal_flags;
-        if (null == gfc)
-            return;
-
-        if (gfp.free_format) {
-            for (int i = 0; i < 14; i++)
-                bitrate_count[i] = 0;
-            bitrate_count[0] = gfc.bitrate_stereoMode_Hist[0][4];
-        } else {
-            for (int i = 0; i < 14; i++)
-                bitrate_count[i] = gfc.bitrate_stereoMode_Hist[i + 1][4];
-        }
-    }
-
-    public final void lame_stereo_mode_hist(final int stmode_count[]) {
-        if (null == stmode_count)
-            return;
-        if (null == gfp)
-            return;
-        final LameInternalFlags gfc = gfp.internal_flags;
-        if (null == gfc)
-            return;
-
-        for (int i = 0; i < 4; i++) {
-            stmode_count[i] = gfc.bitrate_stereoMode_Hist[15][i];
-        }
-    }
-
-    public final void lame_bitrate_stereo_mode_hist(final int bitrate_stmode_count[][]) {
-        if (null == bitrate_stmode_count)
-            return;
-        if (null == gfp)
-            return;
-        final LameInternalFlags gfc = gfp.internal_flags;
-        if (null == gfc)
-            return;
-
-        if (gfp.free_format) {
-            for (int j = 0; j < 14; j++)
-                for (int i = 0; i < 4; i++)
-                    bitrate_stmode_count[j][i] = 0;
-            for (int i = 0; i < 4; i++)
-                bitrate_stmode_count[0][i] = gfc.bitrate_stereoMode_Hist[0][i];
-        } else {
-            for (int j = 0; j < 14; j++)
-                for (int i = 0; i < 4; i++)
-                    bitrate_stmode_count[j][i] = gfc.bitrate_stereoMode_Hist[j + 1][i];
-        }
-    }
-
-    /***********************************************************************
-     *
-     * some simple statistics
-     *
-     * Robert Hegemann 2000-10-11
-     *
-     ***********************************************************************/
-
-    public final void lame_block_type_hist(final int btype_count[]) {
-        if (null == btype_count)
-            return;
-        if (null == gfp)
-            return;
-        final LameInternalFlags gfc = gfp.internal_flags;
-        if (null == gfc)
-            return;
-
-        for (int i = 0; i < 6; ++i) {
-            btype_count[i] = gfc.bitrate_blockType_Hist[15][i];
-        }
-    }
-
-    public final void lame_bitrate_block_type_hist(final int bitrate_btype_count[][]) {
-        if (null == bitrate_btype_count)
-            return;
-        if (null == gfp)
-            return;
-        final LameInternalFlags gfc = gfp.internal_flags;
-        if (null == gfc)
-            return;
-
-        if (gfp.free_format) {
-            for (int j = 0; j < 14; ++j)
-                for (int i = 0; i < 6; ++i)
-                    bitrate_btype_count[j][i] = 0;
-            for (int i = 0; i < 6; ++i)
-                bitrate_btype_count[0][i] = gfc.bitrate_blockType_Hist[0][i];
-        } else {
-            for (int j = 0; j < 14; ++j)
-                for (int i = 0; i < 6; ++i)
-                    bitrate_btype_count[j][i] = gfc.bitrate_blockType_Hist[j + 1][i];
-        }
     }
 
     protected static class LowPassHighPass {
@@ -2403,15 +1418,6 @@ public class Lame {
         public BandPass(int bitrate, int lPass) {
             lowpass = lPass;
         }
-    }
-
-    protected static class NumUsed {
-        int num_used;
-    }
-
-    protected static class InOut {
-        int n_in;
-        int n_out;
     }
 
 }
