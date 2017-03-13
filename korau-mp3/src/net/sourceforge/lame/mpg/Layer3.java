@@ -113,7 +113,8 @@ public class Layer3 {
     private static int len[] = {36, 36, 12, 36};
     private Common common;
     private float ispow[] = new float[8207];
-    private float aa_ca[] = new float[8], aa_cs[] = new float[8];
+    private float aa_ca[] = new float[8];
+    private float aa_cs[] = new float[8];
     private float COS1[][] = new float[12][6];
     private float win[][] = new float[4][36];
     private float win1[][] = new float[4][36];
@@ -138,8 +139,14 @@ public class Layer3 {
      * MPEG 2.0 slen for intensity stereo.
      */
     private int i_slen2[] = new int[256];
-    private float tan1_1[] = new float[16], tan2_1[] = new float[16], tan1_2[] = new float[16], tan2_2[] = new float[16];
-    private float pow1_1[][] = new float[2][16], pow2_1[][] = new float[2][16], pow1_2[][] = new float[2][16], pow2_2[][] = new float[2][16];
+    private float tan1_1[] = new float[16];
+    private float tan2_1[] = new float[16];
+    private float tan1_2[] = new float[16];
+    private float tan2_2[] = new float[16];
+    private float pow1_1[][] = new float[2][16];
+    private float pow2_1[][] = new float[2][16];
+    private float pow1_2[][] = new float[2][16];
+    private float pow2_2[][] = new float[2][16];
 
     /*
      * read additional side information
@@ -190,7 +197,8 @@ public class Layer3 {
             win[1][i + 18] = (float) (0.5 / Math.cos(MPG123.M_PI * (double) (2 * (i + 18) + 19) / 72.0));
             win[3][i + 12] = (float) (0.5 / Math.cos(MPG123.M_PI * (double) (2 * (i + 12) + 19) / 72.0));
             win[1][i + 24] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0 * (double) (2 * i + 13)) / Math.cos(MPG123.M_PI * (double) (2 * (i + 24) + 19) / 72.0));
-            win[1][i + 30] = win[3][i] = 0.0f;
+            win[1][i + 30] = 0.0f;
+            win[3][i] = 0.0f;
             win[3][i + 6] = (float) (0.5 * Math.sin(MPG123.M_PI / 24.0 * (double) (2 * i + 1)) / Math.cos(MPG123.M_PI * (double) (2 * (i + 6) + 19) / 72.0));
         }
 
@@ -209,10 +217,12 @@ public class Layer3 {
         }
 
         for (int j = 0; j < 4; j++) {
-            for (int i = 0; i < len[j]; i += 2)
+            for (int i = 0; i < len[j]; i += 2) {
                 win1[j][i] = +win[j][i];
-            for (int i = 1; i < len[j]; i += 2)
+            }
+            for (int i = 1; i < len[j]; i += 2) {
                 win1[j][i] = -win[j][i];
+            }
         }
 
         for (int i = 0; i < 16; i++) {
@@ -224,12 +234,14 @@ public class Layer3 {
 
             for (int j = 0; j < 2; j++) {
                 double base = Math.pow(2.0, -0.25 * (j + 1.0));
-                double p1 = 1.0, p2 = 1.0;
+                double p1 = 1.0;
+                double p2 = 1.0;
                 if (i > 0) {
-                    if ((i & 1) != 0)
+                    if ((i & 1) != 0) {
                         p1 = Math.pow(base, (i + 1.0) * 0.5);
-                    else
+                    } else {
                         p2 = Math.pow(base, i * 0.5);
+                    }
                 }
                 pow1_1[j][i] = (float) p1;
                 pow2_1[j][i] = (float) p2;
@@ -511,8 +523,9 @@ public class Layer3 {
                 gr_infos.region2start = 576 >> 1;
             } else {
                 int i, r0c, r1c;
-                for (i = 0; i < 3; i++)
+                for (i = 0; i < 3; i++) {
                     gr_infos.table_select[i] = common.getbits_fast(mp, 5);
+                }
                 r0c = common.getbits_fast(mp, 4);
                 r1c = common.getbits_fast(mp, 3);
                 gr_infos.region1start = bandInfo[sfreq].longIdx[r0c + 1] >> 1;
@@ -619,12 +632,14 @@ public class Layer3 {
             int num = slen & 0x7;
             slen >>= 3;
             if (num != 0) {
-                for (j = 0; j < pnt[i]; j++)
+                for (j = 0; j < pnt[i]; j++) {
                     scf[scfPos++] = common.getbits_fast(mp, num);
+                }
                 numbits += pnt[i] * num;
             } else {
-                for (j = 0; j < pnt[i]; j++)
+                for (j = 0; j < pnt[i]; j++) {
                     scf[scfPos++] = 0;
+                }
             }
         }
 
@@ -696,19 +711,26 @@ public class Layer3 {
              * decoding with short or mixed mode BandIndex table
 			 */
             int i, max[] = new int[4];
-            int step = 0, lwin = 0, cb = 0;
+            int step = 0;
+            int lwin = 0;
+            int cb = 0;
             float v = 0.0f;
             int[] m;
             int mc;
             int mPos = 0;
             if (gr_infos.mixed_block_flag != 0) {
                 max[3] = -1;
-                max[0] = max[1] = max[2] = 2;
+                max[0] = 2;
+                max[1] = 2;
+                max[2] = 2;
                 m = map[sfreq][0];
                 mPos = 0;
                 me = mapend[sfreq][0];
             } else {
-                max[0] = max[1] = max[2] = max[3] = -1;
+                max[0] = -1;
+                max[1] = -1;
+                max[2] = -1;
+                max[3] = -1;
                 /* max[3] not really needed in this case */
                 m = map[sfreq][1];
                 mPos = 0;
@@ -1407,11 +1429,16 @@ public class Layer3 {
             // DCT12_PART1
 
             in5 = in[inbufPos + 5 * 3];
-            in5 += (in4 = in[inbufPos + 4 * 3]);
-            in4 += (in3 = in[inbufPos + 3 * 3]);
-            in3 += (in2 = in[inbufPos + 2 * 3]);
-            in2 += (in1 = in[inbufPos + 1 * 3]);
-            in1 += (in0 = in[inbufPos + 0 * 3]);
+            in4 = in[inbufPos + 4 * 3];
+            in5 += (in4);
+            in3 = in[inbufPos + 3 * 3];
+            in4 += (in3);
+            in2 = in[inbufPos + 2 * 3];
+            in3 += (in2);
+            in1 = in[inbufPos + 1 * 3];
+            in2 += (in1);
+            in0 = in[inbufPos + 0 * 3];
+            in1 += (in0);
 
             in5 += in3;
             in3 += in1;
@@ -1469,11 +1496,16 @@ public class Layer3 {
 
             // DCT12_PART1
             in5 = in[inbufPos + 5 * 3];
-            in5 += (in4 = in[inbufPos + 4 * 3]);
-            in4 += (in3 = in[inbufPos + 3 * 3]);
-            in3 += (in2 = in[inbufPos + 2 * 3]);
-            in2 += (in1 = in[inbufPos + 1 * 3]);
-            in1 += (in0 = in[inbufPos + 0 * 3]);
+            in4 = in[inbufPos + 4 * 3];
+            in5 += (in4);
+            in3 = in[inbufPos + 3 * 3];
+            in4 += (in3);
+            in2 = in[inbufPos + 2 * 3];
+            in3 += (in2);
+            in1 = in[inbufPos + 1 * 3];
+            in2 += (in1);
+            in0 = in[inbufPos + 0 * 3];
+            in1 += (in0);
 
             in5 += in3;
             in3 += in1;
@@ -1538,11 +1570,16 @@ public class Layer3 {
             // DCT12_PART1
 
             in5 = in[inbufPos + 5 * 3];
-            in5 += (in4 = in[inbufPos + 4 * 3]);
-            in4 += (in3 = in[inbufPos + 3 * 3]);
-            in3 += (in2 = in[inbufPos + 2 * 3]);
-            in2 += (in1 = in[inbufPos + 1 * 3]);
-            in1 += (in0 = in[inbufPos + 0 * 3]);
+            in4 = in[inbufPos + 4 * 3];
+            in5 += (in4);
+            in3 = in[inbufPos + 3 * 3];
+            in4 += (in3);
+            in2 = in[inbufPos + 2 * 3];
+            in3 += (in2);
+            in1 = in[inbufPos + 1 * 3];
+            in2 += (in1);
+            in0 = in[inbufPos + 0 * 3];
+            in1 += (in0);
 
             in5 += in3;
             in3 += in1;
@@ -1694,14 +1731,11 @@ public class Layer3 {
         if (fr.mode == MPG123.MPG_MD_JOINT_STEREO) {
             ms_stereo = fr.mode_ext & 0x2;
             i_stereo = fr.mode_ext & 0x1;
-        } else
-            ms_stereo = i_stereo = 0;
-
-        if (fr.lsf != 0) {
-            granules = 1;
         } else {
-            granules = 2;
+            ms_stereo = i_stereo = 0;
         }
+
+        granules = (fr.lsf != 0) ? 1 : 2;
 
         for (gr = 0; gr < granules; gr++) {
 
@@ -1716,7 +1750,9 @@ public class Layer3 {
 
             if (mp.pinfo != null) {
                 mp.pinfo.getSfbits()[gr][0] = part2bits2;
-                for (int i = 0; i < 39; i++) mp.pinfo.getSfb_s()[gr][0][i] = scalefacs[0][i];
+                for (int i = 0; i < 39; i++) {
+                    mp.pinfo.getSfb_s()[gr][0][i] = scalefacs[0][i];
+                }
             }
 
             if (III_dequantize_sample(mp, hybridIn[0], scalefacs[0], gr_infos2, sfreq, part2bits2) != 0) return clip;
@@ -1796,7 +1832,9 @@ public class Layer3 {
                     mp.pinfo.getMpg123blocktype()[gr][ch] = gr_infos.block_type;
                     mp.pinfo.getMainbits()[gr][ch] = gr_infos.part2_3_length;
                     mp.pinfo.getPreflag()[gr][ch] = gr_infos.preflag;
-                    if (gr == 1) mp.pinfo.getScfsi()[ch] = gr_infos.scfsi;
+                    if (gr == 1) {
+                        mp.pinfo.getScfsi()[ch] = gr_infos.scfsi;
+                    }
                 }
 
                 for (int ch = 0; ch < stereo1; ch++) {
