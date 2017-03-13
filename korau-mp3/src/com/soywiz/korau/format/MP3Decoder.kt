@@ -9,7 +9,6 @@ import net.sourceforge.lame.util.AsyncStreamToRandomReader
 class MP3Decoder : MP3() {
     suspend override fun decodeStream(data: AsyncStream): AudioStream? {
         val lame = Lame()
-        lame.parser.inputFormat = GetAudio.SoundFileFormat.sf_mp123
         lame.audio.initInFile(lame.flags, AsyncStreamToRandomReader(data), FrameSkip())
 
         lame.parser.mp3InputData.totalFrames = lame.parser.mp3InputData.numSamples / lame.parser.mp3InputData.frameSize

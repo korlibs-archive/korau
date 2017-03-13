@@ -27,12 +27,10 @@ import net.sourceforge.lame.mpg.MPGLib;
 import net.sourceforge.lame.util.RandomReader;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 
 @SuppressWarnings("PointlessArithmeticExpression")
 public class GetAudio {
-    private static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
     private static final char abl2[] = {0, 7, 7, 7, 0, 7, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8};
     Parse parse;
     MPGLib mpg;
@@ -97,19 +95,14 @@ public class GetAudio {
             return 0;
         }
 
-        if (gfp.getInNumChannels() != parse.getMp3InputData().getStereo()) {
+        if (gfp.getInNumChannels() != parse.getMp3InputData().getStereo())
             throw new RuntimeException("number of channels has changed");
-        }
-        if (gfp.getInSampleRate() != parse.getMp3InputData().getSamplerate()) {
+        if (gfp.getInSampleRate() != parse.getMp3InputData().getSamplerate())
             throw new RuntimeException("sample frequency has changed");
-        }
         return out;
     }
 
-    private RandomReader OpenSndFile(
-            final LameGlobalFlags gfp,
-            final RandomReader musicin2, final FrameSkip enc
-    ) throws IOException {
+    private RandomReader OpenSndFile(final LameGlobalFlags gfp, final RandomReader musicin2, final FrameSkip enc) throws IOException {
 
 		/* set the defaults from info in case we cannot determine them from file */
         gfp.setNum_samples(-1);
@@ -140,7 +133,7 @@ public class GetAudio {
     }
 
     private boolean check_aid(final byte[] header) {
-        return new String(header, ISO_8859_1).startsWith("AiD\1");
+        return header.length >= 4 && header[0] == 'A' && header[1] == 'i' && header[2] == 'D' && header[3] == 1;
     }
 
     private boolean is_syncword_mp123(final byte[] headerptr) {
@@ -158,26 +151,17 @@ public class GetAudio {
 
             case 0x02:
             /* Layer3 */
-                if (parse.getInputFormat() != SoundFileFormat.sf_mp3 && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
-                    return false;
-                }
-                parse.setInputFormat(SoundFileFormat.sf_mp3);
+                parse.layer = 3;
                 break;
 
             case 0x04:
             /* Layer2 */
-                if (parse.getInputFormat() != SoundFileFormat.sf_mp2 && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
-                    return false;
-                }
-                parse.setInputFormat(SoundFileFormat.sf_mp2);
+                parse.layer = 2;
                 break;
 
             case 0x06:
             /* Layer1 */
-                if (parse.getInputFormat() != SoundFileFormat.sf_mp1 && parse.getInputFormat() != SoundFileFormat.sf_mp123) {
-                    return false;
-                }
-                parse.setInputFormat(SoundFileFormat.sf_mp1);
+                parse.layer = 1;
                 break;
         }
         if ((headerptr[p + 1] & 0x06) == 0x00) return false; /* no Layer I, II and III */
@@ -313,11 +297,10 @@ public class GetAudio {
             }
             if (len <= 0) {
                 /* we are done reading the file, but check for buffered data */
-                ret = mpg.hip_decode1_headers(hip, buf, 0, pcm_l, pcm_r,
-                        mp3data, new FrameSkip());
+                ret = mpg.hip_decode1_headers(hip, buf, 0, pcm_l, pcm_r, mp3data, new FrameSkip());
                 if (ret <= 0) {
                     mpg.hip_decode_exit(hip);
-					/* release mp3decoder memory */
+                    /* release mp3decoder memory */
                     hip = null;
                     return -1; /* done with file */
                 }
@@ -327,7 +310,7 @@ public class GetAudio {
             ret = mpg.hip_decode1_headers(hip, buf, len, pcm_l, pcm_r, mp3data, new FrameSkip());
             if (ret == -1) {
                 mpg.hip_decode_exit(hip);
-				/* release mp3decoder memory */
+                /* release mp3decoder memory */
                 hip = null;
                 return -1;
             }
@@ -335,11 +318,5 @@ public class GetAudio {
                 break;
         }
         return ret;
-    }
-
-    // Rest of portableio.c:
-
-    public enum SoundFileFormat {
-        sf_mp1, sf_mp2, sf_mp3, sf_mp123
     }
 }

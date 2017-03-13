@@ -24,7 +24,7 @@
 package net.sourceforge.lame.mp3
 
 class Parse {
+    @JvmField var layer: Int = -1;
     //public int silent;
-    var inputFormat = GetAudio.SoundFileFormat.sf_mp123
     val mp3InputData = MP3Data()
 }
