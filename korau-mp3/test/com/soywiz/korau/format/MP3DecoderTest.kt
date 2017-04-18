@@ -9,7 +9,7 @@ import org.junit.Test
 class MP3DecoderTest {
     // http://mpgedit.org/mpgedit/testdata/mpegdata.html
     @Test
-    fun testDecodeWav() = syncTest {
+    fun testDecodeMp3() = syncTest {
 
         val output = ResourcesVfs["mp31.mp3"].readAudioData()
         val outputBytes = AudioFormats.encodeToByteArray(output, "out.wav")
@@ -33,7 +33,7 @@ class MP3DecoderTest {
         //ResourcesVfs["fl13.mp2"].readAudioStream()!!.play()
         //ResourcesVfs["fl14.mp2"].readAudioStream()!!.play()
         //ResourcesVfs["fl16.mp2"].readAudioStream()!!.play()
-        ResourcesVfs["mp31_joint_stereo_vbr.mp3"].readAudioStream()!!.play()
-        LocalVfs("c:/temp/test2.mp3").readAudioStream()!!.play()
+        //ResourcesVfs["mp31_joint_stereo_vbr.mp3"].readAudioStream()!!.play()
+        //LocalVfs("c:/temp/test2.mp3").readAudioStream()!!.play()
     }
 }

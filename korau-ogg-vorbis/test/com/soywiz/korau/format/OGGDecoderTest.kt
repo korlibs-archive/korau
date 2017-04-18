@@ -21,6 +21,6 @@ class OGGDecoderTest {
         //expected.play()
         Assert.assertArrayEquals(expectedBytes, outputBytes)
 
-        LocalVfs("c:/temp/test.ogg").readAudioStream()!!.play()
+        //LocalVfs("c:/temp/test.ogg").readAudioStream()!!.play()
     }
 }
