@@ -1,18 +1,26 @@
 package com.soywiz.korau.awt
 
-import com.soywiz.korau.format.AudioStream
+import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
 import com.soywiz.korio.async.*
 import com.soywiz.korio.coroutine.korioSuspendCoroutine
+import com.soywiz.korio.stream.openAsync
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.*
+import javax.sound.sampled.AudioFormat
 
 class AwtNativeSoundProvider : NativeSoundProvider() {
 	override val priority: Int = 1000
 
 	override suspend fun createSound(data: ByteArray): NativeSound {
-		return AwtNativeSound(data)
+		try {
+			return AwtNativeSound((AudioFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())).toWav())
+		}catch (e: Throwable) {
+			e.printStackTrace()
+			return AwtNativeSound(AudioData(44100, 2, shortArrayOf()).toWav())
+		}
+		//return AwtNativeSound(data)
 	}
 
 	suspend override fun play(stream: AudioStream): Unit = suspendCancellableCoroutine { c ->

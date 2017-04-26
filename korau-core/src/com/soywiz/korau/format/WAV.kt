@@ -122,3 +122,5 @@ class WAV : AudioFormat("wav") {
         }
     }
 }
+
+suspend fun AudioData.toWav() = WAV().encodeToByteArray(this)
