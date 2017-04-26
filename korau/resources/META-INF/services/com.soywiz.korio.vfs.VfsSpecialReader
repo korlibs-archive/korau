@@ -1,0 +1,2 @@
+com.soywiz.korau.awt.AwtNativeSoundSpecialReader # <target=java>
+com.soywiz.korau.js.HtmlNativeSoundSpecialReader # <target=js>

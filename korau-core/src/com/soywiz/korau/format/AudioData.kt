@@ -28,6 +28,8 @@ class AudioData(
     override fun toString(): String = "AudioData(rate=$rate, channels=$channels, samples=${samples.size})"
 }
 
-suspend fun AudioData.play() = nativeSoundProvider.createSound(this).play()
+suspend fun AudioData.toNativeSound() = nativeSoundProvider.createSound(this)
+
+suspend fun AudioData.play() = this.toNativeSound().play()
 
 suspend fun VfsFile.readAudioData() = this.openUse { AudioFormats.decode(this) ?: invalidOp("Can't decode audio file ${this@readAudioData}") }

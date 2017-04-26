@@ -11,7 +11,7 @@ import javax.sound.sampled.*
 class AwtNativeSoundProvider : NativeSoundProvider() {
 	override val priority: Int = 1000
 
-	override fun createSound(data: ByteArray): NativeSound {
+	override suspend fun createSound(data: ByteArray): NativeSound {
 		return AwtNativeSound(data)
 	}
 
