@@ -2,19 +2,12 @@ package com.soywiz.korau.sound
 
 import com.soywiz.korau.format.AudioFormats
 import com.soywiz.korau.format.AudioStream
-import com.soywiz.korio.error.invalidOp
+import com.soywiz.korio.service.Services
 import com.soywiz.korio.vfs.VfsFile
-import java.util.*
 
-val nativeSoundProvider by lazy {
-	ServiceLoader.load(NativeSoundProvider::class.java).filter { it.available }.sortedBy { it.priority }.firstOrNull()
-		?: invalidOp("No default NativeSoundProvider")
-}
+val nativeSoundProvider by lazy { Services.load(NativeSoundProvider::class.java) }
 
-open class NativeSoundProvider {
-	open val available: Boolean = true
-	open val priority: Int = 2000
-
+open class NativeSoundProvider : Services.Impl() {
 	open suspend fun createSound(data: ByteArray): NativeSound = NativeSound()
 
 	open suspend fun createSound(file: VfsFile): NativeSound = createSound(file.read())

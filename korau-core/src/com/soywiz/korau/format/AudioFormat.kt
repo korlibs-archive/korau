@@ -2,13 +2,14 @@
 
 package com.soywiz.korau.format
 
+import com.soywiz.korio.service.Services
 import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.Extra
 import com.soywiz.korio.vfs.PathInfo
 import com.soywiz.korio.vfs.VfsFile
 import java.util.*
 
-open class AudioFormat(vararg exts: String) {
+open class AudioFormat(vararg exts: String) : Services.Impl() {
     val extensions = exts.map { it.toLowerCase().trim() }.toSet()
 
     data class Info(
@@ -32,7 +33,7 @@ open class AudioFormat(vararg exts: String) {
 }
 
 object AudioFormats : AudioFormat() {
-    val formats = ServiceLoader.load(AudioFormat::class.java).toList()
+    val formats = Services.loadList(AudioFormat::class.java)
 
     suspend override fun tryReadInfo(data: AsyncStream): Info? {
         for (format in formats) {
