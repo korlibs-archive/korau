@@ -32,20 +32,52 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 
 class HtmlNativeSound(val url: String) : NativeSound(), AsyncDependency {
 	val audio = jsNew("Audio", url)
-	val loadOnce = Once()
+	private val once = Once()
 
 	suspend override fun init() = korioSuspendCoroutine<Unit> { c ->
-		val resumeCallback = jsFunction<Unit> {
-			loadOnce {
-				c.resume(Unit)
-			}
+		var ok: JsDynamic? = null
+		var error: JsDynamic? = null
+
+		fun removeEventListeners() {
+			audio.call("removeEventListener", "canplaythrough", ok)
+			audio.call("removeEventListener", "error", error)
+			audio.call("removeEventListener", "abort", error)
 		}
 
-		audio.call("addEventListener", "canplaythrough", resumeCallback)
-		window.call("setTimeout", resumeCallback, 1000)
+		ok = jsFunction<Unit> {
+			removeEventListeners()
+			c.resume(Unit)
+
+		}
+		error = jsFunction<Unit> {
+			removeEventListeners()
+			c.resume(Unit)
+		}
+
+		audio.call("addEventListener", "canplaythrough", ok)
+		audio.call("addEventListener", "error", error)
+		audio.call("addEventListener", "abort", error)
 	}
 
-	suspend override fun play() {
+	suspend override fun play() = korioSuspendCoroutine<Unit> { c ->
+		var done: JsDynamic? = null
+
+		fun removeEventListeners() {
+			audio.call("removeEventListener", "ended", done)
+			audio.call("removeEventListener", "pause", done)
+			audio.call("removeEventListener", "stalled", done)
+			audio.call("removeEventListener", "error", done)
+		}
+
+		done = jsFunction<Unit> {
+			removeEventListeners()
+			c.resume(Unit)
+		}
+
+		audio.call("addEventListener", "ended", done)
+		audio.call("addEventListener", "pause", done)
+		audio.call("addEventListener", "stalled", done)
+		audio.call("addEventListener", "error", done)
 		audio.call("play")
 	}
 }
