@@ -8,7 +8,7 @@ import com.soywiz.korio.vfs.Vfs
 import com.soywiz.korio.vfs.VfsSpecialReader
 
 class HtmlNativeSoundSpecialReader : VfsSpecialReader<NativeSound>(NativeSound::class.java) {
-	override val isAvailable: Boolean = JTranscSystem.isJs()
+	override val available: Boolean = JTranscSystem.isJs()
 
 	suspend override fun readSpecial(vfs: Vfs, path: String): NativeSound = when (vfs) {
 		is LocalVfs -> {
