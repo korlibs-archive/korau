@@ -3,6 +3,7 @@ package com.soywiz.korau.js
 import com.jtransc.js.*
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
+import com.soywiz.korio.async.suspendCancellableCoroutine
 import com.soywiz.korio.coroutine.korioSuspendCoroutine
 import com.soywiz.korio.inject.AsyncDependency
 import com.soywiz.korio.util.Once
@@ -32,9 +33,9 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 
 class HtmlNativeSound(val url: String) : NativeSound(), AsyncDependency {
 	val audio = jsNew("Audio", url)
-	private val once = Once()
+	//private val once = Once()
 
-	suspend override fun init() = korioSuspendCoroutine<Unit> { c ->
+	suspend override fun init() = suspendCancellableCoroutine<Unit> { c ->
 		var ok: JsDynamic? = null
 		var error: JsDynamic? = null
 
@@ -57,9 +58,13 @@ class HtmlNativeSound(val url: String) : NativeSound(), AsyncDependency {
 		audio.call("addEventListener", "canplaythrough", ok)
 		audio.call("addEventListener", "error", error)
 		audio.call("addEventListener", "abort", error)
+
+		c.onCancel {
+			audio.call("stop")
+		}
 	}
 
-	suspend override fun play() = korioSuspendCoroutine<Unit> { c ->
+	suspend override fun play() = suspendCancellableCoroutine<Unit> { c ->
 		var done: JsDynamic? = null
 
 		fun removeEventListeners() {
@@ -79,5 +84,9 @@ class HtmlNativeSound(val url: String) : NativeSound(), AsyncDependency {
 		audio.call("addEventListener", "stalled", done)
 		audio.call("addEventListener", "error", done)
 		audio.call("play")
+
+		c.onCancel {
+			audio.call("stop")
+		}
 	}
 }

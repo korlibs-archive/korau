@@ -65,7 +65,7 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
 }
 
 class AwtNativeSound(val data: ByteArray) : NativeSound() {
-	suspend override fun play(): Unit = korioSuspendCoroutine { c ->
+	suspend override fun play(): Unit = suspendCancellableCoroutine { c ->
 		Thread {
 			val sound = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))
 			val info = DataLine.Info(Clip::class.java, sound.format)
@@ -74,19 +74,22 @@ class AwtNativeSound(val data: ByteArray) : NativeSound() {
 
 			clip.addLineListener(MyLineListener(clip, c))
 			clip.start()
+			c.onCancel {
+				clip.stop()
+			}
 		}.apply {
 			isDaemon = true
 		}.start()
 	}
-}
 
-private class MyLineListener(val clip: Clip, val c: Continuation<Unit>) : LineListener {
-	override fun update(event: LineEvent) {
-		when (event.type) {
-			LineEvent.Type.STOP, LineEvent.Type.CLOSE -> {
-				event.line.close()
-				clip.removeLineListener(this)
-				c.resume(Unit)
+	private class MyLineListener(val clip: Clip, val c: Continuation<Unit>) : LineListener {
+		override fun update(event: LineEvent) {
+			when (event.type) {
+				LineEvent.Type.STOP, LineEvent.Type.CLOSE -> {
+					event.line.close()
+					clip.removeLineListener(this)
+					c.resume(Unit)
+				}
 			}
 		}
 	}
