@@ -4,6 +4,7 @@ import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
 import com.soywiz.korio.async.*
+import com.soywiz.korio.coroutine.Continuation
 import com.soywiz.korio.coroutine.korioSuspendCoroutine
 import com.soywiz.korio.stream.openAsync
 import java.io.ByteArrayInputStream
@@ -24,7 +25,7 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
 	}
 
 	suspend override fun play(stream: AudioStream): Unit = suspendCancellableCoroutine { c ->
-		spawn {
+		spawn(c.context) {
 			executeInNewThread {
 				val af = AudioFormat(stream.rate.toFloat(), 16, stream.channels, true, false)
 				val info = DataLine.Info(SourceDataLine::class.java, af)
@@ -70,15 +71,23 @@ class AwtNativeSound(val data: ByteArray) : NativeSound() {
 			val info = DataLine.Info(Clip::class.java, sound.format)
 			val clip = AudioSystem.getLine(info) as Clip
 			clip.open(sound)
-			clip.addLineListener { event ->
-				if (event.type === LineEvent.Type.STOP) {
-					event.line.close()
-					c.resume(Unit)
-				}
-			}
+
+			clip.addLineListener(MyLineListener(clip, c))
 			clip.start()
 		}.apply {
 			isDaemon = true
 		}.start()
+	}
+}
+
+private class MyLineListener(val clip: Clip, val c: Continuation<Unit>) : LineListener {
+	override fun update(event: LineEvent) {
+		when (event.type) {
+			LineEvent.Type.STOP, LineEvent.Type.CLOSE -> {
+				event.line.close()
+				clip.removeLineListener(this)
+				c.resume(Unit)
+			}
+		}
 	}
 }
