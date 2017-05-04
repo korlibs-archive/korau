@@ -29,14 +29,26 @@ class WAV : AudioFormat("wav") {
             }
         }
 
-        if (fmt.bitsPerSample != 16) TODO("Unsupported bitsPerSample: ${fmt.bitsPerSample}")
+        val bytesPerSample: Int = fmt.bitsPerSample / 8
 
         return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
             suspend override fun read(out: ShortArray, offset: Int, length: Int): Int {
-                val bytes = buffer.readBytes(length * 2)
-                val temp = bytes.readShortArray_le(0, bytes.size / 2) // @TODO: avoid allocations
-                System.arraycopy(temp, 0, out, offset, temp.size)
-                return temp.size
+                val bytes = FastByteArrayInputStream(buffer.readBytes(length * bytesPerSample))
+                when (bytesPerSample) {
+                    2 -> {
+                        val temp = bytes.readShortArray_le(length) // @TODO: avoid allocations
+                        System.arraycopy(temp, 0, out, offset, temp.size)
+                        return temp.size
+                    }
+                    3 -> {
+                        for (n in 0 until length) {
+                            if (bytes.available < 3) return n
+                            out[offset + n] = (bytes.readS24_le() ushr 8).toShort()
+                        }
+                        return length
+                    }
+                    else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
+                }
             }
         }
     }
