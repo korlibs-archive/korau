@@ -34,21 +34,21 @@ class WAV : AudioFormat("wav") {
         return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
             suspend override fun read(out: ShortArray, offset: Int, length: Int): Int {
                 val bytes = FastByteArrayInputStream(buffer.readBytes(length * bytesPerSample))
+                val availableSamples = bytes.length / bytesPerSample
                 when (bytesPerSample) {
                     2 -> {
-                        val temp = bytes.readShortArray_le(length) // @TODO: avoid allocations
+                        val temp = bytes.readShortArray_le(availableSamples) // @TODO: avoid allocations
                         System.arraycopy(temp, 0, out, offset, temp.size)
-                        return temp.size
                     }
                     3 -> {
                         for (n in 0 until length) {
                             if (bytes.available < 3) return n
                             out[offset + n] = (bytes.readS24_le() ushr 8).toShort()
                         }
-                        return length
                     }
                     else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
                 }
+                return availableSamples
             }
         }
     }

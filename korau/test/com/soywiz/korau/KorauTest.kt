@@ -1,8 +1,6 @@
 package com.soywiz.korau
 
-import com.soywiz.korau.format.play
 import com.soywiz.korau.format.readAudioData
-import com.soywiz.korio.async.sleep
 import com.soywiz.korio.async.syncTest
 import com.soywiz.korio.vfs.ResourcesVfs
 import org.junit.Test
