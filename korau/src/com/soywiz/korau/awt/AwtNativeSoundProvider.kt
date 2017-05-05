@@ -16,10 +16,10 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
 
 	override suspend fun createSound(data: ByteArray): NativeSound {
 		try {
-			return AwtNativeSound((AudioFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())).toWav())
+			return AwtNativeSound((AudioFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())).toWav()).init()
 		}catch (e: Throwable) {
 			e.printStackTrace()
-			return AwtNativeSound(AudioData(44100, 2, shortArrayOf()).toWav())
+			return AwtNativeSound(AudioData(44100, 2, shortArrayOf()).toWav()).init()
 		}
 		//return AwtNativeSound(data)
 	}
@@ -65,6 +65,16 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
 }
 
 class AwtNativeSound(val data: ByteArray) : NativeSound() {
+	override var lengthInMs: Long = 0L
+
+	suspend fun init(): AwtNativeSound {
+		executeInWorker {
+			val sound = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))
+			lengthInMs = (sound.frameLength * 1000.0 / sound.format.frameRate.toDouble()).toLong()
+		}
+		return this
+	}
+
 	suspend override fun play(): Unit = suspendCancellableCoroutine { c ->
 		Thread {
 			val sound = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))

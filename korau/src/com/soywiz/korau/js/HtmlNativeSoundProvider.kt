@@ -35,7 +35,15 @@ class HtmlNativeSound(val url: String) : NativeSound(), AsyncDependency {
 	val audio = jsNew("Audio", url)
 	//private val once = Once()
 
-	suspend override fun init() = suspendCancellableCoroutine<Unit> { c ->
+	override var lengthInMs: Long = 0L
+
+	suspend override fun init() {
+		initInternal()
+		lengthInMs = (audio["duration"].toDouble() * 1000L).toLong()
+	}
+
+
+	suspend fun initInternal() = suspendCancellableCoroutine<Unit> { c ->
 		var ok: JsDynamic? = null
 		var error: JsDynamic? = null
 
