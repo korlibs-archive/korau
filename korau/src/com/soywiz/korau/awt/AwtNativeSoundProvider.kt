@@ -14,6 +14,21 @@ import javax.sound.sampled.AudioFormat
 class AwtNativeSoundProvider : NativeSoundProvider() {
 	override val priority: Int = 1000
 
+	override suspend fun init(): Unit {
+		AudioSystem.getMixerInfo()
+
+		val af = AudioFormat(44100f, 16, 2, true, false)
+		val info = DataLine.Info(SourceDataLine::class.java, af)
+		val line = AudioSystem.getLine(info) as SourceDataLine
+
+		line.open(af, 4096)
+		line.start()
+		line.write(ByteArray(4), 0, 4)
+		line.drain()
+		line.stop()
+		line.close()
+	}
+
 	override suspend fun createSound(data: ByteArray): NativeSound {
 		try {
 			return AwtNativeSound((AudioFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())).toWav()).init()
