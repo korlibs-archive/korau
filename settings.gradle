@@ -1,9 +1,10 @@
 rootProject.name = 'korau-root'
 
 include(
+        'korau-common',
         'korau',
-        'korau-core',
         'korau-android',
+        'korau-js',
         'korau-ogg-vorbis',
         'korau-mp3',
         'korau-midi',
