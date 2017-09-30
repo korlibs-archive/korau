@@ -1,0 +1,14 @@
+apply plugin: 'kotlin-platform-js'
+
+dependencies {
+    implement project(":korau-ogg-vorbis-common")
+    compile project(":korau-js")
+    compile libraries.kotlin_stdlib_js
+    testCompile libraries.kotlin_test_js
+    compile "com.soywiz:korio-js:$korVersion"
+    compile "com.soywiz:korma-js:$korVersion"
+}
+
+kotlin {
+    experimental { coroutines 'enable' }
+}

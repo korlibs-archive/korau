@@ -5,8 +5,14 @@ include(
         'korau',
         'korau-android',
         'korau-js',
+
+        'korau-ogg-vorbis-common',
         'korau-ogg-vorbis',
+        'korau-ogg-vorbis-android',
+        'korau-ogg-vorbis-js',
+
+        'korau-mp3-common',
         'korau-mp3',
-        'korau-midi',
-        'korau-mod',
+        'korau-mp3-android',
+        'korau-mp3-js',
 )

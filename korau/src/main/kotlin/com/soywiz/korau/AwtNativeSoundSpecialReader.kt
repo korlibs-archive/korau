@@ -7,7 +7,7 @@ import com.soywiz.korio.vfs.LocalVfs
 import com.soywiz.korio.vfs.Vfs
 import com.soywiz.korio.vfs.VfsSpecialReader
 
-class AwtNativeSoundSpecialReader : VfsSpecialReader<NativeSound>(NativeSound::class.java) {
+class AwtNativeSoundSpecialReader : VfsSpecialReader<NativeSound>(NativeSound::class) {
 	suspend override fun readSpecial(vfs: Vfs, path: String): NativeSound = try {
 		when (vfs) {
 			is LocalVfs -> nativeSoundProvider.createSound(vfs[path])
