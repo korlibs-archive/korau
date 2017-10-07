@@ -2,13 +2,9 @@ apply plugin: 'kotlin-platform-jvm'
 
 dependencies {
     implement project(":korau-mp3-common")
+
     compile project(":korau-android")
-    compile libraries.kotlin_stdlib_jvm
-    testCompile libraries.kotlin_test_jvm
+
     compile "com.soywiz:korio-android:$korVersion"
     compile "com.soywiz:korma-android:$korVersion"
-}
-
-kotlin {
-    experimental { coroutines 'enable' }
 }
