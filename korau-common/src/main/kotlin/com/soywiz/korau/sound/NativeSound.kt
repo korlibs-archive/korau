@@ -10,6 +10,8 @@ expect object NativeNativeSoundProvider {
 	val instance: NativeSoundProvider
 }
 
+expect fun registerNativeSoundSpecialReader(): Unit
+
 val nativeSoundProvider: NativeSoundProvider by lazy { NativeNativeSoundProvider.instance }
 
 open class NativeSoundProvider : AsyncDependency {
@@ -37,4 +39,4 @@ open class NativeSound {
 }
 
 suspend fun VfsFile.readNativeSound() = nativeSoundProvider.createSound(this)
-suspend fun VfsFile.readNativeSoundOptimized() = this.readSpecial<NativeSound>()
+suspend fun VfsFile.readNativeSoundOptimized() = this.readSpecial(NativeSound::class)

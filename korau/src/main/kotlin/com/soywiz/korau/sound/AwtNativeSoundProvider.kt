@@ -1,5 +1,6 @@
 package com.soywiz.korau.sound
 
+import com.soywiz.korau.AwtNativeSoundSpecialReader
 import com.soywiz.korau.format.AudioData
 import com.soywiz.korau.format.AudioStream
 import com.soywiz.korau.format.defaultAudioFormats
@@ -10,11 +11,16 @@ import com.soywiz.korio.async.spawn
 import com.soywiz.korio.async.suspendCancellableCoroutine
 import com.soywiz.korio.coroutine.Continuation
 import com.soywiz.korio.stream.openAsync
+import com.soywiz.korio.vfs.register
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.*
 
 actual object NativeNativeSoundProvider {
 	actual val instance: NativeSoundProvider by lazy { AwtNativeSoundProvider() }
+}
+
+actual fun registerNativeSoundSpecialReader(): Unit {
+	AwtNativeSoundSpecialReader().register()
 }
 
 class AwtNativeSoundProvider : NativeSoundProvider() {
