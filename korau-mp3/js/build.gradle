@@ -1,0 +1,14 @@
+apply plugin: 'kotlin-platform-js'
+
+dependencies {
+    implement project(":korau-mp3-common")
+
+    compile project(":korau-js")
+
+    compile "com.soywiz:korio-js:$korVersion"
+    compile "com.soywiz:korma-js:$korVersion"
+}
+
+sourceSets {
+    test.resources.srcDirs += [ '../common/src/test/resources' ] // @TODO: @BUG: Hack. No common resources are copied
+}

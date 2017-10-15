@@ -1,0 +1,14 @@
+apply plugin: 'kotlin-platform-js'
+
+dependencies {
+    implement project(":korau-common")
+
+    compile "com.soywiz:korio-js:$korVersion"
+    compile "com.soywiz:korma-js:$korVersion"
+
+    testCompile libraries.kotlin_test_js
+}
+
+sourceSets {
+    test.resources.srcDirs += [ '../common/src/test/resources' ] // @TODO: @BUG: Hack. No common resources are copied
+}
