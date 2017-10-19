@@ -1,6 +1,6 @@
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
-import com.soywiz.korio.lang.JvmField
+import com.soywiz.korio.JvmField
 
 class Frame {
     @JvmField var stereo: Int = 0

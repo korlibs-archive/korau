@@ -3,13 +3,12 @@ package com.soywiz.korau.format
 import com.soywiz.korio.async.syncTest
 import com.soywiz.korio.stream.openAsync
 import com.soywiz.korio.vfs.ResourcesVfs
-import org.junit.Test
 import kotlin.test.assertEquals
 
 class DecodeTest {
 	val formats = AudioFormats().register(WAV)
 
-	@Test
+	@kotlin.test.Test
 	fun wav() = syncTest {
 		val wavContents = ResourcesVfs["wav1.wav"].read()
 		val wavData = formats.decode(wavContents.openAsync())!!
@@ -20,7 +19,7 @@ class DecodeTest {
 		assertEquals(wavContents.toList(), wavContentsGen.toList())
 	}
 
-	@Test
+	@kotlin.test.Test
 	fun wav24() = syncTest {
 		val wavContents = ResourcesVfs["wav24.wav"].read()
 		val wavData = formats.decode(wavContents.openAsync())!!

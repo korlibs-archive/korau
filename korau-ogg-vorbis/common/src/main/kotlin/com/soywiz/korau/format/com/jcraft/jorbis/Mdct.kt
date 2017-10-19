@@ -26,7 +26,7 @@
 
 package com.soywiz.korau.format.com.jcraft.jorbis
 
-import com.soywiz.korio.lang.Synchronized
+import com.soywiz.korio.Synchronized
 import com.soywiz.korio.math.rint
 import kotlin.math.*
 

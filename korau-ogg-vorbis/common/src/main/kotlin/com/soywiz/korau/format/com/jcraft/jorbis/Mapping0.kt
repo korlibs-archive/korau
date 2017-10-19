@@ -27,7 +27,7 @@
 package com.soywiz.korau.format.com.jcraft.jorbis
 
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
-import com.soywiz.korio.lang.Synchronized
+import com.soywiz.korio.Synchronized
 
 internal class Mapping0 : FuncMapping() {
 

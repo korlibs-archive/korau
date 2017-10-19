@@ -24,7 +24,7 @@
 package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib
-import com.soywiz.korio.lang.IOException
+import com.soywiz.korio.IOException
 import com.soywiz.korio.lang.printStackTrace
 import com.soywiz.korio.stream.AsyncStream
 import com.soywiz.korio.stream.readExact

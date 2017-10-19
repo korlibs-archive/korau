@@ -2,16 +2,15 @@ package com.soywiz.korau.format
 
 import com.soywiz.korio.async.syncTest
 import com.soywiz.korio.vfs.ResourcesVfs
-import org.junit.Test
 import kotlin.test.assertEquals
 
 class MP3DecoderTest {
-	val formats = AudioFormats().registerStandard()
+	val formats = AudioFormats().registerStandard().registerMp3Decoder()
 
 	// http://mpgedit.org/mpgedit/testdata/mpegdata.html
-	@Test
+	@kotlin.test.Test
 	fun testDecodeMp3() = syncTest {
-		val output = ResourcesVfs["mp31.mp3"].readAudioData()
+		val output = ResourcesVfs["mp31.mp3"].readAudioData(formats)
 		val outputBytes = formats.encodeToByteArray(output, "out.wav")
 
 		//output.play()
@@ -19,7 +18,7 @@ class MP3DecoderTest {
 
 		//LocalVfs("c:/temp/mp31.mp3.wav").write(outputBytes)
 
-		val expected = ResourcesVfs["mp31.mp3.wav"].readAudioData()
+		val expected = ResourcesVfs["mp31.mp3.wav"].readAudioData(formats)
 		val expectedBytes = formats.encodeToByteArray(expected, "out.wav")
 
 		assertEquals(expectedBytes.toList(), outputBytes.toList())

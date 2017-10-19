@@ -23,7 +23,7 @@
 
 package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
-import com.soywiz.korio.lang.JvmField
+import com.soywiz.korio.JvmField
 
 class Parse {
     @JvmField var layer: Int = -1;

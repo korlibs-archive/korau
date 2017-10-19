@@ -220,3 +220,5 @@ object OGGDecoder : OggBase() {
 		}
 	}
 }
+
+fun AudioFormats.registerOggVorbisDecoder(): AudioFormats = this.apply { register(OGGDecoder) }

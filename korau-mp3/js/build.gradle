@@ -1,7 +1,7 @@
 apply plugin: 'kotlin-platform-js'
 
 dependencies {
-    implement project(":korau-mp3-common")
+    expectedBy project(":korau-mp3-common")
 
     compile project(":korau-js")
 
