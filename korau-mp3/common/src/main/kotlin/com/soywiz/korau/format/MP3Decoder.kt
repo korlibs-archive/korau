@@ -40,3 +40,5 @@ object MP3Decoder : MP3Base() {
 		}
 	}
 }
+
+fun AudioFormats.registerMp3Decoder(): AudioFormats = this.apply { register(MP3Decoder) }

@@ -1,6 +1,6 @@
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
-import com.soywiz.korio.lang.JvmField
+import com.soywiz.korio.JvmField
 
 object MPG123 {
     const val M_SQRT2 = 1.41421356237309504880

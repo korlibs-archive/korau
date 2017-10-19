@@ -29,8 +29,8 @@
  */
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
+import com.soywiz.korio.JvmField
 import com.soywiz.korio.lang.Console
-import com.soywiz.korio.lang.JvmField
 import com.soywiz.korio.typedarray.copyRangeTo
 import com.soywiz.korio.util.toUnsigned
 

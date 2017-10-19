@@ -31,7 +31,7 @@ package com.soywiz.korau.format.net.sourceforge.lame.mpg
 import com.soywiz.korau.format.net.sourceforge.lame.mp3.FrameSkip
 import com.soywiz.korau.format.net.sourceforge.lame.mp3.MP3Data
 import com.soywiz.korau.format.net.sourceforge.lame.mp3.PlottingData
-import com.soywiz.korio.lang.JvmField
+import com.soywiz.korio.JvmField
 import com.soywiz.korio.lang.assert
 
 class MPGLib(internal var interf: Interface) {

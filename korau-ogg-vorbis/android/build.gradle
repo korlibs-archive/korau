@@ -1,7 +1,7 @@
 apply plugin: 'kotlin-platform-jvm'
 
 dependencies {
-    implement project(":korau-ogg-vorbis-common")
+    expectedBy project(":korau-ogg-vorbis-common")
 
     compile project(":korau-android")
 
