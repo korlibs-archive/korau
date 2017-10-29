@@ -34,4 +34,4 @@ suspend fun AudioData.toNativeSound() = nativeSoundProvider.createSound(this)
 
 suspend fun AudioData.play() = this.toNativeSound().play()
 
-suspend fun VfsFile.readAudioData(formats: AudioFormats = defaultAudioFormats) = this.openUse { formats.decode(this) ?: invalidOp("Can't decode audio file ${this@readAudioData}") }
+suspend fun VfsFile.readAudioData(formats: AudioFormats = defaultAudioFormats) = this.openUse2 { formats.decode(this) ?: invalidOp("Can't decode audio file ${this@readAudioData}") }

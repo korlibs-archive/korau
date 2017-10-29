@@ -69,6 +69,6 @@ class AudioFormats : AudioFormat() {
 	}
 }
 
-suspend fun VfsFile.readSoundInfo(formats: AudioFormats = defaultAudioFormats) = this.openUse { formats.tryReadInfo(this) }
+suspend fun VfsFile.readSoundInfo(formats: AudioFormats = defaultAudioFormats) = this.openUse2 { formats.tryReadInfo(this) }
 
 fun AudioFormats.registerStandard(): AudioFormats = this.apply { register(WAV, OGG, MP3) }
