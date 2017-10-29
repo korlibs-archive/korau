@@ -3,8 +3,8 @@ apply plugin: 'kotlin-platform-jvm'
 dependencies {
     expectedBy project(":korau-common")
 
-    compile "com.soywiz:korio-android:$korVersion"
-    compile "com.soywiz:korma-android:$korVersion"
+    compile "com.soywiz:korio-android:$korioVersion"
+    compile "com.soywiz:korma-android:$kormaVersion"
     compile "com.google.android:android:4.1.1.4"
 }
 

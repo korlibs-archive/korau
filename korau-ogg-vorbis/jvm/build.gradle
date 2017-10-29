@@ -5,8 +5,8 @@ dependencies {
 
     compile project(":korau")
 
-    compile "com.soywiz:korio:$korVersion"
-    compile "com.soywiz:korma:$korVersion"
+    compile "com.soywiz:korio:$korioVersion"
+    compile "com.soywiz:korma:$kormaVersion"
 }
 
 sourceSets {

@@ -3,8 +3,8 @@ apply plugin: 'kotlin-platform-js'
 dependencies {
     expectedBy project(":korau-common")
 
-    compile "com.soywiz:korio-js:$korVersion"
-    compile "com.soywiz:korma-js:$korVersion"
+    compile "com.soywiz:korio-js:$korioVersion"
+    compile "com.soywiz:korma-js:$kormaVersion"
 }
 
 sourceSets {

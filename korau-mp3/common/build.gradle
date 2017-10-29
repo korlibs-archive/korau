@@ -3,6 +3,6 @@ apply plugin: 'kotlin-platform-common'
 dependencies {
     compile project(":korau-common")
 
-    compile "com.soywiz:korio-common:$korVersion"
-    compile "com.soywiz:korma-common:$korVersion"
+    compile "com.soywiz:korio-common:$korioVersion"
+    compile "com.soywiz:korma-common:$kormaVersion"
 }
