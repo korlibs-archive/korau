@@ -19,7 +19,7 @@ buildscript {
 
 allprojects {
     group 'com.soywiz'
-    version "0.15.2"
+    version "0.15.3-SNAPSHOT"
 
     apply plugin: 'java'
     //apply plugin: 'kotlin'
