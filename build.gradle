@@ -19,7 +19,7 @@ buildscript {
 
 allprojects {
     group 'com.soywiz'
-    version "0.15.3-SNAPSHOT"
+    version "0.16.0"
 
     if (project == rootProject) {
         new File(rootProject.rootDir, "korau/common/src/main/kotlin/com/soywiz/korau/KorauVersion.kt").write(
