@@ -26,8 +26,8 @@
 
 package com.soywiz.korau.format.com.jcraft.jorbis
 
+import com.soywiz.kmem.fill
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
-import com.soywiz.korio.typedarray.fill
 import kotlin.math.atan
 import kotlin.math.floor
 

@@ -26,9 +26,9 @@
 
 package com.soywiz.korau.format.com.jcraft.jorbis
 
+import com.soywiz.kmem.arraycopy
+import com.soywiz.kmem.fill
 import com.soywiz.korau.format.com.jcraft.jogg.Buffer
-import com.soywiz.korio.typedarray.copyRangeTo
-import com.soywiz.korio.typedarray.fill
 import kotlin.math.abs
 
 class Floor1 : FuncFloor() {
@@ -418,17 +418,17 @@ class Floor1 : FuncFloor() {
 			val ret = InfoFloor1()
 
 			ret.partitions = info.partitions
-			info.partitionclass.copyRangeTo(0, ret.partitionclass, 0, VIF_PARTS)
-			info.class_dim.copyRangeTo(0, ret.class_dim, 0, VIF_CLASS)
-			info.class_subs.copyRangeTo(0, ret.class_subs, 0, VIF_CLASS)
-			info.class_book.copyRangeTo(0, ret.class_book, 0, VIF_CLASS)
+			arraycopy(info.partitionclass, 0, ret.partitionclass, 0, VIF_PARTS)
+			arraycopy(info.class_dim, 0, ret.class_dim, 0, VIF_CLASS)
+			arraycopy(info.class_subs, 0, ret.class_subs, 0, VIF_CLASS)
+			arraycopy(info.class_book, 0, ret.class_book, 0, VIF_CLASS)
 
 			for (j in 0 until VIF_CLASS) {
-				info.class_subbook[j].copyRangeTo(0, ret.class_subbook[j], 0, 8)
+				arraycopy(info.class_subbook[j], 0, ret.class_subbook[j], 0, 8)
 			}
 
 			ret.mult = info.mult
-			info.postlist!!.copyRangeTo(0, ret.postlist!!, 0, VIF_POSIT + 2)
+			arraycopy(info.postlist!!, 0, ret.postlist!!, 0, VIF_POSIT + 2)
 
 			ret.maxover = info.maxover
 			ret.maxunder = info.maxunder

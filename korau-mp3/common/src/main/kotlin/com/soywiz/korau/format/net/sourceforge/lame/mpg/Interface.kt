@@ -26,10 +26,10 @@
  */
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korau.format.net.sourceforge.lame.mp3.VBRTag
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.*
 import com.soywiz.korio.lang.Console
-import com.soywiz.korio.typedarray.copyRangeTo
 import com.soywiz.korio.util.toUnsigned
 
 class Interface(private val vbr: VBRTag) {
@@ -86,7 +86,7 @@ class Interface(private val vbr: VBRTag) {
 		val nbuf = buf()
 		nbuf.pnt = ByteArray(size)
 		nbuf.size = size
-		buf.copyRangeTo(bufPos, nbuf.pnt, 0, size)
+		arraycopy(buf, bufPos, nbuf.pnt, 0, size)
 		nbuf.pos = 0
 		mp.list.add(nbuf)
 		mp.bsize += size
@@ -145,7 +145,7 @@ class Interface(private val vbr: VBRTag) {
 			} else {
 				nlen = blen
 			}
-			mp.list[0].pnt.copyRangeTo(mp.list[0].pos, ptr, ptrPos + len, nlen)
+			arraycopy(mp.list[0].pnt, mp.list[0].pos, ptr, ptrPos + len, nlen)
 			len += nlen
 			mp.list[0].pos += nlen
 			mp.bsize -= nlen

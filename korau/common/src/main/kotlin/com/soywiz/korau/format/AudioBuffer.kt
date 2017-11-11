@@ -1,6 +1,6 @@
 package com.soywiz.korau.format
 
-import com.soywiz.korio.typedarray.copyRangeTo
+import com.soywiz.kmem.arraycopy
 
 open class AudioBuffer {
 	var buffer = ShortArray(0)
@@ -15,7 +15,7 @@ open class AudioBuffer {
 	fun write(data: ShortArray, offset: Int, len: Int) {
 		if (len <= 0) return
 		ensure(len)
-		data.copyRangeTo(offset, this.buffer, this.bufferlen, len)
+		arraycopy(data, offset, this.buffer, this.bufferlen, len)
 		this.bufferlen += len
 	}
 

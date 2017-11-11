@@ -1,3 +1,3 @@
 package com.soywiz.korau
 
-val KORAU_VERSION = "0.16.1-SNAPSHOT"
+val KORAU_VERSION = "0.17.1"

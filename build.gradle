@@ -1,6 +1,6 @@
 buildscript {
-    ext.korioVersion = '0.16.0'
-    ext.kormaVersion = '0.16.0'
+    ext.korioVersion = '0.17.1'
+    ext.kormaVersion = '0.17.1'
     ext.kotlinVersion = '1.2.0-rc-39'
     ext.compilerVersion = ext.kotlinVersion
     ext.librariesVersion = ext.kotlinVersion
@@ -19,7 +19,7 @@ buildscript {
 
 allprojects {
     group 'com.soywiz'
-    version "0.16.1-SNAPSHOT"
+    version "0.17.1"
 
     if (project == rootProject) {
         new File(rootProject.rootDir, "korau/common/src/main/kotlin/com/soywiz/korau/KorauVersion.kt").write(

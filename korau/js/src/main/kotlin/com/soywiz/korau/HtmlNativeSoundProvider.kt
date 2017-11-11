@@ -2,8 +2,8 @@ package com.soywiz.korau
 
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
+import com.soywiz.korinject.AsyncDependency
 import com.soywiz.korio.async.suspendCancellableCoroutine
-import com.soywiz.korio.inject.AsyncDependency
 import org.w3c.dom.HTMLAudioElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.url.URL

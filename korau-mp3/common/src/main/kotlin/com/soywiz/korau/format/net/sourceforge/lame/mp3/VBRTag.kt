@@ -21,10 +21,10 @@
  */
 package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korio.lang.Charset
 import com.soywiz.korio.lang.Charsets
 import com.soywiz.korio.lang.toString
-import com.soywiz.korio.typedarray.copyRangeTo
 import com.soywiz.korio.util.toUnsigned
 
 class VBRTag {
@@ -101,7 +101,7 @@ class VBRTag {
 		}
 
 		if (head_flags and TOC_FLAG != 0) {
-			buf.copyRangeTo(bufPos + 0, pTagData.toc, 0, NUMTOCENTRIES)
+			arraycopy(buf, bufPos + 0, pTagData.toc, 0, NUMTOCENTRIES)
 			bufPos += NUMTOCENTRIES
 		}
 

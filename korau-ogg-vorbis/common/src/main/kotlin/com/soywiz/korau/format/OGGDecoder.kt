@@ -1,5 +1,7 @@
 package com.soywiz.korau.format
 
+import com.soywiz.kds.LinkedList
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korau.format.com.jcraft.jogg.Packet
 import com.soywiz.korau.format.com.jcraft.jogg.Page
 import com.soywiz.korau.format.com.jcraft.jogg.StreamState
@@ -8,14 +10,12 @@ import com.soywiz.korau.format.com.jcraft.jorbis.Block
 import com.soywiz.korau.format.com.jcraft.jorbis.Comment
 import com.soywiz.korau.format.com.jcraft.jorbis.DspState
 import com.soywiz.korio.async.asyncGenerate
-import com.soywiz.korio.ds.LinkedList
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.lang.Charsets
 import com.soywiz.korio.lang.printStackTrace
 import com.soywiz.korio.lang.toString
 import com.soywiz.korio.stream.AsyncStream
 import com.soywiz.korio.stream.buffered
-import com.soywiz.korio.typedarray.copyRangeTo
 import com.soywiz.korio.util.clamp
 import kotlin.math.min
 
@@ -210,7 +210,7 @@ object OGGDecoder : OggBase() {
 				if (current != null) {
 					val available = current!!.size - currentpos
 					val toread = min(length, available)
-					current!!.copyRangeTo(currentpos, out, offset, toread)
+					arraycopy(current!!, currentpos, out, offset, toread)
 					currentpos += toread
 					return toread
 				} else {

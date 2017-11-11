@@ -27,13 +27,13 @@
 
 package com.soywiz.korau.format.com.jcraft.jorbis
 
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korau.format.com.jcraft.jogg.Packet
 import com.soywiz.korau.format.com.jcraft.jogg.Page
 import com.soywiz.korau.format.com.jcraft.jogg.StreamState
 import com.soywiz.korau.format.com.jcraft.jogg.SyncState
 import com.soywiz.korio.math.rint
 import com.soywiz.korio.stream.SyncStream
-import com.soywiz.korio.typedarray.copyRangeTo
 
 class VorbisFile {
 	var datasource: SyncStream? = null
@@ -608,7 +608,7 @@ class VorbisFile {
 		// stream)
 		if (initial != null) {
 			val index = oy.buffer(ibytes)
-			initial.copyRangeTo(0, oy.data, index, ibytes)
+			arraycopy(initial, 0, oy.data, index, ibytes)
 			oy.wrote(ibytes)
 		}
 		// can we seek? Stevens suggests the seek test was portable

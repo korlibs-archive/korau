@@ -3,7 +3,7 @@ package com.soywiz.korau.sound
 import com.soywiz.korau.format.AudioFormats
 import com.soywiz.korau.format.AudioStream
 import com.soywiz.korau.format.defaultAudioFormats
-import com.soywiz.korio.inject.AsyncDependency
+import com.soywiz.korinject.AsyncDependency
 import com.soywiz.korio.vfs.VfsFile
 
 expect object NativeNativeSoundProvider {

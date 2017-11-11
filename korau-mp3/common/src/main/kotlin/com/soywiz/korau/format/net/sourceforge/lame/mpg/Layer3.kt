@@ -29,13 +29,13 @@
  */
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
+import com.soywiz.kmem.fill
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.Interface.ISynth
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPG123.III_sideinfo
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPG123.gr_info_s
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.ProcessedBytes
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.mpstr_tag
 import com.soywiz.korio.lang.Console
-import com.soywiz.korio.typedarray.fill
 import kotlin.math.*
 
 @Suppress("UNUSED_CHANGED_VALUE")

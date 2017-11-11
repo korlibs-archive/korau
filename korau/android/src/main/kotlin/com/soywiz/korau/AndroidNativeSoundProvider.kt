@@ -1,11 +1,11 @@
 package com.soywiz.korau
 
 import android.media.MediaPlayer
+import com.soywiz.kds.Pool
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.NativeSoundProvider
 import com.soywiz.korio.coroutine.korioSuspendCoroutine
 import com.soywiz.korio.crypto.Base64
-import com.soywiz.korio.util.Pool
 
 class AndroidNativeSoundProvider : NativeSoundProvider() {
 	val mpPool = Pool(reset = {

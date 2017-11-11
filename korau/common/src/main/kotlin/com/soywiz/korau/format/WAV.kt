@@ -2,11 +2,11 @@
 
 package com.soywiz.korau.format
 
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korio.async.await
 import com.soywiz.korio.error.ignoreErrors
 import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.stream.*
-import com.soywiz.korio.typedarray.copyRangeTo
 
 object WAV : AudioFormat("wav") {
 	data class Chunk(val type: String, val data: AsyncStream)
@@ -38,7 +38,7 @@ object WAV : AudioFormat("wav") {
 				when (bytesPerSample) {
 					2 -> {
 						val temp = bytes.readShortArray_le(availableSamples) // @TODO: avoid allocations
-						temp.copyRangeTo(0, out, offset, temp.size)
+						arraycopy(temp, 0, out, offset, temp.size)
 					}
 					3 -> {
 						for (n in 0 until length) {

@@ -1,10 +1,10 @@
 package com.soywiz.korau.format
 
+import com.soywiz.kds.LinkedList
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korau.sound.nativeSoundProvider
 import com.soywiz.korio.async.await
-import com.soywiz.korio.ds.LinkedList
 import com.soywiz.korio.stream.AsyncStream
-import com.soywiz.korio.typedarray.copyRangeTo
 import com.soywiz.korio.util.use
 import com.soywiz.korio.vfs.VfsFile
 import com.soywiz.korio.vfs.VfsOpenMode
@@ -44,7 +44,7 @@ open class AudioStream(
 						pos = 0
 					}
 					val read = min(length, available)
-					chunk.copyRangeTo(pos, out, offset, read)
+					arraycopy(chunk, pos, out, offset, read)
 					pos += read
 					return read
 				}

@@ -2,9 +2,9 @@
 
 package com.soywiz.korau.format
 
+import com.soywiz.kds.Extra
 import com.soywiz.korio.lang.printStackTrace
 import com.soywiz.korio.stream.*
-import com.soywiz.korio.util.Extra
 import com.soywiz.korio.vfs.PathInfo
 import com.soywiz.korio.vfs.VfsFile
 

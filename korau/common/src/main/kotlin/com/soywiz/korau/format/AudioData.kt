@@ -1,8 +1,8 @@
 package com.soywiz.korau.format
 
+import com.soywiz.kmem.arraycopy
 import com.soywiz.korau.sound.nativeSoundProvider
 import com.soywiz.korio.error.invalidOp
-import com.soywiz.korio.typedarray.copyRangeTo
 import com.soywiz.korio.vfs.VfsFile
 import kotlin.math.min
 
@@ -22,7 +22,7 @@ class AudioData(
 		suspend override fun read(out: ShortArray, offset: Int, length: Int): Int {
 			val available = samples.size - cursor
 			val toread = min(available, length)
-			if (toread > 0) samples.copyRangeTo(cursor, out, offset, toread)
+			if (toread > 0) arraycopy(samples, cursor, out, offset, toread)
 			return toread
 		}
 	}
