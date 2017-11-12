@@ -6,15 +6,15 @@ include(
         'korau-android',
         'korau-js',
 
-        'korau-ogg-vorbis-common',
-        'korau-ogg-vorbis',
-        'korau-ogg-vorbis-android',
-        'korau-ogg-vorbis-js',
-
-        'korau-mp3-common',
-        'korau-mp3',
-        'korau-mp3-android',
-        'korau-mp3-js',
+        //'korau-ogg-vorbis-common',
+        //'korau-ogg-vorbis',
+        //'korau-ogg-vorbis-android',
+        //'korau-ogg-vorbis-js',
+//
+        //'korau-mp3-common',
+        //'korau-mp3',
+        //'korau-mp3-android',
+        //'korau-mp3-js',
 )
 
 project(':korau-common').projectDir = file('korau/common')
@@ -22,6 +22,7 @@ project(':korau').projectDir = file('korau/jvm')
 project(':korau-android').projectDir = file('korau/android')
 project(':korau-js').projectDir = file('korau/js')
 
+/*
 project(':korau-mp3-common').projectDir = file('korau-mp3/common')
 project(':korau-mp3').projectDir = file('korau-mp3/jvm')
 project(':korau-mp3-android').projectDir = file('korau-mp3/android')
@@ -31,3 +32,4 @@ project(':korau-ogg-vorbis-common').projectDir = file('korau-ogg-vorbis/common')
 project(':korau-ogg-vorbis').projectDir = file('korau-ogg-vorbis/jvm')
 project(':korau-ogg-vorbis-android').projectDir = file('korau-ogg-vorbis/android')
 project(':korau-ogg-vorbis-js').projectDir = file('korau-ogg-vorbis/js')
+*/

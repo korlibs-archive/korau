@@ -4,6 +4,7 @@ dependencies {
     expectedBy project(":korau-common")
     testImplementation project(":korau-common")
 
+    compile "com.soywiz:klogger:$kloggerVersion"
     compile "com.soywiz:korio:$korioVersion"
     compile "com.soywiz:korma:$kormaVersion"
 }
