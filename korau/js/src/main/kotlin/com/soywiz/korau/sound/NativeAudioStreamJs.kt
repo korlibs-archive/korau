@@ -181,7 +181,7 @@ actual class NativeAudioStream actual constructor(val freq: Int = 44100) {
 
 		val fsamples = Float32Array(size)
 		for (n in 0 until size) fsamples[n] = (samples[offset + n].toFloat() / Short.MAX_VALUE.toFloat()).toFloat()
-		buffers.queue(PspAudioBuffer(fsamples))
+		buffers.enqueue(PspAudioBuffer(fsamples))
 
 		while (buffers.size > 4) {
 			getCoroutineContext().eventLoop.sleepNextFrame()

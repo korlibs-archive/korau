@@ -84,7 +84,7 @@ actual class NativeAudioStream actual constructor(val freq: Int = 44100) {
 		val buffer = SampleBuffer(System.currentTimeMillis(), samples.copyOfRange(offset, offset + size))
 		synchronized(buffers) {
 			totalShorts += buffer.data.size
-			buffers.queue(buffer)
+			buffers.enqueue(buffer)
 		}
 
 		ensureThread()
