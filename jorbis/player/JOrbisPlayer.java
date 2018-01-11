@@ -27,18 +27,8 @@ package player;
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-import java.util.*;
-import java.net.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.applet.*;
-import javax.swing.*;
-
-import com.jcraft.jorbis.*;
 import com.jcraft.jogg.*;
-
-import javax.sound.sampled.*;
+import com.jcraft.jorbis.*;
 
 public class JOrbisPlayer extends JApplet implements ActionListener, Runnable{
 

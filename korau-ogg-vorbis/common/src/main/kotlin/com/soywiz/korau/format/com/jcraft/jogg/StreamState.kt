@@ -27,8 +27,8 @@
 package com.soywiz.korau.format.com.jcraft.jogg
 
 import com.soywiz.kmem.arraycopy
+import com.soywiz.kmem.toUnsigned
 import com.soywiz.korio.lang.toByteArray
-import com.soywiz.korio.util.toUnsigned
 
 class StreamState {
 	var body_storage: Int = 16 * 1024

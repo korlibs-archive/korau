@@ -25,8 +25,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-import java.io.*;
-import java.util.*;
 import com.jcraft.jogg.*;
 import com.jcraft.jorbis.*;
 

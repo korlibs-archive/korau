@@ -27,10 +27,10 @@
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 import com.soywiz.kmem.arraycopy
+import com.soywiz.kmem.toUnsigned
 import com.soywiz.korau.format.net.sourceforge.lame.mp3.VBRTag
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib.*
 import com.soywiz.korio.lang.Console
-import com.soywiz.korio.util.toUnsigned
 
 class Interface(private val vbr: VBRTag) {
 	companion object {

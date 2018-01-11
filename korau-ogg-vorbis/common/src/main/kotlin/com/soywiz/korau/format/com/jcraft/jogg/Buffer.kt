@@ -27,7 +27,7 @@
 package com.soywiz.korau.format.com.jcraft.jogg
 
 import com.soywiz.kmem.arraycopy
-import com.soywiz.korio.util.toUnsigned
+import com.soywiz.kmem.toUnsigned
 
 class Buffer {
 	var ptr = 0

@@ -29,8 +29,8 @@ package com.jcraft.jorbis;
 
 import com.jcraft.jogg.*;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class VorbisFile{
   static final int CHUNKSIZE=8500;

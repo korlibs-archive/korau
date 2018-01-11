@@ -24,13 +24,13 @@
 package com.soywiz.korau.format.net.sourceforge.lame.mp3
 
 import com.soywiz.kmem.fill
+import com.soywiz.kmem.toUnsigned
 import com.soywiz.korau.format.net.sourceforge.lame.mpg.MPGLib
 import com.soywiz.korio.IOException
 import com.soywiz.korio.lang.printStackTrace
 import com.soywiz.korio.stream.AsyncStream
 import com.soywiz.korio.stream.readExact
 import com.soywiz.korio.stream.skip
-import com.soywiz.korio.util.toUnsigned
 import kotlin.experimental.and
 
 class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {

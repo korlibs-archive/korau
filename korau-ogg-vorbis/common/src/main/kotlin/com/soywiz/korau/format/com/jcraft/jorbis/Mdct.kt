@@ -28,7 +28,10 @@ package com.soywiz.korau.format.com.jcraft.jorbis
 
 import com.soywiz.korio.Synchronized
 import com.soywiz.korio.math.rint
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.log
+import kotlin.math.sin
 
 internal class Mdct {
 
