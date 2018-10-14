@@ -1,6 +1,9 @@
-/.gradle
 /.idea
+/.gradle
 /build
-/target
 /out
 /classes
+/web
+*.ipr
+*.iws
+*.iml

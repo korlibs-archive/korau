@@ -1,29 +1,27 @@
-rootProject.name = 'korau-root'
+pluginManagement {
+	resolutionStrategy {
+		eachPlugin {
+			if (requested.id.id == "kotlin-multiplatform") {
+				useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+			}
+		}
+	}
 
-include(
-        'korau-common',
-        'korau',
-        'korau-android',
-        'korau-js',
-
-        'korau-ogg-vorbis-common',
-        'korau-ogg-vorbis',
-        'korau-ogg-vorbis-android',
-        'korau-ogg-vorbis-js',
-
-        'korau-mp3-common',
-        'korau-mp3',
-        'korau-mp3-android',
-        'korau-mp3-js',
-)
-
-def register(String base) {
-    findProject(":$base-common")?.projectDir = file("$base/common")
-    findProject(":$base")?.projectDir = file("$base/jvm")
-    findProject(":$base-android")?.projectDir = file("$base/android")
-    findProject(":$base-js")?.projectDir = file("$base/js")
+	repositories {
+		mavenLocal()
+		maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+		maven { url 'https://plugins.gradle.org/m2/' }
+        jcenter()
+        mavenCentral()
+	}
 }
 
-register('korau')
-register('korau-ogg-vorbis')
-register('korau-mp3')
+rootProject.name = 'korau-root'
+
+enableFeaturePreview('GRADLE_METADATA')
+
+include ':korau'
+include ':korau-mod'
+include ':korau-mp3'
+include ':korau-ogg-vorbis'
+include ':korau-opus'
