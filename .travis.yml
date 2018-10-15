@@ -30,7 +30,7 @@ matrix:
     - which node
     - which mocha
     script:
-    - ./gradlew -s -i macosX64Test
+    - ./gradlew -s -i check build -x jsTest -x jvmTest
 
 #before_cache:
 #  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
