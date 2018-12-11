@@ -20,7 +20,7 @@ import kotlin.random.Random
   greets to guru, alfred and ccr for their work figuring out the .xm format. :)
 */
 
-suspend fun VfsFile.readXM() = Fasttracker().apply { parse(UByteArray(readAll())) }
+suspend fun VfsFile.readXM() = Fasttracker().apply { parse(UByteArrayInt(readAll())) }
 
 @Suppress("UNUSED_PARAMETER", "MemberVisibilityCanBePrivate", "FunctionName")
 class Fasttracker {
@@ -223,7 +223,7 @@ class Fasttracker {
 		this.initialize()
 	}
 
-	var pattern = Array<UByteArray>(0) { UByteArray(0) }
+	var pattern = Array<UByteArrayInt>(0) { UByteArrayInt(0) }
 	var patternlen = IntArray(0)
 	var chvu = DoubleArray(2)
 
@@ -249,7 +249,7 @@ class Fasttracker {
 		var sample: Array<Sample> = arrayOf()
 	) {
 		var samples = 0
-		var samplemap = UByteArray(96)
+		var samplemap = UByteArrayInt(96)
 		var volenv = FloatArray(325)
 		var panenv = FloatArray(325)
 		var voltype = 0
@@ -272,7 +272,7 @@ class Fasttracker {
 	}
 
 	var instrument = Array(instruments) { Instrument() }
-	var patterntable = UByteArray(256)
+	var patterntable = UByteArrayInt(256)
 
 	// clear song data
 	fun clearsong() {
@@ -292,9 +292,9 @@ class Fasttracker {
 		initSpeed = 6
 		initBPM = 125
 
-		pattern = Array<UByteArray>(0) { UByteArray(0) }
+		pattern = Array<UByteArrayInt>(0) { UByteArrayInt(0) }
 
-		patterntable = UByteArray(256)
+		patterntable = UByteArrayInt(256)
 
 		this.instrument = Array(this.instruments) { Instrument() }
 
@@ -452,7 +452,7 @@ class Fasttracker {
 
 
 	// parse the module from local buffer
-	fun parse(buffer: UByteArray): Boolean {
+	fun parse(buffer: UByteArrayInt): Boolean {
 		var j: Int
 		var k: Int
 		var c: Int
@@ -497,13 +497,13 @@ class Fasttracker {
 		maxpatt++
 
 		// allocate arrays for pattern data
-		this.pattern = Array(maxpatt) { UByteArray(0) }
+		this.pattern = Array(maxpatt) { UByteArrayInt(0) }
 		this.patternlen = IntArray(maxpatt)
 
 		for (n in 0 until maxpatt) {
 			// initialize the pattern to defaults prior to unpacking
 			this.patternlen[n] = 64
-			this.pattern[n] = UByteArray(this.channels * this.patternlen[n] * 5)
+			this.pattern[n] = UByteArrayInt(this.channels * this.patternlen[n] * 5)
 			val pat = this.pattern[n]
 			for (row in 0 until this.patternlen[n]) for (ch in 0 until this.channels) {
 				pat[row * this.channels * 5 + ch * 5 + 0] = 255 // note (255=no note)
@@ -518,7 +518,7 @@ class Fasttracker {
 		offset += hdrlen // initial offset for patterns
 		for (i in 0 until this.patterns) {
 			this.patternlen[i] = le_word(buffer, offset + 5)
-			this.pattern[i] = UByteArray(this.channels * this.patternlen[i] * 5)
+			this.pattern[i] = UByteArrayInt(this.channels * this.patternlen[i] * 5)
 
 			// initialize pattern to defaults prior to unpacking
 			val pat = this.pattern[i]
@@ -590,7 +590,7 @@ class Fasttracker {
 			ins.samples = le_word(buffer, offset + 27)
 
 			// initialize to defaults
-			ins.samplemap = UByteArray(96)
+			ins.samplemap = UByteArrayInt(96)
 			for (n in 0 until 96) ins.samplemap[n] = 0
 			ins.volenv = FloatArray(325)
 			ins.panenv = FloatArray(325)
@@ -1608,15 +1608,15 @@ class Fasttracker {
 }
 
 // helper functions for picking up signed, unsigned, little endian, etc from an unsigned 8-bit buffer
-private fun le_word(buffer: UByteArray, offset: Int): Int = buffer[offset] or (buffer[offset + 1] shl 8)
+private fun le_word(buffer: UByteArrayInt, offset: Int): Int = buffer[offset] or (buffer[offset + 1] shl 8)
 
-private fun le_dword(buffer: UByteArray, offset: Int): Int =
+private fun le_dword(buffer: UByteArrayInt, offset: Int): Int =
 	buffer[offset] or (buffer[offset + 1] shl 8) or (buffer[offset + 2] shl 16) or (buffer[offset + 3] shl 24)
 
-private fun s_byte(buffer: UByteArray, offset: Int): Int =
+private fun s_byte(buffer: UByteArrayInt, offset: Int): Int =
 	if (buffer[offset] < 128) buffer[offset] else (buffer[offset] - 256)
 
-private fun s_le_word(buffer: UByteArray, offset: Int): Int =
+private fun s_le_word(buffer: UByteArrayInt, offset: Int): Int =
 	if (le_word(buffer, offset) < 32768) le_word(buffer, offset) else (le_word(buffer, offset) - 65536)
 
 // convert from MS-DOS extended ASCII to Unicode

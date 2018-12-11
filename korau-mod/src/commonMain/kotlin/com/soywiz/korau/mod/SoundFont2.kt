@@ -11,7 +11,7 @@ import com.soywiz.korio.file.*
 suspend fun VfsFile.readSoundFont2(): SoundFont = SoundFont2Reader().apply { read(readAsSyncStream()) }
 
 interface SoundFont2 : SoundFont {
-	val presets: List<Preset>
+	val presets: Array<Preset>
 
 	data class Preset(
 		val presetName: String,
@@ -181,13 +181,13 @@ private class SoundFont2Reader : SoundFont2 {
 	var versionMajor = 0
 	var versionMinor = 0
 	var sampleData = shortArrayOf()
-	var samples = listOf<SoundFont2.Sample>()
-	override var presets = listOf<SoundFont2.Preset>()
+	var samples = emptyArray<SoundFont2.Sample>()
+	override var presets = emptyArray<SoundFont2.Preset>()
 
 	class Area {
-		var bag = listOf<SoundFont2.Bag>()
-		var gen = listOf<SoundFont2.Gen>()
-		var mod = listOf<SoundFont2.Mod>()
+		var bag = emptyArray<SoundFont2.Bag>()
+		var gen = emptyArray<SoundFont2.Gen>()
+		var mod = emptyArray<SoundFont2.Mod>()
 		val generators: List<SoundFont2.Generator> by lazy {
 			(0 until bag.size - 1).map {
 				val g = SoundFont2.Generator()
@@ -204,7 +204,7 @@ private class SoundFont2Reader : SoundFont2 {
 
 	val parea = Area()
 	val iarea = Area()
-	var insts = listOf<SoundFont2.Inst>()
+	var insts = emptyArray<SoundFont2.Inst>()
 	val instruments by lazy {
 		(0 until insts.size - 1).map {
 			val i0 = insts[it]

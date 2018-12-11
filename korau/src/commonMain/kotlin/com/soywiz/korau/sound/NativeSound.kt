@@ -68,13 +68,13 @@ open class NativeSoundProvider {
 class DummyNativeSoundProvider : NativeSoundProvider()
 
 abstract class NativeSoundChannel(val sound: NativeSound) {
-	private val startTime = Klock.currentTimeMillisDouble()
+	private val startTime = DateTime.now()
 	open var volume = 1.0
-	open val current: Double get() = Klock.currentTimeMillisDouble() - startTime
-	open val total: Double get() = sound.lengthInSeconds
+	open val current: TimeSpan get() = DateTime.now() - startTime
+	open val total: TimeSpan get() = sound.length
 	open val playing get() = current < total
 	abstract fun stop(): Unit
-	suspend fun await(progress: (current: Double, total: Double) -> Unit = { current, total -> }) {
+	suspend fun await(progress: (current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }) {
 		suspendCancellableCoroutine<Unit> { c ->
 			launchImmediately(c.context) {
 				try {
@@ -95,13 +95,11 @@ abstract class NativeSoundChannel(val sound: NativeSound) {
 }
 
 abstract class NativeSound {
-	open val lengthInMs: Long = 0L
+	open val length: TimeSpan = 0.seconds
 	abstract fun play(): NativeSoundChannel
-	suspend fun playAndWait(progress: (current: Double, total: Double) -> Unit = { current, total -> }): Unit =
+	suspend fun playAndWait(progress: (current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
 		play().await(progress)
 }
-
-val NativeSound.lengthInSeconds: Double get() = lengthInMs.toDouble() / 1000.0
 
 suspend fun VfsFile.readNativeSound(streaming: Boolean = false) = nativeSoundProvider.createSound(this, streaming)
 suspend fun VfsFile.readNativeSoundOptimized(streaming: Boolean = false) =

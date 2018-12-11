@@ -51,7 +51,7 @@ class MidiReader {
 	//var time = 0
 	fun SyncStream.readVar() = readU_VL()
 
-	fun readEvents(s: SyncStream) = mapWhile({ !s.eof }) { s.readMidiEvent() }
+	fun readEvents(s: SyncStream) = mapWhile({ !s.eof }) { s.readMidiEvent() }.toList()
 
 	private object META {
 		val SEQUENCE_NUM = 0

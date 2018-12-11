@@ -1,5 +1,9 @@
 package com.soywiz.korau.sound
 
+import com.soywiz.klock.DateTime
+import com.soywiz.klock.TimeSpan
+import com.soywiz.klock.milliseconds
+import com.soywiz.klock.seconds
 import com.soywiz.klogger.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.error.*
@@ -59,7 +63,7 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 class MediaNativeSound private constructor(
 	val context: CoroutineContext,
 	val url: String,
-	override val lengthInMs: Long
+	override val length: TimeSpan
 ) : NativeSound() {
 	companion object {
 		val log = Logger("MediaNativeSound")
@@ -68,7 +72,7 @@ class MediaNativeSound private constructor(
 			//val audio = document.createElement("audio").unsafeCast<HTMLAudioElement>()
 			//audio.autoplay = false
 			//audio.src = url
-			return MediaNativeSound(coroutineContext, url, 100L)
+			return MediaNativeSound(coroutineContext, url, 100.milliseconds)
 			//val audio = document.createElement("audio").unsafeCast<HTMLAudioElement>()
 			//audio.autoplay = false
 			//audio.src = url
@@ -126,7 +130,7 @@ class MediaNativeSound private constructor(
 }
 
 class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
-	override val lengthInMs: Long = (buffer?.length?.times(1000))?.toLong() ?: 0L
+	override val length: TimeSpan = ((buffer?.length) ?: 0.0).seconds
 
 	override fun play(): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {

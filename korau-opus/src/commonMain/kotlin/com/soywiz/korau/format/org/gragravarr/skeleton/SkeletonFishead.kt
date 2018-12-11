@@ -127,7 +127,6 @@ class SkeletonFishead : HighLevelOggStreamPacket, SkeletonPacket {
 	}
 
 	fun setUtc(utcDate: DateTime) {
-		val fmt = SimplerDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-		this.utc = fmt.format(utcDate)
+		this.utc = utcDate.format("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	}
 }
