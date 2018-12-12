@@ -39,7 +39,7 @@ class CodeBook {
 
 	private var t = IntArray(15)
 
-	@Synchronized
+	@kotlin.jvm.Synchronized
 	fun decodevs_add(a: FloatArray, offset: Int, b: Buffer, n: Int): Int {
 		val step = n / dim
 		var entry: Int

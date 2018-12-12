@@ -76,7 +76,6 @@ class Page {
 		header_base[header + 25] = crc_reg.ushr(24).toByte()
 	}
 
-	//@JvmOverloads
 	fun copy(p: Page = Page()): Page {
 		var tmp = ByteArray(header_len)
 		arraycopy(header_base, header, tmp, 0, header_len)

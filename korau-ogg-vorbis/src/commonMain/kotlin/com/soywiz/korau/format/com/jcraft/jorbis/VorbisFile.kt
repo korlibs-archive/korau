@@ -1270,11 +1270,11 @@ class VorbisFile {
 //			raf!!.close()
 //		}
 //
-//		@Synchronized
+//		@kotlin.jvm.Synchronized
 //		override fun mark(m: Int) {
 //		}
 //
-//		@Synchronized
+//		@kotlin.jvm.Synchronized
 //		//@Throws(IOException::class)
 //		override fun reset() {
 //		}

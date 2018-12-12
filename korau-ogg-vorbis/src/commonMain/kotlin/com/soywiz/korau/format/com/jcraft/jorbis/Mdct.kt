@@ -93,7 +93,7 @@ internal class Mdct {
 	var _x = FloatArray(1024)
 	var _w = FloatArray(1024)
 
-	@Synchronized
+	@kotlin.jvm.Synchronized
 	fun backward(`in`: FloatArray, out: FloatArray) {
 		if (_x.size < n / 2) {
 			_x = FloatArray(n / 2)

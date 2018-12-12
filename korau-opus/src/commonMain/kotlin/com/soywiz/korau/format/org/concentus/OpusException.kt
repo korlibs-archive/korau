@@ -30,7 +30,7 @@
  */
 package com.soywiz.korau.format.org.concentus
 
-import com.soywiz.korio.*
-
-class OpusException @JvmOverloads constructor(message: String, private val _opus_error_code: Int = 1) : Exception(message + ": " + CodecHelpers.opus_strerror(_opus_error_code)) {
-}
+class OpusException(
+    message: String,
+    private val _opus_error_code: Int = 1
+) : Exception(message + ": " + CodecHelpers.opus_strerror(_opus_error_code))

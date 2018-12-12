@@ -204,68 +204,39 @@ class MPGLib(internal var interf: Interface) {
 	}
 
 	class mpstr_tag {
-		@JvmField
 		var list: ArrayList<buf> = arrayListOf()
-		@JvmField
 		var vbr_header: Boolean = false
-		@JvmField
 		var num_frames: Int = 0
-		@JvmField
 		var enc_delay: Int = 0
-		@JvmField
 		var enc_padding: Int = 0
-		@JvmField
 		var header_parsed: Boolean = false
-		@JvmField
 		var side_parsed: Boolean = false
-		@JvmField
 		var data_parsed: Boolean = false
-		@JvmField
 		var free_format: Boolean = false
-		@JvmField
 		var old_free_format: Boolean = false
-		@JvmField
 		var bsize: Int = 0
-		@JvmField
 		var framesize: Int = 0
-		@JvmField
 		var ssize: Int = 0
-		@JvmField
 		var dsize: Int = 0
-		@JvmField
 		var fsizeold: Int = 0
-		@JvmField
 		var fsizeold_nopadding: Int = 0
-		@JvmField
 		var fr = Frame()
-		@JvmField
 		var bsspace = Array(2) { ByteArray(MPG123.MAXFRAMESIZE + 1024) }
-		@JvmField
 		var hybrid_block = Array(2) { Array(2) { FloatArray(MPG123.SBLIMIT * MPG123.SSLIMIT) } }
-		@JvmField
 		var hybrid_blc = IntArray(2)
-		@JvmField
 		var header: Long = 0
-		@JvmField
 		var bsnum: Int = 0
-		@JvmField
 		var synth_buffs = Array(2) { Array(2) { FloatArray(0x110) } }
-		@JvmField
 		var synth_bo: Int = 0
-		@JvmField
 		var sync_bitstream: Boolean = false
-		@JvmField
 		var bitindex: Int = 0
-		@JvmField
 		var wordpointer: ByteArray = byteArrayOf(0)
-		@JvmField
 		var wordpointerPos: Int = 0
-		@JvmField
 		var pinfo: PlottingData = PlottingData()
 	}
 
 	class ProcessedBytes {
-		@JvmField
+		
 		var pb: Int = 0
 	}
 }

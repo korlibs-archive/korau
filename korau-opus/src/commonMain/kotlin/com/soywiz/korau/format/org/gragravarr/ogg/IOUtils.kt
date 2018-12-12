@@ -28,7 +28,7 @@ import com.soywiz.korio.stream.*
  */
 object IOUtils {
 	internal val UTF8 = Charset.forName("UTF-8")
-	@JvmOverloads fun readFully(
+	fun readFully(
 		inp: SyncInputStream,
 		destination: ByteArray,
 		offset: Int = 0,
@@ -137,14 +137,14 @@ object IOUtils {
 		// Otherwise normal convert
 	}
 
-	@JvmOverloads fun getInt2BE(data: ByteArray, offset: Int = 0): Int {
+	fun getInt2BE(data: ByteArray, offset: Int = 0): Int {
 		var i = offset
 		val b0 = data[i++] and 0xFF
 		val b1 = data[i++] and 0xFF
 		return getIntBE(b0, b1)
 	}
 
-	@JvmOverloads fun getInt3BE(data: ByteArray, offset: Int = 0): Long {
+	fun getInt3BE(data: ByteArray, offset: Int = 0): Long {
 		var i = offset
 		val b0 = data[i++] and 0xFF
 		val b1 = data[i++] and 0xFF
@@ -152,7 +152,7 @@ object IOUtils {
 		return getIntBE(b0, b1, b2)
 	}
 
-	@JvmOverloads fun getInt4BE(data: ByteArray, offset: Int = 0): Long {
+	fun getInt4BE(data: ByteArray, offset: Int = 0): Long {
 		var i = offset
 		val b0 = data[i++] and 0xFF
 		val b1 = data[i++] and 0xFF

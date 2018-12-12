@@ -205,7 +205,7 @@ internal open class Residue0 : FuncResidue() {
 	private var _01inverse_partword = arrayOfNulls<Array<IntArray>>(2) // _01inverse is synchronized for
 
 	// re-using partword
-	@Synchronized
+	@kotlin.jvm.Synchronized
 	fun _01inverse(
 		vb: Block, vl: Any, `in`: Array<FloatArray>, ch: Int,
 		decodepart: Int
@@ -306,7 +306,7 @@ internal open class Residue0 : FuncResidue() {
 
 	var _2inverse_partword: Array<IntArray>? = null
 
-	@Synchronized
+	@kotlin.jvm.Synchronized
 	fun _2inverse(vb: Block, vl: Any, `in`: Array<FloatArray>, ch: Int): Int {
 		var i: Int
 		var k: Int

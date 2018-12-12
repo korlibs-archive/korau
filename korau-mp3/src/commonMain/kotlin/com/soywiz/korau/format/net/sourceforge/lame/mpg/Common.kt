@@ -32,7 +32,6 @@ package com.soywiz.korau.format.net.sourceforge.lame.mpg
 import com.soywiz.klogger.*
 import com.soywiz.kmem.arraycopy
 import com.soywiz.kmem.toUnsigned
-import com.soywiz.korio.JvmField
 
 class Common {
 	companion object {
@@ -55,7 +54,6 @@ class Common {
 		private val MAX_INPUT_FRAMESIZE = 4096
 	}
 
-	@JvmField
 	var muls = Array(27) { FloatArray(64) }
 
 	fun head_check(head: Long, check_layer: Int): Boolean {

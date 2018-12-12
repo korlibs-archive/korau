@@ -120,7 +120,7 @@ object Program {
 	/// </summary>
 	/// <param name="input"></param>
 	/// <returns></returns>
-	@JvmOverloads fun BytesToShorts(input: ByteArray, offset: Int = 0, length: Int = input.size): ShortArray {
+	fun BytesToShorts(input: ByteArray, offset: Int = 0, length: Int = input.size): ShortArray {
 		val processedValues = ShortArray(length / 2)
 		for (c in processedValues.indices) {
 			val a = (input[c * 2 + offset].toInt() and 0xFF).toShort()
@@ -136,7 +136,7 @@ object Program {
 	/// </summary>
 	/// <param name="input"></param>
 	/// <returns></returns>
-	@JvmOverloads fun ShortsToBytes(input: ShortArray, offset: Int = 0, length: Int = input.size): ByteArray {
+	fun ShortsToBytes(input: ShortArray, offset: Int = 0, length: Int = input.size): ByteArray {
 		val processedValues = ByteArray(length * 2)
 		for (c in 0 until length) {
 			processedValues[c * 2] = (input[c + offset].toInt() and 0xFF).toByte()

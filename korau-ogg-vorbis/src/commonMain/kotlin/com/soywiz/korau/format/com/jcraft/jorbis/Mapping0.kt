@@ -176,7 +176,7 @@ internal class Mapping0 : FuncMapping() {
 	var nonzero: IntArray = intArrayOf()
 	var floormemo: Array<Any?> = arrayOf()
 
-	@Synchronized
+	@kotlin.jvm.Synchronized
 	override fun inverse(vb: Block, l: Any): Int {
 		val vd = vb.vd
 		val vi = vd.vi
