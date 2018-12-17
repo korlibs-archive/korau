@@ -13,7 +13,6 @@
  */
 package com.soywiz.korau.format.org.gragravarr.vorbis
 
-import com.soywiz.klogger.*
 import com.soywiz.korau.format.org.gragravarr.ogg.*
 import com.soywiz.korau.format.org.gragravarr.ogg.audio.*
 import com.soywiz.korio.lang.*
@@ -23,7 +22,7 @@ import com.soywiz.korio.stream.*
  * This is a wrapper around an OggFile that lets you
  * get at all the interesting bits of a Vorbis file.
  */
-class VorbisFile : OggAudioStream, OggAudioHeaders, Closeable {
+class VorbisFile(val warningProcessor: ((String) -> Unit)?): OggAudioStream, OggAudioHeaders, Closeable {
 	/**
 	 * Returns the underlying Ogg File instance
 	 * @return
@@ -57,7 +56,7 @@ class VorbisFile : OggAudioStream, OggAudioHeaders, Closeable {
 				if (vp is VorbisAudioData) {
 					return vp as VorbisAudioData?
 				} else {
-					Logger("VorbisFile").error { "Skipping non audio packet $vp mid audio stream" }
+					warningProcessor?.invoke("Skipping non audio packet $vp mid audio stream")
 				}
 			}
 			return null
@@ -72,14 +71,14 @@ class VorbisFile : OggAudioStream, OggAudioHeaders, Closeable {
 	/**
 	 * Opens the given file for reading
 	 */
-	constructor(ogg: OggFile) : this(ogg.packetReader) {
+	constructor(ogg: OggFile, warningProcessor: ((String) -> Unit)?) : this(ogg.packetReader, warningProcessor) {
 		this.oggFile = ogg
 	}
 
 	/**
 	 * Loads a Vorbis File from the given packet reader.
 	 */
-	constructor(r: OggPacketReader) {
+	constructor(r: OggPacketReader, warningProcessor: ((String) -> Unit)?) : this(warningProcessor) {
 		this.r = r
 
 		var p: OggPacket? = null
@@ -111,10 +110,11 @@ class VorbisFile : OggAudioStream, OggAudioHeaders, Closeable {
 	 */
 	constructor(
 		out: SyncOutputStream,
+		warningProcessor: ((String) -> Unit)?,
 		info: VorbisInfo = VorbisInfo(),
 		comments: VorbisComments = VorbisComments(),
 		setup: VorbisSetup = VorbisSetup()
-	) : this(out, -1, info, comments, setup) {
+	) : this(out, -1, info, comments, setup, warningProcessor) {
 	}
 
 	/**
@@ -123,8 +123,8 @@ class VorbisFile : OggAudioStream, OggAudioHeaders, Closeable {
 	 * Steam ID (SID). You should only set the SID
 	 * when copying one file to another!
 	 */
-	constructor(out: SyncOutputStream, sid: Int, info: VorbisInfo, comments: VorbisComments, setup: VorbisSetup) {
-		oggFile = OggFile(out)
+	constructor(out: SyncOutputStream, sid: Int, info: VorbisInfo, comments: VorbisComments, setup: VorbisSetup, warningProcessor: ((String) -> Unit)?) : this(warningProcessor) {
+		oggFile = OggFile(out, warningProcessor)
 
 		if (sid > 0) {
 			w = oggFile!!.getPacketWriter(sid)

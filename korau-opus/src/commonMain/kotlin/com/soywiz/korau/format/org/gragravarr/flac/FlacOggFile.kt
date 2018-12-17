@@ -119,11 +119,12 @@ class FlacOggFile : FlacFile, OggAudioHeaders {
 	 * from a pre-read file. The Steam ID (SID) is
 	 * automatically allocated for you.
 	 */
-	constructor(out: SyncOutputStream, info: FlacOggInfo = FlacOggInfo(), tags: FlacTags = FlacTags()) : this(
+	constructor(out: SyncOutputStream, info: FlacOggInfo = FlacOggInfo(), tags: FlacTags = FlacTags(), warningProcessor: ((String) -> Unit)?) : this(
 		out,
 		-1,
 		info,
-		tags
+		tags,
+		warningProcessor
 	) {
 	}
 
@@ -133,8 +134,8 @@ class FlacOggFile : FlacFile, OggAudioHeaders {
 	 * Steam ID (SID). You should only set the SID
 	 * when copying one file to another!
 	 */
-	constructor(out: SyncOutputStream, sid: Int, info: FlacOggInfo, tags: FlacTags) {
-		oggFile = OggFile(out)
+	constructor(out: SyncOutputStream, sid: Int, info: FlacOggInfo, tags: FlacTags, warningProcessor: ((String) -> Unit)?) {
+		oggFile = OggFile(out, warningProcessor)
 
 		if (sid > 0) {
 			w = oggFile!!.getPacketWriter(sid)

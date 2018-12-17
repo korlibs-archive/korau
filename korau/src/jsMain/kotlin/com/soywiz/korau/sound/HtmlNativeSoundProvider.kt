@@ -1,20 +1,13 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.klock.DateTime
-import com.soywiz.klock.TimeSpan
-import com.soywiz.klock.milliseconds
-import com.soywiz.klock.seconds
-import com.soywiz.klogger.*
+import com.soywiz.klock.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.error.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 class HtmlNativeSoundProvider : NativeSoundProvider() {
-	private val log = Logger("HtmlNativeSoundProvider")
-
 	override fun initOnce() {
 	}
 
@@ -36,14 +29,8 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 	override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound = when (vfs) {
 		is LocalVfs, is UrlVfs -> {
 			val rpath = when (vfs) {
-				is LocalVfs -> {
-					log.trace { "LOCAL: HtmlNativeSoundSpecialReader: $vfs, $path" }
-					path
-				}
-				is UrlVfs -> {
-					log.trace { "URL: HtmlNativeSoundSpecialReader: $vfs, $path" }
-					vfs.getFullUrl(path)
-				}
+				is LocalVfs -> path
+				is UrlVfs -> vfs.getFullUrl(path)
 				else -> invalidOp
 			}
 			//if (streaming) {
@@ -54,7 +41,6 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 			AudioBufferNativeSound(HtmlSimpleSound.loadSound(rpath))
 		}
 		else -> {
-			log.trace { "OTHER: HtmlNativeSoundSpecialReader: $vfs, $path" }
 			super.createSound(vfs, path)
 		}
 	}
@@ -66,8 +52,6 @@ class MediaNativeSound private constructor(
 	override val length: TimeSpan
 ) : NativeSound() {
 	companion object {
-		val log = Logger("MediaNativeSound")
-
 		suspend operator fun invoke(url: String): NativeSound {
 			//val audio = document.createElement("audio").unsafeCast<HTMLAudioElement>()
 			//audio.autoplay = false

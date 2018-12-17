@@ -13,16 +13,11 @@
  */
 package com.soywiz.korau.format.org.gragravarr.ogg
 
-import com.soywiz.klogger.*
 import com.soywiz.korio.*
 import com.soywiz.korio.crypto.*
 import com.soywiz.korio.stream.*
 
-class OggPacketReader(private val inp: SyncInputStream) {
-	companion object {
-		val log = Logger("OggPacketReader")
-	}
-
+class OggPacketReader(private val inp: SyncInputStream, val warningProcessor: ((String) -> Unit)?) {
 	private var it: Iterator<OggPacketData>? = null
 	private var nextPacket: OggPacket? = null
 
@@ -101,24 +96,19 @@ class OggPacketReader(private val inp: SyncInputStream) {
 
 		searched -= 3 // OggS
 		if (searched > 0) {
-			log.error { "Warning - had to skip $searched bytes of junk data before finding the next packet header" }
+			warningProcessor?.invoke("Warning - had to skip $searched bytes of junk data before finding the next packet header")
 		}
 
 		// Create the page, and prime the iterator on it
 		try {
 			val page = OggPage(inp)
 			if (!page.isChecksumValid) {
-				log.error {
-					"Warning - invalid checksum on page " +
-							page.sequenceNumber + " of stream " +
-							page.sid.shex + " (" +
-							page.sid + ")"
-				}
+				warningProcessor?.invoke("Warning - invalid checksum on page ${page.sequenceNumber} of stream ${page.sid.shex} (${page.sid})")
 			}
 			it = page.getPacketIterator(leftOver!!)
 			return getNextPacket()
 		} catch (eof: EOFException) {
-			log.error { "Warning - data ended mid-page: " + eof.message }
+			warningProcessor?.invoke("Warning - data ended mid-page: ${eof.message}")
 			return null
 		}
 

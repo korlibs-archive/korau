@@ -13,15 +13,10 @@
  */
 package com.soywiz.korau.format.org.gragravarr.opus
 
-import com.soywiz.klogger.*
 import com.soywiz.korau.format.org.gragravarr.ogg.*
 import com.soywiz.korau.format.org.gragravarr.ogg.audio.*
 
-class OpusStatistics(headers: OggAudioHeaders, audio: OggAudioStream) : OggAudioStatistics(headers, audio) {
-	companion object {
-		val log = Logger("OpusStatistics")
-	}
-
+class OpusStatistics(headers: OggAudioHeaders, audio: OggAudioStream, val warningProcessor: ((String) -> Unit)?) : OggAudioStatistics(headers, audio) {
 	private var total_pages: Int = 0
 	private var total_packets: Int = 0
 	private var total_samples: Int = 0
@@ -71,7 +66,7 @@ class OpusStatistics(headers: OggAudioHeaders, audio: OggAudioStream) : OggAudio
 		init(headers)
 	}
 
-	constructor(opus: OpusFile) : this(opus, opus) {
+	constructor(opus: OpusFile, warningProcessor: ((String) -> Unit)?) : this(opus, opus, warningProcessor) {
 		this.info = opus.info
 		init(opus)
 	}
@@ -110,18 +105,14 @@ class OpusStatistics(headers: OggAudioHeaders, audio: OggAudioStream) : OggAudio
 
 			if (gp > 0) {
 				if (gp < lastgranulepos) {
-					log.error {
-						("WARNING: granulepos in stream " + sid + " decreases from "
-								+ lastgranulepos + " to " + gp
-								)
-					}
+					warningProcessor?.invoke("WARNING: granulepos in stream $sid decreases from $lastgranulepos to $gp")
 				}
 				if (lastgranulepos == 0L && firstgranulepos == -1L) {
 					/*First timed page, now we can recover the start time.*/
 					firstgranulepos = gp
 					if (firstgranulepos < 0) {
 						if (!audioData.isEndOfStream) {
-							log.error { "WARNING:Samples with negative granpos in stream $sid" }
+							warningProcessor?.invoke("WARNING:Samples with negative granpos in stream $sid")
 						} else {
 							firstgranulepos = 0
 						}
@@ -131,19 +122,19 @@ class OpusStatistics(headers: OggAudioHeaders, audio: OggAudioStream) : OggAudio
 					firstgranulepos = firstgranulepos - page_samples
 				}
 				if (total_samples < lastgranulepos - firstgranulepos) {
-					log.error { "WARNING: Sample count behind granule (" + total_samples + "<" + (lastgranulepos - firstgranulepos) + ") in stream " + sid }
+					warningProcessor?.invoke("WARNING: Sample count behind granule ($total_samples<${lastgranulepos - firstgranulepos}) in stream $sid")
 				}
 				if (!audioData.isEndOfStream && total_samples > gp - firstgranulepos) {
-					log.error { "WARNING: Sample count ahead granule ($total_samples<$firstgranulepos) in stream$sid" }
+					warningProcessor?.invoke("WARNING: Sample count ahead granule ($total_samples<$firstgranulepos) in stream$sid")
 				}
 				lastlastgranulepos = lastgranulepos
 				lastgranulepos = gp
 				if (audioPacketsCount == 0) {
-					log.error { "WARNING: Page with positive granpos ($gp) on a page with no completed packets in stream $sid" }
+					warningProcessor?.invoke("WARNING: Page with positive granpos ($gp) on a page with no completed packets in stream $sid")
 				}
 			} // gp
 			else if (audioPacketsCount == 0) {
-				log.error { "Negative or zero granulepos ($gp) on Opus stream outside of headers. This file was created by a buggy encoder" }
+				warningProcessor?.invoke("Negative or zero granulepos ($gp) on Opus stream outside of headers. This file was created by a buggy encoder")
 			}
 
 			//last_page_duration = page_samples;
@@ -158,14 +149,14 @@ class OpusStatistics(headers: OggAudioHeaders, audio: OggAudioStream) : OggAudio
 		//    continue;
 		//}
 		val d = audioData.data!!
-		if (d.size < 1) {
-			log.error { "WARNING: Invalid packet TOC in stream with sid $sid" }
+		if (d.isEmpty()) {
+			warningProcessor?.invoke("WARNING: Invalid packet TOC in stream with sid $sid")
 			return
 		}
 
 		val samples = audioData.numberOfSamples
 		if (samples < 120 || samples > 5760 || samples % 120 != 0) {
-			log.error { "WARNING: Invalid packet TOC in stream with sid $sid" }
+			warningProcessor?.invoke("WARNING: Invalid packet TOC in stream with sid $sid")
 			return
 		}
 		total_samples += samples

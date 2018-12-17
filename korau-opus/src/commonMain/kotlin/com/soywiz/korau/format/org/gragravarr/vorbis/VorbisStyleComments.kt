@@ -13,10 +13,8 @@
  */
 package com.soywiz.korau.format.org.gragravarr.vorbis
 
-import com.soywiz.klogger.*
 import com.soywiz.korau.format.org.gragravarr.ogg.*
 import com.soywiz.korau.format.org.gragravarr.ogg.audio.*
-import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
 /**
@@ -105,7 +103,7 @@ abstract class VorbisStyleComments : HighLevelOggStreamPacket, OggAudioTagsHeade
 
 			val equals = c.indexOf('=')
 			if (equals == -1) {
-				Logger("VorbisStyleComments").error { "Warning - unable to parse comment '$c'" }
+				//println("Warning - unable to parse comment '$c'")
 			} else {
 				val tag = normaliseTag(c.substring(0, equals))
 				val value = c.substring(equals + 1)

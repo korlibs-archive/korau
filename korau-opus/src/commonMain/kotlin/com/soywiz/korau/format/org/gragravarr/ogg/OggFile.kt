@@ -21,7 +21,7 @@ import kotlin.random.Random
  * This class takes care of reading and writing
  * files using the Ogg container format.
  */
-class OggFile : Closeable {
+class OggFile(val warningProcessor: ((String) -> Unit)?) : Closeable {
 	private var inp: SyncInputStream? = null
 	private var out: SyncOutputStream? = null
 	private var writing = true
@@ -38,7 +38,7 @@ class OggFile : Closeable {
 			if (writing || inp == null) {
 				throw IllegalStateException("Can only read from a file opened with an InputStream")
 			}
-			return OggPacketReader(inp!!)
+			return OggPacketReader(inp!!, warningProcessor)
 		}
 
 	/**
@@ -69,7 +69,7 @@ class OggFile : Closeable {
 	 * Call [.getPacketWriter] to
 	 * begin writing your data.
 	 */
-	constructor(output: SyncOutputStream) {
+	constructor(output: SyncOutputStream, warningProcessor: ((String) -> Unit)?) : this(warningProcessor) {
 		this.out = output
 		this.writing = true
 	}
@@ -80,7 +80,7 @@ class OggFile : Closeable {
 	 * Call [.getPacketReader] to
 	 * begin reading the file.
 	 */
-	constructor(input: SyncInputStream) {
+	constructor(input: SyncInputStream, warningProcessor: ((String) -> Unit)?) : this(warningProcessor) {
 		this.inp = input
 		this.writing = false
 	}
@@ -91,7 +91,7 @@ class OggFile : Closeable {
 	 * Will begin processing the file and notifying
 	 * your listener immediately.
 	 */
-	constructor(input: SyncInputStream, listener: OggStreamListener) : this(input) {
+	constructor(input: SyncInputStream, listener: OggStreamListener, warningProcessor: ((String) -> Unit)?) : this(input, warningProcessor) {
 
 		val readers = HashMap<Int, Array<OggStreamReader>>()
 		val reader = packetReader

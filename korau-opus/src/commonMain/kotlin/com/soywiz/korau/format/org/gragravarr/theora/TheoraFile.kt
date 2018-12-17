@@ -55,7 +55,7 @@ class TheoraFile : HighLevelOggStreamPacket, Closeable {
 	private var soundtracks: MutableMap<Int, OggAudioStreamHeaders>? = null
 	private var soundtrackWriters: MutableMap<OggAudioStreamHeaders, OggPacketWriter> = LinkedHashMap()
 
-	private var pendingPackets: LinkedList<AudioVisualDataAndSid> = LinkedList()
+	private var pendingPackets: Deque<AudioVisualDataAndSid> = Deque()
 	private var writtenPackets: MutableList<AudioVisualDataAndSid> = arrayListOf()
 
 	/**
@@ -83,7 +83,7 @@ class TheoraFile : HighLevelOggStreamPacket, Closeable {
 	 */
 	constructor(r: OggPacketReader) {
 		this.r = r
-		this.pendingPackets = LinkedList<AudioVisualDataAndSid>()
+		this.pendingPackets = Deque<AudioVisualDataAndSid>()
 		this.soundtracks = HashMap<Int, OggAudioStreamHeaders>()
 
 		val headerCompleteSoundtracks = HashSet<Int>()
@@ -170,8 +170,9 @@ class TheoraFile : HighLevelOggStreamPacket, Closeable {
 		out: SyncOutputStream,
 		info: TheoraInfo = TheoraInfo(),
 		comments: TheoraComments = TheoraComments(),
-		setup: TheoraSetup = TheoraSetup()
-	) : this(out, -1, info, comments, setup) {
+		setup: TheoraSetup = TheoraSetup(),
+		warningProcessor: ((String) -> Unit)?
+	) : this(out, -1, info, comments, setup, warningProcessor) {
 	}
 
 	/**
@@ -180,8 +181,8 @@ class TheoraFile : HighLevelOggStreamPacket, Closeable {
 	 * Steam ID (SID). You should only set the SID
 	 * when copying one file to another!
 	 */
-	constructor(out: SyncOutputStream, sid: Int, info: TheoraInfo, comments: TheoraComments, setup: TheoraSetup) {
-		oggFile = OggFile(out)
+	constructor(out: SyncOutputStream, sid: Int, info: TheoraInfo, comments: TheoraComments, setup: TheoraSetup, warningProcessor: ((String) -> Unit)?) {
+		oggFile = OggFile(out, warningProcessor)
 
 		if (sid > 0) {
 			w = oggFile!!.getPacketWriter(sid)

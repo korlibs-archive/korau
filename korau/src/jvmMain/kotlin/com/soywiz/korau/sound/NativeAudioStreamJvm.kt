@@ -1,7 +1,6 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.kds.Queue
-import com.soywiz.klogger.Logger
 import com.soywiz.korio.async.delayNextFrame
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -20,7 +19,6 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
     }
 
     val id = lastId++
-    val logger = Logger("NativeAudioStream$id")
     val format by lazy { AudioFormat(freq.toFloat(), 16, 2, true, false) }
     var _msElapsed = 0.0
     val msElapsed get() = _msElapsed
@@ -40,7 +38,7 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
             thread = Thread {
                 line.open()
                 line.start()
-                logger.trace { "OPENED_LINE($id)!" }
+                //println("OPENED_LINE($id)!")
                 try {
                     var timesWithoutBuffers = 0
                     while (running) {
@@ -60,16 +58,16 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
                             line.write(bdata, 0, bdata.size)
                             //line.drain()
                             val end = System.currentTimeMillis()
-                            logger.trace { "LINE($id): ${end - start} :: msChunk=$msChunk :: start=$start, end=$end :: available=${line.available()} :: framePosition=${line.framePosition} :: availableBuffers=$availableBuffers" }
+                            //println("LINE($id): ${end - start} :: msChunk=$msChunk :: start=$start, end=$end :: available=${line.available()} :: framePosition=${line.framePosition} :: availableBuffers=$availableBuffers")
                         }
-                        logger.trace { "SHUT($id)!" }
+                        //println("SHUT($id)!")
                         //Thread.sleep(500L) // 0.5 seconds of grace before shutting down this thread!
                         Thread.sleep(50L) // 0.5 seconds of grace before shutting down this thread!
                         timesWithoutBuffers++
                         if (timesWithoutBuffers >= 10) break
                     }
                 } finally {
-                    logger.trace { "CLOSED_LINE($id)!" }
+                    //println("CLOSED_LINE($id)!")
                     line.stop()
                     line.close()
                 }

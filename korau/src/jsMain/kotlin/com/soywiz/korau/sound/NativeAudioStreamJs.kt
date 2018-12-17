@@ -2,7 +2,6 @@ package com.soywiz.korau.sound
 
 import com.soywiz.kds.*
 import com.soywiz.klock.*
-import com.soywiz.klogger.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
 import org.khronos.webgl.*
@@ -14,7 +13,6 @@ actual val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundPro
 
 actual class NativeAudioStream actual constructor(val freq: Int) {
 	val id = lastId++
-	val logger = Logger("NativeAudioStream.js.$id")
 
 	init {
 		nativeSoundProvider.initOnce()

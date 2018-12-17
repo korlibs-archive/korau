@@ -50,13 +50,13 @@ abstract class FlacFile : Closeable {
 		 * Opens the given file for reading.
 		 * @param inp The InputStrem to read from, which must support mark/reset
 		 */
-		fun open(inp: SyncInputStream): FlacFile {
+		fun open(inp: SyncInputStream, warningProcessor: ((String) -> Unit)?): FlacFile {
 			val header = (inp as SyncStream).sliceHere().readBytesExact(4)
 
 			if (header[0] == 'O'.toByte() && header[1] == 'g'.toByte() &&
 				header[2] == 'g'.toByte() && header[3] == 'S'.toByte()
 			) {
-				return FlacOggFile(OggFile(inp as SyncInputStream))
+				return FlacOggFile(OggFile(inp as SyncInputStream, warningProcessor))
 			}
 			if (header[0] == 'f'.toByte() && header[1] == 'L'.toByte() &&
 				header[2] == 'a'.toByte() && header[3] == 'C'.toByte()

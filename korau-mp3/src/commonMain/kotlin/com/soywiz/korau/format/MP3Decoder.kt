@@ -5,8 +5,8 @@ import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
 object MP3Decoder : MP3Base() {
-	suspend override fun decodeStream(data: AsyncStream): AudioStream? {
-		val lame = Lame()
+	override suspend fun decodeStream(data: AsyncStream): AudioStream? {
+		val lame = Lame(warningProcessor = null)
 		lame.audio.initInFile(lame.flags, data, FrameSkip())
 
 		lame.parser.mp3InputData.totalFrames = lame.parser.mp3InputData.numSamples / lame.parser.mp3InputData.frameSize

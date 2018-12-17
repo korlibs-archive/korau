@@ -13,9 +13,7 @@
  */
 package com.soywiz.korau.format.org.gragravarr.flac
 
-import com.soywiz.klogger.*
 import com.soywiz.korau.format.org.gragravarr.ogg.*
-import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
 /**
@@ -39,10 +37,7 @@ constructor(private var input: SyncInputStream?) : FlacFile() {
 				b2 = input!!.read()
 				if (FlacAudioFrame.isFrameHeaderStart(b1, b2)) {
 					if (skipped > 0)
-						Logger("FlacNativeFile").error {
-							"Warning - had to skip " + skipped +
-									" bytes of junk data before finding the next packet header"
-						}
+						//println("Warning - had to skip $skipped bytes of junk data before finding the next packet header")
 					return FlacAudioFrame(b1, b2, input!!, info2!!)
 				}
 				skipped++

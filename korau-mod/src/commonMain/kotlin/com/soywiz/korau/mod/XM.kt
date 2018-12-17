@@ -67,7 +67,7 @@ class Fasttracker {
 
 	var filter = false
 
-	var syncqueue = IntLinkedList()
+	var syncqueue = IntDeque()
 
 	var samplerate = 44100
 	var ramplen = 64.0
@@ -377,7 +377,7 @@ class Fasttracker {
 
 	// initialize all player variables to defaults prior to starting playback
 	fun initialize() {
-		this.syncqueue = IntLinkedList()
+		this.syncqueue = IntDeque()
 
 		this.tick = -1
 		this.position = 0

@@ -1,7 +1,6 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.kds.*
-import com.soywiz.klogger.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
 import kotlin.coroutines.*

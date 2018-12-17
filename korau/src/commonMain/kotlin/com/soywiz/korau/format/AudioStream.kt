@@ -40,7 +40,7 @@ open class AudioStream(
 				var chunk: ShortArray = shortArrayOf()
 				var pos = 0
 				val available get() = chunk.size - pos
-				val chunks = LinkedList<ShortArray>()
+				val chunks = Deque<ShortArray>()
 
 				override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
 					while (available <= 0) {

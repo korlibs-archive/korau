@@ -13,7 +13,6 @@
  */
 package com.soywiz.korau.format.org.gragravarr.opus
 
-import com.soywiz.klogger.*
 import com.soywiz.korau.format.org.gragravarr.ogg.*
 import com.soywiz.korau.format.org.gragravarr.ogg.audio.*
 import com.soywiz.korio.lang.*
@@ -23,7 +22,7 @@ import com.soywiz.korio.stream.*
  * This is a wrapper around an OggFile that lets you
  * get at all the interesting bits of an Opus file.
  */
-class OpusFile : OggAudioStream, OggAudioHeaders, Closeable {
+class OpusFile(val warningProcessor: ((String) -> Unit)?) : OggAudioStream, OggAudioHeaders, Closeable {
 	/**
 	 * Returns the underlying Ogg File instance
 	 * @return
@@ -55,7 +54,7 @@ class OpusFile : OggAudioStream, OggAudioHeaders, Closeable {
 				if (op is OpusAudioData) {
 					return op as OpusAudioData?
 				} else {
-					Logger("OpusFile").error { "Skipping non audio packet $op mid audio stream" }
+					warningProcessor?.invoke("Skipping non audio packet $op mid audio stream")
 				}
 			}
 			return null
@@ -75,14 +74,14 @@ class OpusFile : OggAudioStream, OggAudioHeaders, Closeable {
 	/**
 	 * Opens the given file for reading
 	 */
-	constructor(ogg: OggFile) : this(ogg.packetReader) {
+	constructor(ogg: OggFile, warningProcessor: ((String) -> Unit)?) : this(ogg.packetReader, warningProcessor) {
 		this.oggFile = ogg
 	}
 
 	/**
 	 * Loads a Opus File from the given packet reader.
 	 */
-	constructor(r: OggPacketReader) {
+	constructor(r: OggPacketReader, warningProcessor: ((String) -> Unit)?) : this(warningProcessor) {
 		this.r = r
 
 		var p: OggPacket? = null
@@ -111,11 +110,12 @@ class OpusFile : OggAudioStream, OggAudioHeaders, Closeable {
 	 * from a pre-read file. The Steam ID (SID) is
 	 * automatically allocated for you.
 	 */
-	constructor(out: SyncOutputStream, info: OpusInfo = OpusInfo(), tags: OpusTags = OpusTags()) : this(
+	constructor(out: SyncOutputStream, info: OpusInfo = OpusInfo(), tags: OpusTags = OpusTags(), warningProcessor: ((String) -> Unit)?) : this(
 		out,
 		-1,
 		info,
-		tags
+		tags,
+		warningProcessor
 	) {
 	}
 
@@ -125,8 +125,8 @@ class OpusFile : OggAudioStream, OggAudioHeaders, Closeable {
 	 * Steam ID (SID). You should only set the SID
 	 * when copying one file to another!
 	 */
-	constructor(out: SyncOutputStream, sid: Int, info: OpusInfo, tags: OpusTags) {
-		oggFile = OggFile(out)
+	constructor(out: SyncOutputStream, sid: Int, info: OpusInfo, tags: OpusTags, warningProcessor: ((String) -> Unit)?) : this(warningProcessor) {
+		oggFile = OggFile(out, warningProcessor)
 
 		if (sid > 0) {
 			w = oggFile!!.getPacketWriter(sid)

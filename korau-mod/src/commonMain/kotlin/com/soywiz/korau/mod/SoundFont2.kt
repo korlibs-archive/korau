@@ -287,7 +287,7 @@ private class SoundFont2Reader : SoundFont2 {
 						readSF2Layer(1)
 					}
 					"phdr" -> { // Preset Header :: http://www.pjb.com.au/midi/sfspec21.html#7.2
-						presets = mapWhile({ !eof }) {
+						presets = mapWhileArray({ !eof }) {
 							SoundFont2.Preset(
 								presetName = readStringz(20, UTF8),
 								preset = readS16_le(),
@@ -301,7 +301,7 @@ private class SoundFont2Reader : SoundFont2 {
 					}
 					"pbag", "ibag" -> { // http://www.pjb.com.au/midi/sfspec21.html#7.3
 						val area = if (rname == "pbag") parea else iarea
-						area.bag = mapWhile({ !eof }) {
+						area.bag = mapWhileArray({ !eof }) {
 							SoundFont2.Bag(
 								genIdx = readS16_le(),
 								modIdx = readS16_le()
@@ -310,7 +310,7 @@ private class SoundFont2Reader : SoundFont2 {
 					}
 					"pmod", "imod" -> {
 						val area = if (rname == "pmod") parea else iarea
-						area.mod = mapWhile({ !eof }) {
+						area.mod = mapWhileArray({ !eof }) {
 							SoundFont2.Mod(
 								srcOp = readU16_le(),
 								dst = readU16_le(),
@@ -322,7 +322,7 @@ private class SoundFont2Reader : SoundFont2 {
 					}
 					"pgen", "igen" -> {
 						val area = if (rname == "pgen") parea else iarea
-						area.gen = mapWhile({ !eof }) {
+						area.gen = mapWhileArray({ !eof }) {
 							SoundFont2.Gen(
 								oper = readS16_le(),
 								amount = readS16_le()
@@ -330,7 +330,7 @@ private class SoundFont2Reader : SoundFont2 {
 						}
 					}
 					"inst" -> {
-						insts = mapWhile({ !eof }) {
+						insts = mapWhileArray({ !eof }) {
 							SoundFont2.Inst(
 								name = readStringz(20, UTF8),
 								bagIdx = readU16_le()
@@ -338,7 +338,7 @@ private class SoundFont2Reader : SoundFont2 {
 						}
 					}
 					"shdr" -> { // http://www.pjb.com.au/midi/sfspec21.html#7.10
-						samples = mapWhile({ !eof }) {
+						samples = mapWhileArray({ !eof }) {
 							SoundFont2.Sample(
 								name = readStringz(20, UTF8),
 								start = readS32_le(),

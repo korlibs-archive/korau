@@ -189,7 +189,7 @@ object OGGDecoder : OggBase() {
 
 		var current: ShortArray? = null
 		var currentpos: Int = 0
-		val items = LinkedList<ShortArray>()
+		val items = Deque<ShortArray>()
 
 		while (items.isEmpty() && ssi.hasNext()) items += ssi.next()
 
