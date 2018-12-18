@@ -143,7 +143,7 @@ class StreamState {
 		val granulepos = og.granulepos()
 		val _serialno = og.serialno()
 		val _pageno = og.pageno()
-		val segments = header_base[header + 26].toUnsigned()
+		val segments = header_base[header + 26].unsigned
 
 		// clean up 'returned data'
 		run {
@@ -203,7 +203,7 @@ class StreamState {
 			if (continued != 0) {
 				bos = 0
 				while (segptr < segments) {
-					val vall = header_base[header + 27 + segptr].toUnsigned()
+					val vall = header_base[header + 27 + segptr].unsigned
 					body += vall
 					bodysize -= vall
 					if (vall < 255) {
@@ -224,7 +224,7 @@ class StreamState {
 		run {
 			var saved = -1
 			while (segptr < segments) {
-				val vall = header_base[header + 27 + segptr].toUnsigned()
+				val vall = header_base[header + 27 + segptr].unsigned
 				lacing_vals[lacing_fill] = vall
 				granule_vals[lacing_fill] = -1
 
@@ -341,7 +341,7 @@ class StreamState {
 		i = 0
 		while (i < vals) {
 			header[i + 27] = lacing_vals[i].toByte()
-			bytes += header[i + 27].toUnsigned()
+			bytes += header[i + 27].unsigned
 			i++
 		}
 

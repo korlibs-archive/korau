@@ -260,7 +260,7 @@ private class SoundFont2Reader : SoundFont2 {
 	fun SyncStream.readSF2Layer(kind: Int) {
 		while (!eof) {
 			val id = readStringz(4)
-			val size = readS32_le()
+			val size = readS32LE()
 			val type = if (kind == 0) readStringz(4) else ""
 			val s = if (kind == 0) readStream(size - 4) else readStream(size)
 			val rname = "$id$type"
@@ -274,14 +274,14 @@ private class SoundFont2Reader : SoundFont2 {
 						readSF2Layer(0)
 					}
 					"ifil" -> { // http://www.pjb.com.au/midi/sfspec21.html#5.1
-						versionMajor = readS16_le()
-						versionMinor = readS16_le()
+						versionMajor = readS16LE()
+						versionMinor = readS16LE()
 					}
 					"INAM" -> {// http://www.pjb.com.au/midi/sfspec21.html#5.3
 						INAM = readStringz(UTF8)
 					}
 					"LISTsdta" -> { // http://www.pjb.com.au/midi/sfspec21.html#6
-						sampleData = readShortArray_le(s.available.toInt() / 2)
+						sampleData = readShortArrayLE(s.available.toInt() / 2)
 					}
 					"LISTpdta" -> { // http://www.pjb.com.au/midi/sfspec21.html#7
 						readSF2Layer(1)
@@ -290,12 +290,12 @@ private class SoundFont2Reader : SoundFont2 {
 						presets = mapWhileArray({ !eof }) {
 							SoundFont2.Preset(
 								presetName = readStringz(20, UTF8),
-								preset = readS16_le(),
-								bank = readS16_le(),
-								presetBagIdx = readS16_le(),
-								library = readS32_le(),
-								genre = readS32_le(),
-								morphology = readS32_le()
+								preset = readS16LE(),
+								bank = readS16LE(),
+								presetBagIdx = readS16LE(),
+								library = readS32LE(),
+								genre = readS32LE(),
+								morphology = readS32LE()
 							)
 						}
 					}
@@ -303,8 +303,8 @@ private class SoundFont2Reader : SoundFont2 {
 						val area = if (rname == "pbag") parea else iarea
 						area.bag = mapWhileArray({ !eof }) {
 							SoundFont2.Bag(
-								genIdx = readS16_le(),
-								modIdx = readS16_le()
+								genIdx = readS16LE(),
+								modIdx = readS16LE()
 							)
 						}
 					}
@@ -312,11 +312,11 @@ private class SoundFont2Reader : SoundFont2 {
 						val area = if (rname == "pmod") parea else iarea
 						area.mod = mapWhileArray({ !eof }) {
 							SoundFont2.Mod(
-								srcOp = readU16_le(),
-								dst = readU16_le(),
-								modAmount = readU16_le(),
-								src2Op = readU16_le(),
-								transform = readU16_le()
+								srcOp = readU16LE(),
+								dst = readU16LE(),
+								modAmount = readU16LE(),
+								src2Op = readU16LE(),
+								transform = readU16LE()
 							)
 						}
 					}
@@ -324,8 +324,8 @@ private class SoundFont2Reader : SoundFont2 {
 						val area = if (rname == "pgen") parea else iarea
 						area.gen = mapWhileArray({ !eof }) {
 							SoundFont2.Gen(
-								oper = readS16_le(),
-								amount = readS16_le()
+								oper = readS16LE(),
+								amount = readS16LE()
 							)
 						}
 					}
@@ -333,7 +333,7 @@ private class SoundFont2Reader : SoundFont2 {
 						insts = mapWhileArray({ !eof }) {
 							SoundFont2.Inst(
 								name = readStringz(20, UTF8),
-								bagIdx = readU16_le()
+								bagIdx = readU16LE()
 							)
 						}
 					}
@@ -341,15 +341,15 @@ private class SoundFont2Reader : SoundFont2 {
 						samples = mapWhileArray({ !eof }) {
 							SoundFont2.Sample(
 								name = readStringz(20, UTF8),
-								start = readS32_le(),
-								end = readS32_le(),
-								startLoop = readS32_le(),
-								endLoop = readS32_le(),
-								sampleRate = readS32_le(),
+								start = readS32LE(),
+								end = readS32LE(),
+								startLoop = readS32LE(),
+								endLoop = readS32LE(),
+								sampleRate = readS32LE(),
 								originalKey = readS8(),
 								correction = readU8(),
-								sampleLink = readU16_le(),
-								sampleType = readU16_le()
+								sampleLink = readU16LE(),
+								sampleType = readU16LE()
 							)
 						}
 					}

@@ -30,7 +30,7 @@
 package com.soywiz.korau.format.net.sourceforge.lame.mpg
 
 import com.soywiz.kmem.arraycopy
-import com.soywiz.kmem.toUnsigned
+import com.soywiz.kmem.unsigned
 
 class Common(val warningProcessor: ((String) -> Unit)?) {
 	companion object {
@@ -151,11 +151,11 @@ class Common(val warningProcessor: ((String) -> Unit)?) {
 		if (number_of_bits <= 0 || null == mp.wordpointer) return 0
 
 
-		rval = (mp.wordpointer[mp.wordpointerPos + 0].toUnsigned()).toLong()
+		rval = (mp.wordpointer[mp.wordpointerPos + 0].unsigned).toLong()
 		rval = rval shl 8
-		rval = rval or (mp.wordpointer[mp.wordpointerPos + 1].toUnsigned()).toLong()
+		rval = rval or (mp.wordpointer[mp.wordpointerPos + 1].unsigned).toLong()
 		rval = rval shl 8
-		rval = rval or (mp.wordpointer[mp.wordpointerPos + 2].toUnsigned()).toLong()
+		rval = rval or (mp.wordpointer[mp.wordpointerPos + 2].unsigned).toLong()
 		rval = (rval shl mp.bitindex)
 		rval = rval and 0xffffffL
 
@@ -172,9 +172,9 @@ class Common(val warningProcessor: ((String) -> Unit)?) {
 	fun getbits_fast(mp: MPGLib.mpstr_tag, number_of_bits: Int): Int {
 		var rval: Long
 
-		rval = (mp.wordpointer[mp.wordpointerPos + 0].toUnsigned()).toLong()
+		rval = (mp.wordpointer[mp.wordpointerPos + 0].unsigned).toLong()
 		rval = rval shl 8
-		rval = rval or (mp.wordpointer[mp.wordpointerPos + 1].toUnsigned()).toLong()
+		rval = rval or (mp.wordpointer[mp.wordpointerPos + 1].unsigned).toLong()
 		rval = rval shl mp.bitindex
 		rval = rval and 0xffffL
 		mp.bitindex += number_of_bits

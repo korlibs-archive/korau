@@ -111,7 +111,7 @@ class Interface(private val vbr: VBRTag, private val warningProcessor: ((String)
 			pos = mp.list[0].pos
 		}
 
-		b = mp.list[0].pnt[pos].toUnsigned()
+		b = mp.list[0].pnt[pos].unsigned
 		mp.bsize--
 		mp.list[0].pos++
 
@@ -240,7 +240,7 @@ class Interface(private val vbr: VBRTag, private val warningProcessor: ((String)
 				buf = mp.list[++l]
 				pos = buf.pos
 			}
-			b[3] = buf.pnt[pos].toUnsigned()
+			b[3] = buf.pnt[pos].unsigned
 			++pos
 
 			if (i >= 3) {

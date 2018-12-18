@@ -56,7 +56,7 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 		return get_audio_common(gfp, null, buffer)
 	}
 
-	suspend private fun get_audio_common(
+	private suspend fun get_audio_common(
 		gfp: LameGlobalFlags,
 		buffer: Array<FloatArray>?,
 		buffer16: Array<FloatArray>
@@ -92,7 +92,7 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 		return samples_read
 	}
 
-	suspend internal fun read_samples_mp3(
+	internal suspend fun read_samples_mp3(
 		gfp: LameGlobalFlags,
 		musicin: AsyncStream,
 		mpg123pcm: Array<FloatArray>
@@ -152,9 +152,9 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 	private fun is_syncword_mp123(headerptr: ByteArray): Boolean {
 		val p = 0
 
-		if (headerptr[p + 0].toUnsigned() and 0xFF != 0xFF) return false /* first 8 bits must be '1' */
-		if (headerptr[p + 1].toUnsigned() and 0xE0 != 0xE0) return false /* next 3 bits are also */
-		if (headerptr[p + 1].toUnsigned() and 0x18 == 0x08) return false /* no MPEG-1, -2 or -2.5 */
+		if (headerptr[p + 0].unsigned and 0xFF != 0xFF) return false /* first 8 bits must be '1' */
+		if (headerptr[p + 1].unsigned and 0xE0 != 0xE0) return false /* next 3 bits are also */
+		if (headerptr[p + 1].unsigned and 0x18 == 0x08) return false /* no MPEG-1, -2 or -2.5 */
 
 		parse.layer = when (headerptr[p + 1].toInt() and 0x06) {
 			0x02 -> 3
@@ -162,16 +162,16 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 			0x06 -> 1
 			else -> return false // illegal layer
 		}
-		if (headerptr[p + 1].toUnsigned() and 0x06 == 0x00) return false /* no Layer I, II and III */
-		if (headerptr[p + 2].toUnsigned() and 0xF0 == 0xF0) return false /* bad bitrate */
-		if (headerptr[p + 2].toUnsigned() and 0x0C == 0x0C) return false /* no sample frequency with (32,44.1,48)/(1,2,4) */
-		if (headerptr[p + 1].toUnsigned() and 0x18 == 0x18 && headerptr[p + 1].toUnsigned() and 0x06 == 0x04 && abl2[headerptr[p + 2].toUnsigned() shr 4].toInt() and (1 shl (headerptr[p + 3].toUnsigned() shr 6)) != 0)
+		if (headerptr[p + 1].unsigned and 0x06 == 0x00) return false /* no Layer I, II and III */
+		if (headerptr[p + 2].unsigned and 0xF0 == 0xF0) return false /* bad bitrate */
+		if (headerptr[p + 2].unsigned and 0x0C == 0x0C) return false /* no sample frequency with (32,44.1,48)/(1,2,4) */
+		if (headerptr[p + 1].unsigned and 0x18 == 0x18 && headerptr[p + 1].unsigned and 0x06 == 0x04 && abl2[headerptr[p + 2].unsigned shr 4].toInt() and (1 shl (headerptr[p + 3].unsigned shr 6)) != 0)
 			return false
-		if (headerptr[p + 3].toUnsigned() and 3 == 2) return false /* reserved enphasis mode */
+		if (headerptr[p + 3].unsigned and 3 == 2) return false /* reserved enphasis mode */
 		return true
 	}
 
-	suspend private fun lame_decode_initfile(fd: AsyncStream, mp3data: MP3Data, enc: FrameSkip): Int {
+	private suspend fun lame_decode_initfile(fd: AsyncStream, mp3data: MP3Data, enc: FrameSkip): Int {
 		val buf = ByteArray(100)
 		val pcm_l = FloatArray(1152)
 		val pcm_r = FloatArray(1152)
@@ -202,7 +202,7 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 			buf[3] = (buf[3].toInt() and 127).toByte()
 			buf[4] = (buf[4].toInt() and 127).toByte()
 			buf[5] = (buf[5].toInt() and 127).toByte()
-			len = (((buf[2].toUnsigned() shl 7) + buf[3] shl 7) + buf[4] shl 7) + buf[5]
+			len = (((buf[2].unsigned shl 7) + buf[3] shl 7) + buf[4] shl 7) + buf[5]
 			try {
 				fd.skip(len)
 			} catch (e: IOException) {
@@ -227,7 +227,7 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 				return -1 /* failed */
 			}
 
-			val aid_header = (buf[0].toUnsigned()) + 256 * (buf[1].toUnsigned())
+			val aid_header = (buf[0].unsigned) + 256 * (buf[1].unsigned)
 			//System.out.printf("Album ID found.  length=%d \n", aid_header);
 			/* skip rest of AID, except for 6 bytes we have already read */
 			try {
@@ -263,7 +263,7 @@ class GetAudio(internal var parse: Parse, internal var mpg: MPGLib) {
 
 		}
 
-		if (buf[2].toUnsigned() and 0xf0 == 0) {
+		if (buf[2].unsigned and 0xf0 == 0) {
 			//System.out.println("Input file is freeformat.");
 			freeformat = true
 		}

@@ -61,8 +61,8 @@ class FlacFirstOggPacket : HighLevelOggStreamPacket {
 		val baos = byteArrayOf().openSync()
 		try {
 			baos.write("FLAC".toByteArray(ASCII))
-			baos.write32_be(majorVersion)
-			baos.write32_be(minorVersion)
+			baos.write32BE(majorVersion)
+			baos.write32BE(minorVersion)
 			IOUtils.writeInt2BE(baos, numberOfHeaderBlocks)
 			baos.write("fLaC".toByteArray(ASCII))
 			baos.write(info!!.data!!)

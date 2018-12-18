@@ -36,13 +36,13 @@ class VBRTag {
 	}
 
 	private fun extractInteger(buf: ByteArray, bufPos: Int): Int {
-		var x = buf[bufPos + 0].toUnsigned()
+		var x = buf[bufPos + 0].unsigned
 		x = x shl 8
-		x = x or (buf[bufPos + 1].toUnsigned())
+		x = x or (buf[bufPos + 1].unsigned)
 		x = x shl 8
-		x = x or (buf[bufPos + 2].toUnsigned())
+		x = x or (buf[bufPos + 2].unsigned)
 		x = x shl 8
-		x = x or (buf[bufPos + 3].toUnsigned())
+		x = x or (buf[bufPos + 3].unsigned)
 		return x
 	}
 
@@ -60,15 +60,15 @@ class VBRTag {
 		pTagData.flags = 0
 
 		/* get selected MPEG header data */
-		val hId = buf[bufPos + 1].toUnsigned() shr 3 and 1
-		val hSrIndex = buf[bufPos + 2].toUnsigned() shr 2 and 3
-		val hMode = buf[bufPos + 3].toUnsigned() shr 6 and 3
-		var hBitrate = buf[bufPos + 2].toUnsigned() shr 4 and 0xf
+		val hId = buf[bufPos + 1].unsigned shr 3 and 1
+		val hSrIndex = buf[bufPos + 2].unsigned shr 2 and 3
+		val hMode = buf[bufPos + 3].unsigned shr 6 and 3
+		var hBitrate = buf[bufPos + 2].unsigned shr 4 and 0xf
 		hBitrate = Tables.bitrate_table[hId][hBitrate]
 
 		/* check for FFE syncword */
 		pTagData.samprate =
-				if (buf[bufPos + 1].toUnsigned() shr 4 == 0xE) Tables.samplerate_table[2][hSrIndex] else Tables.samplerate_table[hId][hSrIndex]
+				if (buf[bufPos + 1].unsigned shr 4 == 0xE) Tables.samplerate_table[2][hSrIndex] else Tables.samplerate_table[hId][hSrIndex]
 
 		if (hId != 0) {
 			bufPos += if (hMode != 3) 32 + 4 else 17 + 4 // mpeg1
@@ -112,10 +112,10 @@ class VBRTag {
 		pTagData.headersize = (hId + 1) * 72000 * hBitrate / pTagData.samprate
 
 		bufPos += 21
-		var encDelay = buf[bufPos + 0].toUnsigned() shl 4
-		encDelay += buf[bufPos + 1].toUnsigned() shr 4
-		var encPadding = buf[bufPos + 1].toUnsigned() and 0x0F shl 8
-		encPadding += buf[bufPos + 2].toUnsigned() and 0xff
+		var encDelay = buf[bufPos + 0].unsigned shl 4
+		encDelay += buf[bufPos + 1].unsigned shr 4
+		var encPadding = buf[bufPos + 1].unsigned and 0x0F shl 8
+		encPadding += buf[bufPos + 2].unsigned and 0xff
 		if (encDelay < 0 || encDelay > 3000) encDelay = -1
 		if (encPadding < 0 || encPadding > 3000) encPadding = -1
 

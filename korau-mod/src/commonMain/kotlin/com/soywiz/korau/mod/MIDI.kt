@@ -15,15 +15,15 @@ fun SyncStream.readMidi(): Midi {
 
 	while (!eof) {
 		val chunkType = readStringz(4)
-		val headerLen = readS32_be()
+		val headerLen = readS32BE()
 		val headerStream = readStream(headerLen)
 		headerStream.run {
 			when (chunkType) {
 				"MThd" -> {
 					// HEADER
-					format = readU16_be() // 0=SINGLE, 1=MULTIPLE, 2=PATTERN
-					ntrks = readU16_be()
-					division = readU16_be()
+					format = readU16BE() // 0=SINGLE, 1=MULTIPLE, 2=PATTERN
+					ntrks = readU16BE()
+					division = readU16BE()
 					//if (format != 0) TODO("Just supported single track MIDI files")
 					println("format=$format, ntrks=$ntrks, division=$division")
 					if (division hasBit 15) {
@@ -81,7 +81,7 @@ class MidiReader {
 		return mmessage.run {
 			val info = when (mtype) {
 				META.SEQUENCE_NUM -> {
-					val seqNum = readU16_be()
+					val seqNum = readU16BE()
 					Midi.MetaEvent.SequenceNum(seqNum)
 				}
 				META.TEXT,
@@ -107,7 +107,7 @@ class MidiReader {
 					Midi.MetaEvent.EndOfTrack
 				}
 				META.TEMPO -> {
-					val usecPerQuarterNote = readU24_be()
+					val usecPerQuarterNote = readU24BE()
 					Midi.MetaEvent.Tempo(usecPerQuarterNote)
 				}
 				META.SMPTE_OFFSET -> {

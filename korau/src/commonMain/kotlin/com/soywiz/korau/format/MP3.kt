@@ -40,17 +40,17 @@ open class MP3Base : AudioFormat("mp3") {
 			var info: Mp3Info? = null
 
 			while (!fd.eof()) {
-				val block2 = fd.readBytesUpTo(10)
+				val block2 = UByteArrayInt(fd.readBytesUpTo(10))
 				if (block2.size < 10) break
 
-				if (block2.getu(0) == 0xFF && ((block2.getu(1) and 0xe0) != 0)) {
+				if (block2[0] == 0xFF && ((block2[1] and 0xe0) != 0)) {
 					info = parseFrameHeader(block2)
 					this.info = info
 					if (info.frameSize == 0) return duration
 
 					fd.position += info.frameSize - 10
 					duration += (info.samples * 1_000_000L) / info.samplingRate
-				} else if (block2.openSync().readString(3) == "TAG") {
+				} else if (block2.bytes.openSync().readString(3) == "TAG") {
 					fd.position += 128 - 10 //skip over id3v1 tag size
 				} else {
 					fd.position -= 9
@@ -140,11 +140,11 @@ open class MP3Base : AudioFormat("mp3") {
 				val samples: Int
 			)
 
-			suspend fun parseFrameHeader(f4: ByteArray): Mp3Info {
-				val b0 = f4.getu(0);
-				val b1 = f4.getu(1);
-				val b2 = f4.getu(2);
-				val b3 = f4.getu(3)
+			suspend fun parseFrameHeader(f4: UByteArrayInt): Mp3Info {
+				val b0 = f4[0]
+				val b1 = f4[1]
+				val b2 = f4[2]
+				val b3 = f4[3]
 				if (b0 != 0xFF) invalidOp
 
 				val version = versions[b1.extract(3, 2)]

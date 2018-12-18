@@ -43,7 +43,7 @@ object Program {
 		val tags = OpusTags()
 		//tags.setVendor("Concentus");
 		//tags.addComment("title", "A test!");
-		val file = OpusFile(fileOut, info, tags)
+		val file = OpusFile(fileOut, info, tags, warningProcessor = { println(it) })
 		val packetSamples = 960
 		val inBuf = ByteArray(packetSamples * 2 * 2)
 		val data_packet = ByteArray(1275)

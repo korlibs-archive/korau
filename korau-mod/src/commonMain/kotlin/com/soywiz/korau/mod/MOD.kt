@@ -54,11 +54,11 @@ class MOD {
 		instruments = (0 until ninstruments).map {
 			Instrument(
 				name = readStringz(22).trim(),
-				sampleLen = readU16_be(),
+				sampleLen = readU16BE(),
 				finetune = readU8(),
 				volume = readU8(),
-				loopStart = readU16_be(),
-				loopLen = readU16_be()
+				loopStart = readU16BE(),
+				loopLen = readU16BE()
 			)
 		}
 		for (instrument in instruments) {
@@ -73,11 +73,11 @@ class MOD {
 
 		patterns = Patterns((0 until songLenInPatterns).map { pattern ->
 			Pattern((0 until 64).map { row ->
-				Row((0 until nchannels).map { channel -> Note(pattern, row, channel, readS32_be()) })
+				Row((0 until nchannels).map { channel -> Note(pattern, row, channel, readS32BE()) })
 			})
 		})
 		for (i in instruments) {
-			i.data = readShortArray_be(i.sampleLen)
+			i.data = readShortArrayBE(i.sampleLen)
 		}
 		//println(id)
 		//println(available)

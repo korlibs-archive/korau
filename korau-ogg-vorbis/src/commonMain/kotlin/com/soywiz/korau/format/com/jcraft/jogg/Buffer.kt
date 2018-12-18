@@ -82,7 +82,7 @@ class Buffer {
 
 		value = value and mask[bits]
 		bits += endbit
-		buffer[ptr] = (buffer[ptr].toUnsigned() or (value shl endbit)).toByte()
+		buffer[ptr] = (buffer[ptr].unsigned or (value shl endbit)).toByte()
 
 		if (bits >= 8) {
 			buffer[ptr + 1] = value.ushr(8 - endbit).toByte()
@@ -118,15 +118,15 @@ class Buffer {
 				return -1
 		}
 
-		ret = (buffer[ptr].toUnsigned()).ushr(endbit)
+		ret = (buffer[ptr].unsigned).ushr(endbit)
 		if (bits > 8) {
-			ret = ret or (buffer[ptr + 1].toUnsigned() shl 8 - endbit)
+			ret = ret or (buffer[ptr + 1].unsigned shl 8 - endbit)
 			if (bits > 16) {
-				ret = ret or (buffer[ptr + 2].toUnsigned() shl 16 - endbit)
+				ret = ret or (buffer[ptr + 2].unsigned shl 16 - endbit)
 				if (bits > 24) {
-					ret = ret or (buffer[ptr + 3].toUnsigned() shl 24 - endbit)
+					ret = ret or (buffer[ptr + 3].unsigned shl 24 - endbit)
 					if (bits > 32 && endbit != 0) {
-						ret = ret or (buffer[ptr + 4].toUnsigned() shl 32 - endbit)
+						ret = ret or (buffer[ptr + 4].unsigned shl 32 - endbit)
 					}
 				}
 			}
@@ -159,15 +159,15 @@ class Buffer {
 			}
 		}
 
-		ret = (buffer[ptr].toUnsigned()).ushr(endbit)
+		ret = (buffer[ptr].unsigned).ushr(endbit)
 		if (bits > 8) {
-			ret = ret or (buffer[ptr + 1].toUnsigned() shl 8 - endbit)
+			ret = ret or (buffer[ptr + 1].unsigned shl 8 - endbit)
 			if (bits > 16) {
-				ret = ret or (buffer[ptr + 2].toUnsigned() shl 16 - endbit)
+				ret = ret or (buffer[ptr + 2].unsigned shl 16 - endbit)
 				if (bits > 24) {
-					ret = ret or (buffer[ptr + 3].toUnsigned() shl 24 - endbit)
+					ret = ret or (buffer[ptr + 3].unsigned shl 24 - endbit)
 					if (bits > 32 && endbit != 0) {
-						ret = ret or (buffer[ptr + 4].toUnsigned() shl 32 - endbit)
+						ret = ret or (buffer[ptr + 4].unsigned shl 32 - endbit)
 					}
 				}
 			}

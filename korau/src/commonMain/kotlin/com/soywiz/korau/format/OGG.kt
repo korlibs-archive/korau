@@ -25,10 +25,10 @@ open class OggBase : AudioFormat("ogg") {
 			val cont = type.extract(0);
 			val bos = type.extract(1);
 			val eos = type.extract(2)
-			val gpos = s.readS64_le()
-			val sn = s.readS32_le()
-			val psn = s.readS32_le()
-			val chk = s.readS32_le()
+			val gpos = s.readS64LE()
+			val sn = s.readS32LE()
+			val psn = s.readS32LE()
+			val chk = s.readS32LE()
 			val pseg = s.readU8()
 			val psizs = (0 until pseg).map { s.readU8() }
 			val pages = psizs.map { s.readStream(it) }
@@ -39,12 +39,12 @@ open class OggBase : AudioFormat("ogg") {
 				if (info.readString(6) != "vorbis") invalidOp("Unsupported OGG vorbis file")
 				when (packetType) {
 					PacketTypes.ID_HEADER -> {
-						val vver = info.readS32_le()
+						val vver = info.readS32LE()
 						channels = info.readU8()
-						sampleRate = info.readS32_le()
-						val brmax = info.readS32_le()
-						brnom = info.readS32_le()
-						val brmin = info.readS32_le()
+						sampleRate = info.readS32LE()
+						val brmax = info.readS32LE()
+						brnom = info.readS32LE()
+						val brmin = info.readS32LE()
 						val bsinfo = info.readU8()
 					}
 					PacketTypes.COMMENT_HEADER -> Unit

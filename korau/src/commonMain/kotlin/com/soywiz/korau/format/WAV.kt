@@ -36,13 +36,13 @@ object WAV : AudioFormat("wav") {
 				val availableSamples = bytes.length / bytesPerSample
 				when (bytesPerSample) {
 					2 -> {
-						val temp = bytes.readShortArray_le(availableSamples) // @TODO: avoid allocations
+						val temp = bytes.readShortArrayLE(availableSamples) // @TODO: avoid allocations
 						arraycopy(temp, 0, out, offset, temp.size)
 					}
 					3 -> {
 						for (n in 0 until length) {
 							if (bytes.available < 3) return n
-							out[offset + n] = (bytes.readS24_le() ushr 8).toShort()
+							out[offset + n] = (bytes.readS24LE() ushr 8).toShort()
 						}
 					}
 					else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
@@ -55,23 +55,23 @@ object WAV : AudioFormat("wav") {
 	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
 		// HEADER
 		out.writeString("RIFF")
-		out.write32_le(0x24 + data.samples.size * 2) // length
+		out.write32LE(0x24 + data.samples.size * 2) // length
 		out.writeString("WAVE")
 
 		// FMT
 		out.writeString("fmt ")
-		out.write32_le(0x10)
-		out.write16_le(1) // PCM
-		out.write16_le(data.channels) // Channels
-		out.write32_le(data.rate) // SamplesPerSec
-		out.write32_le(data.rate * data.channels * 2) // AvgBytesPerSec
-		out.write16_le(2) // BlockAlign
-		out.write16_le(16) // BitsPerSample
+		out.write32LE(0x10)
+		out.write16LE(1) // PCM
+		out.write16LE(data.channels) // Channels
+		out.write32LE(data.rate) // SamplesPerSec
+		out.write32LE(data.rate * data.channels * 2) // AvgBytesPerSec
+		out.write16LE(2) // BlockAlign
+		out.write16LE(16) // BitsPerSample
 
 		// DATA
 		out.writeString("data")
-		out.write32_le(data.samples.size * 2)
-		out.writeShortArray_le(data.samples)
+		out.write32LE(data.samples.size * 2)
+		out.writeShortArrayLE(data.samples)
 	}
 
 	data class Fmt(
@@ -93,12 +93,12 @@ object WAV : AudioFormat("wav") {
 			var cdata: Any = Unit
 			when (type) {
 				"fmt " -> {
-					fmt.formatTag = d.readS16_le()
-					fmt.channels = d.readS16_le()
-					fmt.samplesPerSec = d.readS32_le()
-					fmt.avgBytesPerSec = d.readU32_le()
-					fmt.blockAlign = d.readS16_le()
-					fmt.bitsPerSample = d.readS16_le()
+					fmt.formatTag = d.readS16LE()
+					fmt.channels = d.readS16LE()
+					fmt.samplesPerSec = d.readS32LE()
+					fmt.avgBytesPerSec = d.readU32LE()
+					fmt.blockAlign = d.readS16LE()
+					fmt.bitsPerSample = d.readS16LE()
 					cdata = fmt
 				}
 				"data" -> {
@@ -120,14 +120,14 @@ object WAV : AudioFormat("wav") {
 	suspend fun riff(data: AsyncStream, handler: suspend Chunk.() -> Unit) {
 		val s2 = data.duplicate()
 		val magic = s2.readString(4)
-		val length = s2.readS32_le()
+		val length = s2.readS32LE()
 		val magic2 = s2.readString(4)
 		if (magic != "RIFF") invalidOp("Not a RIFF file but '$magic'")
 		if (magic2 != "WAVE") invalidOp("Not a RIFF + WAVE file")
 		val s = s2.readStream(length - 4)
 		while (!s.eof()) {
 			val type = s.readString(4)
-			val size = s.readS32_le()
+			val size = s.readS32LE()
 			val d = s.readStream(size)
 			handler.await(Chunk(type, d))
 		}

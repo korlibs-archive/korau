@@ -42,33 +42,33 @@ class Page {
 	fun eos(): Int = header_base[header + 5].toInt() and 0x04
 
 	fun granulepos(): Long {
-		var foo = (header_base[header + 13].toUnsigned()).toLong()
-		foo = foo shl 8 or (header_base[header + 12].toUnsigned().toLong())
-		foo = foo shl 8 or (header_base[header + 11].toUnsigned().toLong())
-		foo = foo shl 8 or (header_base[header + 10].toUnsigned().toLong())
-		foo = foo shl 8 or (header_base[header + 9].toUnsigned().toLong())
-		foo = foo shl 8 or (header_base[header + 8].toUnsigned().toLong())
-		foo = foo shl 8 or (header_base[header + 7].toUnsigned().toLong())
-		foo = foo shl 8 or (header_base[header + 6].toUnsigned().toLong())
+		var foo = (header_base[header + 13].unsigned).toLong()
+		foo = foo shl 8 or (header_base[header + 12].unsigned.toLong())
+		foo = foo shl 8 or (header_base[header + 11].unsigned.toLong())
+		foo = foo shl 8 or (header_base[header + 10].unsigned.toLong())
+		foo = foo shl 8 or (header_base[header + 9].unsigned.toLong())
+		foo = foo shl 8 or (header_base[header + 8].unsigned.toLong())
+		foo = foo shl 8 or (header_base[header + 7].unsigned.toLong())
+		foo = foo shl 8 or (header_base[header + 6].unsigned.toLong())
 		return foo
 	}
 
 	fun serialno(): Int {
-		return header_base[header + 14].toUnsigned() or (header_base[header + 15].toUnsigned() shl 8) or (header_base[header + 16].toUnsigned() shl 16) or (header_base[header + 17].toUnsigned() shl 24)
+		return header_base[header + 14].unsigned or (header_base[header + 15].unsigned shl 8) or (header_base[header + 16].unsigned shl 16) or (header_base[header + 17].unsigned shl 24)
 	}
 
 	fun pageno(): Int {
-		return header_base[header + 18].toUnsigned() or (header_base[header + 19].toUnsigned() shl 8) or (header_base[header + 20].toUnsigned() shl 16) or (header_base[header + 21].toUnsigned() shl 24)
+		return header_base[header + 18].unsigned or (header_base[header + 19].unsigned shl 8) or (header_base[header + 20].unsigned shl 16) or (header_base[header + 21].unsigned shl 24)
 	}
 
 	fun checksum() {
 		var crc_reg = 0
 
 		for (i in 0 until header_len) {
-			crc_reg = crc_reg shl 8 xor crc_lookup[crc_reg.ushr(24) and 0xff xor (header_base[header + i].toUnsigned())]
+			crc_reg = crc_reg shl 8 xor crc_lookup[crc_reg.ushr(24) and 0xff xor (header_base[header + i].unsigned)]
 		}
 		for (i in 0 until body_len) {
-			crc_reg = crc_reg shl 8 xor crc_lookup[crc_reg.ushr(24) and 0xff xor (body_base[body + i].toUnsigned())]
+			crc_reg = crc_reg shl 8 xor crc_lookup[crc_reg.ushr(24) and 0xff xor (body_base[body + i].unsigned)]
 		}
 		header_base[header + 22] = crc_reg.toByte()
 		header_base[header + 23] = crc_reg.ushr(8).toByte()

@@ -112,7 +112,7 @@ constructor(first2: Int, rawStream: SyncInputStream, info: FlacInfo) : FlacFrame
 	}
 
 	init {
-		val ab = ByteArrayBuffer()
+		val ab = ByteArrayBuilder()
 		val mem = MemorySyncStream(ab)
 
 		// Wrap the InputStream so that it captures the contents

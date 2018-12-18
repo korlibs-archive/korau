@@ -140,7 +140,7 @@ class SyncState {
 				dataOffset = next
 				return -(next - page)
 			}
-			_headerbytes = (data[page + 26].toUnsigned()) + 27
+			_headerbytes = (data[page + 26].unsigned) + 27
 			if (bytes < _headerbytes) {
 				return 0 // not enough for header + seg table
 			}
@@ -148,8 +148,8 @@ class SyncState {
 			// count up body length in the segment table
 
 			i = 0
-			while (i < data[page + 26].toUnsigned()) {
-				bodybytes += data[page + 27 + i].toUnsigned()
+			while (i < data[page + 26].unsigned) {
+				bodybytes += data[page + 27 + i].unsigned
 				i++
 			}
 			headerbytes = _headerbytes
