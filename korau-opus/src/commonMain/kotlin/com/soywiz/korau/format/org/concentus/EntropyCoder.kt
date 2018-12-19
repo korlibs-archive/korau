@@ -32,6 +32,7 @@
 package com.soywiz.korau.format.org.concentus
 
 import com.soywiz.kmem.*
+import com.soywiz.korau.format.org.concentus.internal.*
 import com.soywiz.korio.lang.*
 
 /*A range decoder.

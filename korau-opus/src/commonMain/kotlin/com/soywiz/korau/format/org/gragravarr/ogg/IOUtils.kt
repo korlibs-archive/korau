@@ -14,6 +14,7 @@
 package com.soywiz.korau.format.org.gragravarr.ogg
 
 import com.soywiz.kmem.*
+import com.soywiz.korau.format.org.concentus.internal.*
 import com.soywiz.korio.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*

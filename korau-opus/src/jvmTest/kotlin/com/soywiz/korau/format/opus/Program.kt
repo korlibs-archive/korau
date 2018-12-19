@@ -1,6 +1,7 @@
 package com.soywiz.korau.format.opus
 
 import com.soywiz.korau.format.org.concentus.*
+import com.soywiz.korau.format.org.concentus.internal.*
 import com.soywiz.korau.format.org.gragravarr.opus.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
@@ -8,7 +9,6 @@ import com.soywiz.korio.stream.*
 import com.soywiz.korio.file.*
 import kotlinx.coroutines.*
 import java.io.*
-import kotlin.experimental.*
 
 /*
  * To change this license header, choose License Headers in Project Properties.

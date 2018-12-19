@@ -27,6 +27,7 @@
 package com.soywiz.korau.format.com.jcraft.jorbis
 
 import com.soywiz.kmem.*
+import com.soywiz.korau.format.com.jcraft.jorbis.internal.rint
 import com.soywiz.korio.*
 import com.soywiz.korma.math.*
 import kotlin.math.*
