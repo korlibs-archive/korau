@@ -5,7 +5,6 @@ import com.soywiz.kmem.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.error.*
 import com.soywiz.korio.file.*
-import com.soywiz.korma.math.*
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -1768,4 +1767,3 @@ private fun abs(a: Double) = if (a >= 0.0) a else -a
 private fun min(a: Double, b: Double) = if (a < b) a else b
 private fun max(a: Double, b: Double) = if (a > b) a else b
 private fun max(a: Int, b: Int) = if (a > b) a else b
-fun Double.pow(other: Double) = Math2.pow(this, other)

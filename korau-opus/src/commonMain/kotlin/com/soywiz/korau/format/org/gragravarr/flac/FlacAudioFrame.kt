@@ -14,9 +14,10 @@
 package com.soywiz.korau.format.org.gragravarr.flac
 
 import com.soywiz.kmem.*
+import com.soywiz.korau.format.org.concentus.internal.*
 import com.soywiz.korau.format.org.gragravarr.ogg.*
 import com.soywiz.korio.stream.*
-import com.soywiz.korma.math.*
+import kotlin.math.*
 
 /**
  * Raw, compressed audio data.
@@ -92,14 +93,12 @@ constructor(first2: Int, rawStream: SyncInputStream, info: FlacInfo) : FlacFrame
 			return data
 		}
 
-	constructor(data: ByteArray, info: FlacInfo) : this((data).openSync(), info) {
-	}
+	constructor(data: ByteArray, info: FlacInfo) : this((data).openSync(), info)
 
 	/**
 	 * Creates the frame from the stream, with header sync checking
 	 */
-	constructor(stream: SyncInputStream, info: FlacInfo) : this(getAndCheckFirstTwo(stream), stream, info) {
-	}
+	constructor(stream: SyncInputStream, info: FlacInfo) : this(getAndCheckFirstTwo(stream), stream, info)
 
 	/**
 	 * Creates the frame from the pre-read 2 bytes and stream, with header sync checking
@@ -108,8 +107,7 @@ constructor(first2: Int, rawStream: SyncInputStream, info: FlacInfo) : FlacFrame
 		getAndCheckFirstTwo(byte1, byte2),
 		stream,
 		info
-	) {
-	}
+	)
 
 	init {
 		val ab = ByteArrayBuilder()
@@ -132,19 +130,14 @@ constructor(first2: Int, rawStream: SyncInputStream, info: FlacInfo) : FlacFrame
 		// Decode those, as best we can
 		var readBlockSize8 = false
 		var readBlockSize16 = false
-		if (blockSizeRaw == 0) {
-			// Reserved
-			blockSize = 0
-		} else if (blockSizeRaw == 1) {
-			blockSize = 192
-		} else if (blockSizeRaw >= 2 && blockSizeRaw < 5) {
-			blockSize = 576 * pow(2.0, (blockSizeRaw - 2).toDouble()).toInt()
-		} else if (blockSizeRaw == 6) {
-			readBlockSize8 = true
-		} else if (blockSizeRaw == 7) {
-			readBlockSize16 = true
-		} else {
-			blockSize = 256 * pow(2.0, (blockSizeRaw - 8).toDouble()).toInt()
+		when (blockSizeRaw) {
+			0 -> // Reserved
+				blockSize = 0
+			1 -> blockSize = 192
+			in 2..4 -> blockSize = 576 * 2.0.pow((blockSizeRaw - 2).toDouble()).toInt()
+			6 -> readBlockSize8 = true
+			7 -> readBlockSize16 = true
+			else -> blockSize = 256 * 2.0.pow((blockSizeRaw - 8).toDouble()).toInt()
 		}
 
 		if (sampleRateRaw == 0) {
@@ -249,7 +242,7 @@ constructor(first2: Int, rawStream: SyncInputStream, info: FlacInfo) : FlacFrame
 		val Hz: Int
 
 		init {
-			this.Hz = Math.rint((kHz * 1000).toFloat()).toInt()
+			this.Hz = rint((kHz * 1000).toFloat()).toInt()
 		}
 	}
 

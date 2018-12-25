@@ -34,7 +34,6 @@
  */
 package com.soywiz.korau.format.org.concentus
 
-import com.soywiz.korma.math.*
 import kotlin.math.*
 
 internal object Analysis {
@@ -365,12 +364,12 @@ internal object Analysis {
             L1 = L2
             i = 0
             while (i < OpusConstants.NB_FRAMES) {
-                L1 += Math.sqrt(tonal.E[i][b].toDouble()).toFloat()
+                L1 += sqrt(tonal.E[i][b].toDouble()).toFloat()
                 L2 += tonal.E[i][b]
                 i++
             }
 
-            stationarity = Inlines.MIN16(0.99f, L1 / Math.sqrt(1e-15 + OpusConstants.NB_FRAMES * L2).toFloat())
+            stationarity = Inlines.MIN16(0.99f, L1 / sqrt(1e-15 + OpusConstants.NB_FRAMES * L2).toFloat())
             stationarity *= stationarity
             stationarity *= stationarity
             frame_stationarity += stationarity
@@ -508,7 +507,7 @@ internal object Analysis {
         }
         i = 0
         while (i < 9) {
-            features[11 + i] = Math.sqrt(tonal.std[i].toDouble()).toFloat()
+            features[11 + i] = sqrt(tonal.std[i].toDouble()).toFloat()
             i++
         }
         features[20] = info.tonality
@@ -567,7 +566,7 @@ internal object Analysis {
                 /* We apply the current probability with exponent beta to work around
                    the fact that the probability estimates aren't independent. */
                 p0 *= (1 - frame_probs[0]).toDouble().pow(beta.toDouble()).toFloat()
-                p1 *= pow(frame_probs[0].toDouble(), beta.toDouble()).toFloat()
+                p1 *= frame_probs[0].toDouble().pow(beta.toDouble()).toFloat()
                 /* Normalise the probabilities to get the Marokv probability of music. */
                 tonal.music_prob = p1 / (p0 + p1)
                 info.music_prob = tonal.music_prob
@@ -575,8 +574,8 @@ internal object Analysis {
                 /* This chunk of code deals with delayed decision. */
                 psum = 1e-20f
                 /* Instantaneous probability of speech and music, with beta pre-applied. */
-                speech0 = pow((1 - frame_probs[0]).toDouble(), beta.toDouble()).toFloat()
-                music0 = pow(frame_probs[0].toDouble(), beta.toDouble()).toFloat()
+                speech0 = (1 - frame_probs[0]).toDouble().pow(beta.toDouble()).toFloat()
+                music0 = frame_probs[0].toDouble().pow(beta.toDouble()).toFloat()
                 if (tonal.count == 1) {
                     tonal.pspeech[0] = 0.5f
                     tonal.pmusic[0] = 0.5f

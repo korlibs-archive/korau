@@ -15,7 +15,7 @@ package com.soywiz.korau.format.org.gragravarr.vorbis
 
 import com.soywiz.korau.format.org.gragravarr.ogg.*
 import com.soywiz.korau.format.org.gragravarr.ogg.audio.*
-import com.soywiz.korma.math.*
+import kotlin.math.*
 
 /**
  * The identification header identifies the bitstream as Vorbis,
@@ -40,20 +40,20 @@ class VorbisInfo : HighLevelOggStreamPacket, VorbisPacket, OggAudioInfoHeader {
 	var blocksize0: Int
 		get() {
 			val part = blocksizes and 0x0f
-			return pow(2.0, part.toDouble()).toInt()
+			return 2.0.pow(part.toDouble()).toInt()
 		}
 		set(blocksize) {
-			val part = (log(blocksize.toDouble()) / log(2.0)).toInt()
+			val part = log2(blocksize.toDouble()).toInt()
 			blocksizes = (blocksizes and 0xf0) + part
 		}
 
 	var blocksize1: Int
 		get() {
 			val part = blocksizes and 0xf0 shr 4
-			return pow(2.0, part.toDouble()).toInt()
+			return 2.0.pow(part.toDouble()).toInt()
 		}
 		set(blocksize) {
-			val part = (log(blocksize.toDouble()) / log(2.0)).toInt()
+			val part = log2(blocksize.toDouble()).toInt()
 			blocksizes = (blocksizes and 0x0f) + (part shl 4)
 		}
 

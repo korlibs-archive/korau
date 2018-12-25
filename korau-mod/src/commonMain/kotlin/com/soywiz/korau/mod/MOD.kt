@@ -10,7 +10,6 @@ import com.soywiz.korio.file.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.*
-import com.soywiz.korma.math.*
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -33,7 +32,7 @@ class MOD {
 			428, 404, 381, 360, 339, 320, 302, 285, 269, 254, 240, 226,
 			214, 202, 190, 180, 170, 160, 151, 143, 135, 127, 120, 113
 		)
-		val FINE_TINE = DoubleArray(16) { pow(2, (it - 8) / 12 / 8) }
+		val FINE_TINE = DoubleArray(16) { 2.0.pow((it - 8) / 12 / 8) }
 		val VIBRATO_TABLES = Array(4) { vibrato ->
 			DoubleArray(64) { i ->
 				when (vibrato) {
