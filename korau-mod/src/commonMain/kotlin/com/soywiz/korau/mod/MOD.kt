@@ -1,9 +1,9 @@
 package com.soywiz.korau.mod
 
 import com.soywiz.kmem.*
-import com.soywiz.korau.KorauLock
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
+import com.soywiz.korio.concurrent.*
 import com.soywiz.korio.error.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.file.*
@@ -125,7 +125,7 @@ class MOD {
 
 		inner class ChannelInterpreter(val channel: Int) {
 			val samples = ArrayList<Short>()
-			val samplesLock = KorauLock()
+			val samplesLock = Lock()
 
 			var ir: InstrumentReader = InstrumentReader(Instrument.dummy, 0)
 			var period = 0
@@ -221,7 +221,7 @@ class MOD {
 		}
 
 		val samples = ArrayList<Short>()
-		val samplesLock = KorauLock()
+		val samplesLock = Lock()
 
 		fun evalRow(row: MOD.Row) {
 			for ((index, note) in row.notes.withIndex()) {

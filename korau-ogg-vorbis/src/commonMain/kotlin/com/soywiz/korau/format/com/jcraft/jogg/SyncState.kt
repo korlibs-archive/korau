@@ -27,7 +27,7 @@
 package com.soywiz.korau.format.com.jcraft.jogg
 
 import com.soywiz.kmem.*
-import com.soywiz.korau.KorauLock
+import com.soywiz.korio.concurrent.*
 
 // DECODING PRIMITIVES: packet streaming layer
 
@@ -105,7 +105,7 @@ class SyncState {
 	//  n) page synced at current location; page length n bytes
 	private val pageseek = Page()
 	private val chksum = ByteArray(4)
-	private val chksumLock = KorauLock()
+	private val chksumLock = Lock()
 
 	fun pageseek(og: Page?): Int {
 		var page = dataOffset

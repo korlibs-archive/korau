@@ -27,8 +27,8 @@
 package com.soywiz.korau.format.com.jcraft.jorbis
 
 import com.soywiz.kmem.*
-import com.soywiz.korau.KorauLock
 import com.soywiz.korau.format.com.jcraft.jogg.*
+import com.soywiz.korio.concurrent.*
 import kotlin.math.*
 
 class Floor0 : FuncFloor() {
@@ -121,7 +121,7 @@ class Floor0 : FuncFloor() {
 	}
 
 	var lsp: FloatArray = floatArrayOf()
-	private val lock = KorauLock()
+	private val lock = Lock()
 
 	fun inverse(vb: Block, i: Any, out: FloatArray): Int {
 		//System.err.println("Floor0.inverse "+i.getClass()+"]");
