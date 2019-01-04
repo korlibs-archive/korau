@@ -23,7 +23,7 @@ rootProject.name = (new File(rootProject.projectDir, 'gradle.properties')).withI
 }.getProperty("project.name")
 
 include ':korau'
-include ':korau-mod'
-include ':korau-mp3'
-include ':korau-ogg-vorbis'
-include ':korau-opus'
+//include ':korau-mod'
+//include ':korau-mp3'
+//include ':korau-ogg-vorbis'
+//include ':korau-opus'

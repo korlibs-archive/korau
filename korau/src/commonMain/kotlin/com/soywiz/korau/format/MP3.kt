@@ -3,10 +3,8 @@
 package com.soywiz.korau.format
 
 import com.soywiz.kmem.*
-import com.soywiz.korio.error.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
-import com.soywiz.korio.util.*
 
 object MP3 : MP3Base()
 

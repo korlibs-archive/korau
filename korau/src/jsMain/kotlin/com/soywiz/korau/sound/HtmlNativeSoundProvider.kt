@@ -2,9 +2,9 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.error.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
+import com.soywiz.korio.lang.*
 import kotlin.coroutines.*
 
 class HtmlNativeSoundProvider : NativeSoundProvider() {

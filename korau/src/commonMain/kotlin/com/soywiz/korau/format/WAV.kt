@@ -4,14 +4,14 @@ package com.soywiz.korau.format
 
 import com.soywiz.kmem.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.error.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
 object WAV : AudioFormat("wav") {
 	data class Chunk(val type: String, val data: AsyncStream)
 	data class ProcessedChunk(val type: String, val data: AsyncStream, val extra: Any)
 
-	override suspend fun tryReadInfo(data: AsyncStream): Info? = ignoreErrors {
+	override suspend fun tryReadInfo(data: AsyncStream): Info? = runIgnoringExceptions {
 		parse(data) { }
 	}
 

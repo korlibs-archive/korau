@@ -65,7 +65,7 @@ suspend fun VfsFile.readAudioStream(formats: AudioFormats = defaultAudioFormats)
 
 suspend fun VfsFile.writeAudio(data: AudioData, formats: AudioFormats = defaultAudioFormats) =
 	this.openUse2(VfsOpenMode.CREATE_OR_TRUNCATE) {
-		formats.encode(data, this, this@writeAudio.basename)
+		formats.encode(data, this, this@writeAudio.baseName)
 	}
 
 // @TODO: Problem with Kotlin.JS. Fails in runtime returning kotlin.Unit.

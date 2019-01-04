@@ -4,7 +4,7 @@ import com.soywiz.klock.TimeSpan
 import com.soywiz.klock.microseconds
 import com.soywiz.klock.milliseconds
 import com.soywiz.korau.format.*
-import com.soywiz.korio.async.executeInWorker
+import com.soywiz.korio.async.*
 import com.soywiz.korio.stream.openAsync
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.*
@@ -90,7 +90,7 @@ class AwtNativeSound(val data: ByteArray) : NativeSound() {
     override var length: TimeSpan = 0.milliseconds
 
     suspend fun init(): AwtNativeSound {
-        executeInWorker {
+        executeInWorkerJVM {
             val sound = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))
             length = (sound.frameLength * 1000.0 / sound.format.frameRate.toDouble()).toLong().milliseconds
         }
