@@ -20,7 +20,7 @@ open class OggBase : AudioFormat("ogg") {
 		var brnom = 160000
 		while (s.hasAvailable()) {
 			val magic = s.readString(5)
-			if (magic != "OggS\u0000") invalidOp("Not an OGG file")
+			if (magic != "OggS\u0000") invalidAudioFormat("Not an OGG file")
 			val type = s.readS8()
 			val cont = type.extract(0);
 			val bos = type.extract(1);

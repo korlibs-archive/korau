@@ -13,8 +13,8 @@ class OGGDecoderTest {
 	fun testDecodeWav() = suspendTest {
 		//ResourcesVfs["ogg1.ogg"].readAudioData().play()
 		//ResourcesVfs["ogg1.ogg"].readAudioStream()!!.play()
-		val expected = MyResourcesVfs["ogg1.ogg.wav"].readAudioData(formats)
-		val output = MyResourcesVfs["ogg1.ogg"].readAudioData(formats)
+		val expected = resourcesVfs["ogg1.ogg.wav"].readAudioData(formats)
+		val output = resourcesVfs["ogg1.ogg"].readAudioData(formats)
 
 		val expectedBytes = formats.encodeToByteArray(expected, "out.wav")
 		val outputBytes = formats.encodeToByteArray(output, "out.wav")

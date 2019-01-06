@@ -12,7 +12,7 @@ class MP3DecoderTest {
 	// http://mpgedit.org/mpgedit/testdata/mpegdata.html
 	@kotlin.test.Test
 	fun testDecodeMp3() = suspendTest {
-		val output = MyResourcesVfs["mp31.mp3"].readAudioData(formats)
+		val output = resourcesVfs["mp31.mp3"].readAudioData(formats)
 		val outputBytes = formats.encodeToByteArray(output, "out.wav")
 
 		//output.play()
@@ -20,7 +20,7 @@ class MP3DecoderTest {
 
 		//LocalVfs("c:/temp/mp31.mp3.wav").write(outputBytes)
 
-		val expected = MyResourcesVfs["mp31.mp3.wav"].readAudioData(formats)
+		val expected = resourcesVfs["mp31.mp3.wav"].readAudioData(formats)
 		val expectedBytes = formats.encodeToByteArray(expected, "out.wav")
 
 		assertEquals(outputBytes.size, expectedBytes.size)

@@ -10,7 +10,7 @@ class KorauTest {
 
 	@Test
 	fun name(): Unit = suspendTest {
-		val sound = MyResourcesVfs["wav1.wav"].readAudioData(formats)
+		val sound = resourcesVfs["wav1.wav"].readAudioData(formats)
 		//sleep(0)
 		//sound.play()
 	}

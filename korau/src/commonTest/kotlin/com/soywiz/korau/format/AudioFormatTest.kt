@@ -11,11 +11,11 @@ class AudioFormatTest {
 	fun wav() = suspendTest {
 		assertEquals(
 			"Info(lengthInMicroseconds=500000, channels=1)",
-			MyResourcesVfs["wav1.wav"].readSoundInfo(formats).toString()
+			resourcesVfs["wav1.wav"].readSoundInfo(formats).toString()
 		)
 		assertEquals(
 			"Info(lengthInMicroseconds=500000, channels=1)",
-			MyResourcesVfs["wav2.wav"].readSoundInfo(formats).toString()
+			resourcesVfs["wav2.wav"].readSoundInfo(formats).toString()
 		)
 	}
 
@@ -23,7 +23,7 @@ class AudioFormatTest {
 	fun ogg() = suspendTest {
 		assertEquals(
 			"Info(lengthInMicroseconds=500000, channels=1)",
-			MyResourcesVfs["ogg1.ogg"].readSoundInfo(formats).toString()
+			resourcesVfs["ogg1.ogg"].readSoundInfo(formats).toString()
 		)
 	}
 
@@ -31,7 +31,7 @@ class AudioFormatTest {
 	fun mp3() = suspendTest {
 		assertEquals(
 			"Info(lengthInMicroseconds=546625, channels=1)",
-			MyResourcesVfs["mp31.mp3"].readSoundInfo(formats).toString()
+			resourcesVfs["mp31.mp3"].readSoundInfo(formats).toString()
 		)
 	}
 }

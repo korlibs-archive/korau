@@ -11,8 +11,11 @@ object WAV : AudioFormat("wav") {
 	data class Chunk(val type: String, val data: AsyncStream)
 	data class ProcessedChunk(val type: String, val data: AsyncStream, val extra: Any)
 
-	override suspend fun tryReadInfo(data: AsyncStream): Info? = runIgnoringExceptions {
+	override suspend fun tryReadInfo(data: AsyncStream): Info? = try {
 		parse(data) { }
+	} catch (e: Throwable) {
+		//e.printStackTrace()
+		null
 	}
 
 	override suspend fun decodeStream(data: AsyncStream): AudioStream? {
@@ -118,12 +121,14 @@ object WAV : AudioFormat("wav") {
 	}
 
 	suspend fun riff(data: AsyncStream, handler: suspend Chunk.() -> Unit) {
+		//println("riff.data.size(): ${data.size()}")
 		val s2 = data.duplicate()
+		//val s2 = data.readAll().openAsync()
 		val magic = s2.readString(4)
 		val length = s2.readS32LE()
 		val magic2 = s2.readString(4)
-		if (magic != "RIFF") invalidOp("Not a RIFF file but '$magic'")
-		if (magic2 != "WAVE") invalidOp("Not a RIFF + WAVE file")
+		if (magic != "RIFF") invalidAudioFormat("Not a RIFF file but '$magic'")
+		if (magic2 != "WAVE") invalidAudioFormat("Not a RIFF + WAVE file")
 		val s = s2.readStream(length - 4)
 		while (!s.eof()) {
 			val type = s.readString(4)

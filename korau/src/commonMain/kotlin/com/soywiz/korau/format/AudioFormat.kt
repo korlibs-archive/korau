@@ -33,6 +33,8 @@ open class AudioFormat(vararg exts: String) {
 		format.encode(data, out.toAsync(), filename)
 		return out.toByteArray()
 	}
+
+	override fun toString(): String = "AudioFormat(${extensions.sorted()})"
 }
 
 val defaultAudioFormats = AudioFormats().apply { registerStandard() }
@@ -43,6 +45,7 @@ class AudioFormats : AudioFormat() {
 	fun register(vararg formats: AudioFormat): AudioFormats = this.apply { this.formats += formats }
 
 	override suspend fun tryReadInfo(data: AsyncStream): Info? {
+		//println("formats:$formats")
 		for (format in formats) {
 			try {
 				return format.tryReadInfo(data.duplicate()) ?: continue
