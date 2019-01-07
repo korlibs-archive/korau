@@ -47,25 +47,22 @@ open class NativeSoundProvider {
 		return createSound(WAV.encodeToByteArray(data), streaming)
 	}
 
-	open suspend fun play(stream: BaseAudioStream, bufferSeconds: Double = 0.1): Unit =
-		suspendCancellableCoroutine<Unit> { c ->
-			val nas = nativeSoundProvider.createAudioStream()
-			val task = asyncImmediately(c.context) {
-				val temp = ShortArray(1024)
-				val nchannels = 2
-				val minBuf = stream.rate * nchannels * bufferSeconds
-				while (true) {
-					val read = stream.read(temp, 0, temp.size)
-					nas.addSamples(temp, 0, read)
-					while (nas.availableSamples in minBuf..minBuf * 2) c.context.delayNextFrame() // 100ms of buffering, and 1s as much
-				}
-			}
+	open suspend fun playAndWait(stream: BaseAudioStream, bufferSeconds: Double = 0.1): Unit {
+		val nas = nativeSoundProvider.createAudioStream()
+		try {
+			val temp = ShortArray(1024)
+			val nchannels = 2
+			val minBuf = (stream.rate * nchannels * bufferSeconds).toInt()
 			nas.start()
-			c.invokeOnCancellation {
-				task.cancel()
-				nas.stop()
+			while (!stream.finished) {
+				val read = stream.read(temp, 0, temp.size)
+				nas.addSamples(temp, 0, read)
+				while (nas.availableSamples in minBuf..minBuf * 2) delayNextFrame() // 100ms of buffering, and 1s as much
 			}
+		} catch (e: CancellationException) {
+			nas.stop()
 		}
+	}
 }
 
 class DummyNativeSoundProvider : NativeSoundProvider()

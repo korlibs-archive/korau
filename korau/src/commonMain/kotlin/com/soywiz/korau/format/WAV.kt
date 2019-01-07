@@ -34,8 +34,11 @@ object WAV : AudioFormat("wav") {
 		val bytesPerSample: Int = fmt.bitsPerSample / 8
 
 		return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
+			override var finished: Boolean = false
+
 			override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
 				val bytes = FastByteArrayInputStream(buffer.readBytesUpTo(length * bytesPerSample))
+				finished = buffer.eof()
 				val availableSamples = bytes.length / bytesPerSample
 				when (bytesPerSample) {
 					2 -> {

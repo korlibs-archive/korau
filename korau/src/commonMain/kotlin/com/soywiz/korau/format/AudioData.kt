@@ -20,10 +20,13 @@ class AudioData(
 
     fun toStream() = object : AudioStream(rate, channels) {
         var cursor = 0
+        override var finished: Boolean = false
+
         override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
             val available = samples.size - cursor
             val toread = min(available, length)
             if (toread > 0) arraycopy(samples, cursor, out, offset, toread)
+            if (toread <= 0) finished = true
             return toread
         }
     }
@@ -33,7 +36,7 @@ class AudioData(
 
 suspend fun AudioData.toNativeSound() = nativeSoundProvider.createSound(this)
 
-suspend fun AudioData.play() = this.toNativeSound().play()
+suspend fun AudioData.playAndWait() = this.toNativeSound().play()
 
 suspend fun VfsFile.readAudioData(formats: AudioFormats = defaultAudioFormats) =
     this.openUse2 { formats.decode(this) ?: invalidOp("Can't decode audio file ${this@readAudioData}") }

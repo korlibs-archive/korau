@@ -17,8 +17,8 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
         return NSSoundNativeSound(NSSound(data.toNSData()))
     }
 
-    override suspend fun play(stream: BaseAudioStream, bufferSeconds: Double) {
-        super.play(stream, bufferSeconds)
+    override suspend fun playAndWait(stream: BaseAudioStream, bufferSeconds: Double) {
+        super.playAndWait(stream, bufferSeconds)
     }
 }
 
