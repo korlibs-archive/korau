@@ -7,27 +7,28 @@ import com.soywiz.korio.lang.*
 import kotlin.math.*
 
 class AudioData(
-	val rate: Int,
-	val channels: Int,
-	val samples: ShortArray
+    val rate: Int,
+    val channels: Int,
+    val samples: ShortArray
 ) {
-	val seconds: Double get() = (samples.size / channels).toDouble() / rate.toDouble()
+    val numSamples get() = samples.size / channels
+    val seconds: Double get() = (numSamples).toDouble() / rate.toDouble()
 
-	fun convertTo(rate: Int = 44100, channels: Int = 2): AudioData {
-		TODO()
-	}
+    fun convertTo(rate: Int = 44100, channels: Int = 2): AudioData {
+        TODO()
+    }
 
-	fun toStream() = object : AudioStream(rate, channels) {
-		var cursor = 0
-		override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
-			val available = samples.size - cursor
-			val toread = min(available, length)
-			if (toread > 0) arraycopy(samples, cursor, out, offset, toread)
-			return toread
-		}
-	}
+    fun toStream() = object : AudioStream(rate, channels) {
+        var cursor = 0
+        override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
+            val available = samples.size - cursor
+            val toread = min(available, length)
+            if (toread > 0) arraycopy(samples, cursor, out, offset, toread)
+            return toread
+        }
+    }
 
-	override fun toString(): String = "AudioData(rate=$rate, channels=$channels, samples=${samples.size})"
+    override fun toString(): String = "AudioData(rate=$rate, channels=$channels, samples=${samples.size})"
 }
 
 suspend fun AudioData.toNativeSound() = nativeSoundProvider.createSound(this)
@@ -35,4 +36,4 @@ suspend fun AudioData.toNativeSound() = nativeSoundProvider.createSound(this)
 suspend fun AudioData.play() = this.toNativeSound().play()
 
 suspend fun VfsFile.readAudioData(formats: AudioFormats = defaultAudioFormats) =
-	this.openUse2 { formats.decode(this) ?: invalidOp("Can't decode audio file ${this@readAudioData}") }
+    this.openUse2 { formats.decode(this) ?: invalidOp("Can't decode audio file ${this@readAudioData}") }

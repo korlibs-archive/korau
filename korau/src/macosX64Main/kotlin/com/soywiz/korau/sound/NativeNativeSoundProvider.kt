@@ -2,14 +2,15 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.korau.format.*
-import com.soywiz.korio.file.*
+import com.soywiz.korio.async.*
 import kotlinx.cinterop.*
+import platform.AVFoundation.*
 import platform.AppKit.*
 import platform.Foundation.*
 
 actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvider() {
     override fun createAudioStream(freq: Int): NativeAudioStream {
-        return super.createAudioStream(freq)
+        return MacAudioStream(freq)
     }
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
@@ -18,6 +19,49 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
 
     override suspend fun play(stream: BaseAudioStream, bufferSeconds: Double) {
         super.play(stream, bufferSeconds)
+    }
+}
+
+class MacAudioStream(freq: Int) : NativeAudioStream(freq) {
+    val engine = AVAudioEngine()
+    val playerNode = AVAudioPlayerNode()
+    val audioFormat = AVAudioFormat(44100.0, channels = 2.convert())
+
+    init {
+        engine.attachNode(playerNode)
+        engine.connect(playerNode, engine.mainMixerNode, playerNode.outputFormatForBus(0))
+    }
+
+    override var availableSamples: Int = 0
+
+    override suspend fun addSamples(samples: ShortArray, offset: Int, size: Int) {
+        val buffer = AVAudioPCMBuffer(audioFormat, size.convert())
+        val channelData = buffer.floatChannelData!!
+        val channelLeft = channelData[0]!!
+        val channelRight = channelData[1]!!
+        val nsamples = size / 2
+        for (n in 0 until nsamples) {
+            val m = offset + n * 2
+            channelLeft[n] = samples[m + 0].toFloat() / Short.MAX_VALUE.toFloat()
+            channelRight[n] = samples[m + 1].toFloat() / Short.MAX_VALUE.toFloat()
+        }
+
+        availableSamples++
+        playerNode.scheduleBuffer(buffer) {
+            availableSamples--
+        }
+
+        while (availableSamples > 4) {
+            delayNextFrame()
+        }
+    }
+
+    override fun start() {
+        engine.startAndReturnError(null)
+    }
+
+    override fun stop() {
+        engine.stop()
     }
 }
 

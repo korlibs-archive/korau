@@ -94,9 +94,10 @@ suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: Time
 abstract class NativeSound {
 	open val length: TimeSpan = 0.seconds
 	abstract fun play(): NativeSoundChannel
-	suspend fun playAndWait(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
-		play().await(progress)
 }
+
+suspend fun NativeSound.playAndWait(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
+	play().await(progress)
 
 suspend fun VfsFile.readNativeSound(streaming: Boolean = false) = nativeSoundProvider.createSound(this, streaming)
 suspend fun VfsFile.readNativeSoundOptimized(streaming: Boolean = false) =

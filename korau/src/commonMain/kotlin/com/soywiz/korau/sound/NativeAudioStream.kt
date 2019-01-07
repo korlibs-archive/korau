@@ -1,10 +1,16 @@
 package com.soywiz.korau.sound
 
+import com.soywiz.korau.format.*
+
 open class NativeAudioStream(freq: Int) {
 	open val availableSamples: Int = 0
 	open suspend fun addSamples(samples: ShortArray, offset: Int, size: Int) = Unit
 	open fun start() = Unit
 	open fun stop() = Unit
+}
+
+suspend fun NativeAudioStream.add(data: AudioData) {
+	addSamples(data.samples, 0, data.samples.size)
 }
 
 // @TODO: kotlin-js BUG: https://youtrack.jetbrains.com/issue/KT-25210

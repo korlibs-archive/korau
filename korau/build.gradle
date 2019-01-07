@@ -6,6 +6,7 @@ kotlin.targets.macosX64.compilations.main {
 	cinterops {
 		//CoreAudio {}
 		//CoreAudioKit {}
-		//AudioToolbox { }
+		//AudioToolbox {}
+		AVFoundation {}
 	}
 }
