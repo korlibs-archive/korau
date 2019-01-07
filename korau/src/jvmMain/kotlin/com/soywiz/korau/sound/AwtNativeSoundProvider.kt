@@ -28,6 +28,8 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
         line.close()
     }
 
+    override fun createAudioStream(freq: Int): NativeAudioStream = JvmNativeAudioStream(freq)
+
     override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
         try {
             return AwtNativeSound(

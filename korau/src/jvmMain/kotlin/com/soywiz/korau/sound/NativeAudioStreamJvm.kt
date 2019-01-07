@@ -12,7 +12,7 @@ import kotlin.coroutines.coroutineContext
 
 data class SampleBuffer(val timestamp: Long, val data: ShortArray)
 
-actual class NativeAudioStream actual constructor(val freq: Int) {
+class JvmNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
     companion object {
         var lastId = 0
         val mixer by lazy { AudioSystem.getMixer(null) }
@@ -30,7 +30,7 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
     val availableBuffers: Int get() = synchronized(buffers) { buffers.size }
     val line by lazy { mixer.getLine(DataLine.Info(SourceDataLine::class.java, format)) as SourceDataLine }
 
-    actual val availableSamples get() = synchronized(buffers) { totalShorts }
+    override val availableSamples get() = synchronized(buffers) { totalShorts }
 
     fun ensureThread() {
         if (thread == null) {
@@ -81,7 +81,7 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
         }
     }
 
-    actual suspend fun addSamples(samples: ShortArray, offset: Int, size: Int) {
+    override suspend fun addSamples(samples: ShortArray, offset: Int, size: Int) {
         val buffer = SampleBuffer(System.currentTimeMillis(), samples.copyOfRange(offset, offset + size))
         synchronized(buffers) {
             totalShorts += buffer.data.size
@@ -114,11 +114,11 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
     //suspend fun CoroutineContext.sleepImmediate2() = suspendCoroutine<Unit> { c ->
     //	eventLoop.setImmediate { c.resume(Unit) }
     //}
-    actual fun stop() {
+    override fun stop() {
         running = false
     }
 
-    actual fun start() {
+    override fun start() {
 
     }
 }

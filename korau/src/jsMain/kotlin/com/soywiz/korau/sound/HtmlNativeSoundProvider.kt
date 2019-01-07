@@ -11,6 +11,8 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 	override fun initOnce() {
 	}
 
+	override fun createAudioStream(freq: Int): NativeAudioStream = JsNativeAudioStream(freq)
+
 	override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
 		return AudioBufferNativeSound(HtmlSimpleSound.loadSound(data))
 		/*

@@ -11,7 +11,7 @@ import kotlin.coroutines.*
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundProvider() }
 
-actual class NativeAudioStream actual constructor(val freq: Int) {
+class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
 	val id = lastId++
 
 	init {
@@ -74,7 +74,7 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
 
 	private var startPromise: Cancellable? = null
 
-	actual fun start() {
+	override fun start() {
 		if (nodeRunning) return
 		startPromise = HtmlSimpleSound.callOnUnlocked {
 			node = HtmlSimpleSound.ctx?.createScriptProcessor(1024, 2, 2)
@@ -85,7 +85,7 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
 		nodeRunning = true
 	}
 
-	actual fun stop() {
+	override fun stop() {
 		if (!nodeRunning) return
 		startPromise?.cancel()
 		this.node?.disconnect()
@@ -100,9 +100,9 @@ actual class NativeAudioStream actual constructor(val freq: Int) {
 	}
 
 	var totalShorts = 0
-	actual val availableSamples get() = totalShorts
+	override val availableSamples get() = totalShorts
 
-	actual suspend fun addSamples(samples: ShortArray, offset: Int, size: Int): Unit {
+	override suspend fun addSamples(samples: ShortArray, offset: Int, size: Int): Unit {
 		//println("addSamples: $available, $size")
 		//println(samples.sliceArray(offset until offset + size).toList())
 		totalShorts += size

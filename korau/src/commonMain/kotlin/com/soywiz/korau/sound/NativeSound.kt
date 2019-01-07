@@ -5,6 +5,7 @@ import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 expect val nativeSoundProvider: NativeSoundProvider
 
@@ -17,6 +18,8 @@ open class NativeSoundProvider {
 			init()
 		}
 	}
+
+	open fun createAudioStream(freq: Int = 44100): NativeAudioStream = NativeAudioStream(freq)
 
 	protected open fun init(): Unit = Unit
 
@@ -46,7 +49,7 @@ open class NativeSoundProvider {
 
 	open suspend fun play(stream: BaseAudioStream, bufferSeconds: Double = 0.1): Unit =
 		suspendCancellableCoroutine<Unit> { c ->
-			val nas = NewNativeAudioStream()
+			val nas = nativeSoundProvider.createAudioStream()
 			val task = asyncImmediately(c.context) {
 				val temp = ShortArray(1024)
 				val nchannels = 2
@@ -74,30 +77,24 @@ abstract class NativeSoundChannel(val sound: NativeSound) {
 	open val total: TimeSpan get() = sound.length
 	open val playing get() = current < total
 	abstract fun stop(): Unit
-	suspend fun await(progress: (current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }) {
-		suspendCancellableCoroutine<Unit> { c ->
-			launchImmediately(c.context) {
-				try {
-					while (playing) {
-						progress(current, total)
-						c.context.delayNextFrame()
-					}
-					progress(total, total)
-				} catch (e: CancellationException) {
-					stop()
-				}
-			}
-			c.invokeOnCancellation {
-				stop()
-			}
+}
+
+suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }) {
+	try {
+		while (playing) {
+			progress(current, total)
+			delayNextFrame()
 		}
+		progress(total, total)
+	} catch (e: CancellationException) {
+		stop()
 	}
 }
 
 abstract class NativeSound {
 	open val length: TimeSpan = 0.seconds
 	abstract fun play(): NativeSoundChannel
-	suspend fun playAndWait(progress: (current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
+	suspend fun playAndWait(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
 		play().await(progress)
 }
 

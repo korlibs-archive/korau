@@ -45,6 +45,7 @@ subprojects {
             }
         }
         sourceSets {
+            iosCommonMain
             nonNativeCommonMain
             nativeCommonMain
             nativeCommonTest
@@ -57,6 +58,9 @@ subprojects {
             }
             mingwX64Test {
                 dependsOn nativeCommonTest
+            }
+            configure([iosX64Main, iosArm32Main, iosArm64Main]) {
+                dependsOn iosCommonMain
             }
             configure([iosX64Main, iosArm32Main, iosArm64Main, macosX64Main, linuxX64Main]) {
                 dependsOn nativeCommonMain
