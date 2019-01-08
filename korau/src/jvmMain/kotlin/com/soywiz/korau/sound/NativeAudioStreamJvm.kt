@@ -1,7 +1,8 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.kds.Queue
-import com.soywiz.korio.async.delayNextFrame
+import com.soywiz.klock.*
+import com.soywiz.korio.async.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.sound.sampled.AudioFormat
@@ -91,7 +92,7 @@ class JvmNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
         ensureThread()
 
         while (availableBuffers >= 5) {
-            coroutineContext.delayNextFrame()
+            coroutineContext.delay(4.milliseconds)
         }
 
         //val ONE_SECOND = 44100 * 2

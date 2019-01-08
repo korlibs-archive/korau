@@ -119,7 +119,7 @@ class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
 			buffers.enqueue(MyNativeAudioBuffer(fsamples))
 
 			while (buffers.size > 4) {
-				coroutineContext.delayNextFrame()
+				coroutineContext.delay(4.milliseconds)
 			}
 		}
 	}

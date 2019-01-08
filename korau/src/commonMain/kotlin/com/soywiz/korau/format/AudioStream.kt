@@ -119,7 +119,7 @@ suspend fun <T> VfsFile.openUse2(
     //return open(mode).use { callback.await(this) }
     val s = open(mode)
     try {
-        return callback.await(s)
+        return callback(s)
     } finally {
         s.close()
     }

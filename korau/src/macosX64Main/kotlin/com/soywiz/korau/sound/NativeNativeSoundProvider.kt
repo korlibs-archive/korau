@@ -52,7 +52,7 @@ class MacAudioStream(freq: Int) : NativeAudioStream(freq) {
         }
 
         while (availableSamples > 4) {
-            delayNextFrame()
+            delay(4.milliseconds)
         }
     }
 

@@ -139,7 +139,7 @@ private suspend fun soundProgress(
 		val elapsed = now - startTime
 		if (elapsed >= totalTime) break
 		progress(elapsed, totalTime)
-		delayNextFrame()
+		delay(4.milliseconds)
 	}
 	progress(totalTime, totalTime)
 }

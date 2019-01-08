@@ -57,7 +57,7 @@ open class NativeSoundProvider {
 			while (!stream.finished) {
 				val read = stream.read(temp, 0, temp.size)
 				nas.addSamples(temp, 0, read)
-				while (nas.availableSamples in minBuf..minBuf * 2) delayNextFrame() // 100ms of buffering, and 1s as much
+				while (nas.availableSamples in minBuf..minBuf * 2) delay(4.milliseconds) // 100ms of buffering, and 1s as much
 			}
 		} catch (e: CancellationException) {
 			nas.stop()
@@ -80,7 +80,7 @@ suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: Time
 	try {
 		while (playing) {
 			progress(current, total)
-			delayNextFrame()
+			delay(4.milliseconds)
 		}
 		progress(total, total)
 	} catch (e: CancellationException) {
