@@ -1,2 +1,7 @@
+(new File(projectDir, "korau/src/commonMain/kotlin/com/soywiz/korau/internal/KorauVersion.kt")).with {
+    parentFile.mkdirs()
+    write("package com.soywiz.korau.internal\n\ninternal const val KORAU_VERSION = \"$projectVersion\"")
+}
+
 dependencies {
 }
