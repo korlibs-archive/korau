@@ -16,6 +16,10 @@ kotlin.targets.mingwX64.compilations.main.cinterops {
 	win32_winmm {}
 }
 
+kotlin.targets.linuxX64.compilations.main.cinterops {
+	openal {}
+}
+
 kotlin.targets.macosX64.compilations.main.cinterops {
 	//CoreAudio {}
 	//CoreAudioKit {}

@@ -13,7 +13,8 @@ class AudioData(
     val samples: ShortArray
 ) {
     val numSamples get() = samples.size / channels
-    val totalTime: TimeSpan get() = ((numSamples).toDouble() / rate.toDouble()).seconds
+    val totalTime: TimeSpan get() = timeAtSample(numSamples)
+    fun timeAtSample(sample: Int) = ((sample).toDouble() / rate.toDouble()).seconds
 
     fun convertTo(rate: Int = 44100, channels: Int = 2): AudioData {
         TODO()
