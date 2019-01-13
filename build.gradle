@@ -49,6 +49,7 @@ subprojects {
             }
         }
         sourceSets {
+            appleCommonMain
             iosCommonMain
             nonNativeCommonMain
             nativeCommonMain
@@ -65,6 +66,9 @@ subprojects {
             }
             configure([iosX64Main, iosArm32Main, iosArm64Main]) {
                 dependsOn iosCommonMain
+            }
+            configure([iosX64Main, iosArm32Main, iosArm64Main, macosX64Main]) {
+                dependsOn appleCommonMain
             }
             configure([iosX64Main, iosArm32Main, iosArm64Main, macosX64Main, linuxX64Main]) {
                 dependsOn nativeCommonMain

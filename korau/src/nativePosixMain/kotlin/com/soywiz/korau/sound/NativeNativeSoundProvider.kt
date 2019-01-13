@@ -1,15 +1,13 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.file.Vfs
-import com.soywiz.korio.lang.*
+import com.soywiz.korio.file.*
 import kotlinx.cinterop.*
-import kotlin.coroutines.*
 import kotlinx.coroutines.*
-import openal.*
+import platform.OpenAL.*
+import kotlin.coroutines.*
 
 val nativeAudioFormats = AudioFormats().register(
     WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat
@@ -103,19 +101,31 @@ class OpenALNativeSoundNoStream(val coroutineScope: CoroutineScope, val data: Au
     }
 }
 
-private fun alGetSourcef(source: ALuint, param: ALenum): ALfloat = memScoped { alloc<ALfloatVar>().also { alGetSourcef(source, param, it.ptr) }.value }
-private fun alGetSourcei(source: ALuint, param: ALenum): ALint = memScoped { alloc<ALintVar>().also { alGetSourcei(source, param, it.ptr) }.value }
+private fun alGetSourcef(source: ALuint, param: ALenum): ALfloat =
+    memScoped { alloc<ALfloatVar>().also { alGetSourcef(source, param, it.ptr) }.value }
+
+private fun alGetSourcei(source: ALuint, param: ALenum): ALint =
+    memScoped { alloc<ALintVar>().also { alGetSourcei(source, param, it.ptr) }.value }
 
 private fun alGetSourceState(source: ALuint): ALint = alGetSourcei(source, AL_SOURCE_STATE)
 
 private fun alBufferData(buffer: ALuint, data: AudioData) {
     val samples = data.samples
     samples.usePinned { pin ->
-        alBufferData(buffer, if (data.channels == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16, if (samples.isNotEmpty()) pin.addressOf(0) else null, samples.size * 2, 44100.convert())
+        alBufferData(
+            buffer,
+            if (data.channels == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16,
+            if (samples.isNotEmpty()) pin.addressOf(0) else null,
+            samples.size * 2,
+            44100.convert()
+        )
     }
 }
+
 private fun alGenBuffer(): ALuint = memScoped { alloc<ALuintVar>().apply { alGenBuffers(1, this.ptr) }.value }
-private fun alDeleteBuffer(buffer: ALuint): Unit = run { memScoped { alloc<ALuintVar>().apply { this.value = buffer }.apply { alDeleteBuffers(1, this.ptr) } } }
+private fun alDeleteBuffer(buffer: ALuint): Unit =
+    run { memScoped { alloc<ALuintVar>().apply { this.value = buffer }.apply { alDeleteBuffers(1, this.ptr) } } }
 
 private fun alGenSource(): ALuint = memScoped { alloc<ALuintVar>().apply { alGenSources(1, this.ptr) }.value }
-private fun alDeleteSource(buffer: ALuint): Unit = run { memScoped { alloc<ALuintVar>().apply { this.value = buffer }.apply { alDeleteSources(1, this.ptr) } } }
+private fun alDeleteSource(buffer: ALuint): Unit =
+    run { memScoped { alloc<ALuintVar>().apply { this.value = buffer }.apply { alDeleteSources(1, this.ptr) } } }

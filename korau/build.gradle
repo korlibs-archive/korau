@@ -17,7 +17,7 @@ kotlin.targets.mingwX64.compilations.main.cinterops {
 }
 
 kotlin.targets.linuxX64.compilations.main.cinterops {
-	openal {}
+	linux_OpenAL {}
 }
 
 kotlin.targets.macosX64.compilations.main.cinterops {
@@ -25,4 +25,5 @@ kotlin.targets.macosX64.compilations.main.cinterops {
 	//CoreAudioKit {}
 	//AudioToolbox {}
 	AVFoundation {}
+	mac_OpenAL {}
 }
