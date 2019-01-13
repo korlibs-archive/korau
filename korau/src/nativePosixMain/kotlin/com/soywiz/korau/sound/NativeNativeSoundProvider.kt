@@ -13,38 +13,41 @@ val nativeAudioFormats = AudioFormats().register(
     WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat
 )
 
-actual val nativeSoundProvider: NativeSoundProvider by lazy {
-    object : NativeSoundProvider() {
-        val device = alcOpenDevice(null)
-        val context = alcCreateContext(device, null).also {
-            alcMakeContextCurrent(it)
-            memScoped {
-                alListener3f(AL_POSITION, 0f, 0f, 1.0f)
-                alListener3f(AL_VELOCITY, 0f, 0f, 0f)
-                val listenerOri = floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f)
-                listenerOri.usePinned {
-                    alListenerfv(AL_ORIENTATION, it.addressOf(0))
-                }
+class OpenALNativeSoundProvider : NativeSoundProvider() {
+    val device = alcOpenDevice(null)
+    //val device: CPointer<ALCdevice>? = null
+    val context = device?.let { alcCreateContext(it, null).also {
+        alcMakeContextCurrent(it)
+        memScoped {
+            alListener3f(AL_POSITION, 0f, 0f, 1.0f)
+            alListener3f(AL_VELOCITY, 0f, 0f, 0f)
+            val listenerOri = floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f)
+            listenerOri.usePinned {
+                alListenerfv(AL_ORIENTATION, it.addressOf(0))
             }
         }
+    } }
 
-        override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
-            return OpenALNativeSoundNoStream(CoroutineScope(coroutineContext), nativeAudioFormats.decode(data))
-        }
+    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
+        return OpenALNativeSoundNoStream(CoroutineScope(coroutineContext), nativeAudioFormats.decode(data))
+    }
 
-        override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound {
-            return super.createSound(vfs, path, streaming)
-        }
+    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound {
+        return super.createSound(vfs, path, streaming)
+    }
 
-        override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
-            return super.createSound(data, formats, streaming)
-        }
+    override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
+        return super.createSound(data, formats, streaming)
     }
 }
+
+val openalNativeSoundProvider: OpenALNativeSoundProvider by lazy { OpenALNativeSoundProvider() }
+actual val nativeSoundProvider: NativeSoundProvider get() = openalNativeSoundProvider
 
 // https://ffainelli.github.io/openal-example/
 class OpenALNativeSoundNoStream(val coroutineScope: CoroutineScope, val data: AudioData?) : NativeSound() {
     override fun play(): NativeSoundChannel {
+        if (openalNativeSoundProvider.device == null || openalNativeSoundProvider.context == null) return DummyNativeSoundChannel(this, data)
         val data = data ?: return DummyNativeSoundChannel(this)
 
         val buffer = alGenBuffer()

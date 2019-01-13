@@ -67,8 +67,13 @@ open class NativeSoundProvider {
 
 class DummyNativeSoundProvider : NativeSoundProvider()
 
-class DummyNativeSoundChannel(sound: NativeSound) : NativeSoundChannel(sound) {
+class DummyNativeSoundChannel(sound: NativeSound, val data: AudioData? = null) : NativeSoundChannel(sound) {
+	private var timeStart = DateTime.now()
+	override val current: TimeSpan get() = DateTime.now() - timeStart
+	override val total: TimeSpan get() = data?.totalTime ?: 0.seconds
+
 	override fun stop() {
+		timeStart = DateTime.now() + total
 	}
 }
 
