@@ -8,7 +8,7 @@ import kotlin.test.*
 
 class NativeAudioStreamNativeMacosX64Test {
     @Test
-    //@Ignore
+    @Ignore
     fun test() = suspendTest {
         coroutineScope {
             val sound = resourcesVfs["mp31.mp3"].readNativeSound()
