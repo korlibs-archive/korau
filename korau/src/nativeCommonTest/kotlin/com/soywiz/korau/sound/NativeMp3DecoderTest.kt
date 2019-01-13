@@ -9,7 +9,7 @@ class NativeMp3DecoderTest {
     fun test() = suspendTest {
         val decoder = NativeMp3DecoderFormat()
         val file = resourcesVfs["mp31.mp3"]
-        val stream = decoder.decodeStream(file.open())!!
+        val stream = decoder.decodeStream(file.open()) ?: error("Can't open decoder")
         val audioData = stream.toData()
         assertEquals(1, audioData.channels)
         assertEquals(25344, audioData.numSamples)

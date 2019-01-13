@@ -1,6 +1,7 @@
 package com.soywiz.korau.format
 
 import com.soywiz.kds.*
+import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.internal.*
 import com.soywiz.korau.sound.*
@@ -36,6 +37,10 @@ open class AudioStream(
     override val channels: Int
 ) : BaseAudioStream {
     override val finished = false
+
+    val totalLengthInSamples: Long? = null
+
+    val totalLength get() = ((totalLengthInSamples ?: 0L).toDouble() / rate.toDouble()).seconds
 
     override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
         return 0

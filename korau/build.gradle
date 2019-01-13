@@ -3,10 +3,11 @@ dependencies {
 	commonMainApi "com.soywiz:kds:$kdsVersion"
 }
 
-for (target in ["macosX64", "linuxX64", "mingwX64"]) {
+for (target in ["macosX64", "linuxX64", "mingwX64", "iosX64", "iosArm32", "iosArm64"]) {
 	kotlin.targets[target].compilations.main {
 		cinterops {
 			minimp3 {}
+			stb_vorbis {}
 		}
 	}
 }
