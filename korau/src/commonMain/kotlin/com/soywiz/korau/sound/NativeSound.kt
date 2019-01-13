@@ -47,7 +47,7 @@ open class NativeSoundProvider {
 		return createSound(WAV.encodeToByteArray(data), streaming)
 	}
 
-	open suspend fun playAndWait(stream: BaseAudioStream, bufferSeconds: Double = 0.1): Unit {
+	suspend fun playAndWait(stream: BaseAudioStream, bufferSeconds: Double = 0.1): Unit {
 		val nas = nativeSoundProvider.createAudioStream()
 		try {
 			val temp = ShortArray(1024)
@@ -67,9 +67,15 @@ open class NativeSoundProvider {
 
 class DummyNativeSoundProvider : NativeSoundProvider()
 
+class DummyNativeSoundChannel(sound: NativeSound) : NativeSoundChannel(sound) {
+	override fun stop() {
+	}
+}
+
 abstract class NativeSoundChannel(val sound: NativeSound) {
 	private val startTime = DateTime.now()
 	open var volume = 1.0
+	open var pitch = 1.0
 	open val current: TimeSpan get() = DateTime.now() - startTime
 	open val total: TimeSpan get() = sound.length
 	open val playing get() = current < total

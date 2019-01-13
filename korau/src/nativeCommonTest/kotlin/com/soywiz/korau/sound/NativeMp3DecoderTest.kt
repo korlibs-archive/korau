@@ -7,7 +7,7 @@ import kotlin.test.*
 class NativeMp3DecoderTest {
     @Test
     fun test() = suspendTest {
-        val decoder = NativeMp3DecoderFormat()
+        val decoder = NativeMp3DecoderFormat
         val file = resourcesVfs["mp31.mp3"]
         val stream = decoder.decodeStream(file.open()) ?: error("Can't open decoder")
         val audioData = stream.toData()

@@ -5,7 +5,7 @@ import com.soywiz.korio.stream.*
 import kotlinx.cinterop.*
 import minimp3.*
 
-class NativeMp3DecoderFormat : AudioFormat("mp3") {
+object NativeMp3DecoderFormat : AudioFormat("mp3") {
     override suspend fun tryReadInfo(data: AsyncStream): Info? {
         return MP3.tryReadInfo(data)
     }

@@ -22,6 +22,7 @@ open class AudioFormat(vararg exts: String) {
 	open suspend fun tryReadInfo(data: AsyncStream): Info? = null
 	open suspend fun decodeStream(data: AsyncStream): AudioStream? = null
 	suspend fun decode(data: AsyncStream): AudioData? = decodeStream(data)?.toData()
+	suspend fun decode(data: ByteArray): AudioData? = decodeStream(data.openAsync())?.toData()
 	open suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String): Unit = unsupported()
 
 	suspend fun encodeToByteArray(

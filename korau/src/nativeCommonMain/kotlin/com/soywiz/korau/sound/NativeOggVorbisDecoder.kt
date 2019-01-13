@@ -6,7 +6,7 @@ import com.soywiz.korio.stream.*
 import kotlinx.cinterop.*
 import stb_vorbis.*
 
-class NativeOggVorbisDecoderFormat : AudioFormat("ogg") {
+object NativeOggVorbisDecoderFormat : AudioFormat("ogg") {
     override suspend fun tryReadInfo(data: AsyncStream): Info? =
         decodeStream(data)?.use { Info(it.totalLength.microseconds.toLong(), it.channels) }
 
