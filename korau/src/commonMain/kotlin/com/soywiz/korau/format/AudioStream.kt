@@ -6,10 +6,11 @@ import com.soywiz.korau.internal.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 import kotlin.math.*
 
-interface BaseAudioStream {
+interface BaseAudioStream : Closeable {
     val rate: Int
     val channels: Int
     val finished: Boolean
@@ -40,6 +41,9 @@ open class AudioStream(
         return 0
     }
 
+    override fun close() {
+    }
+
     suspend fun toData(): AudioData {
         val out = AudioBuffer()
         val buffer = ShortArray(1024)
@@ -48,6 +52,7 @@ open class AudioStream(
             if (read <= 0) break
             out.write(buffer, 0, read)
         }
+        close()
         return AudioData(rate, channels, out.toShortArray())
     }
 

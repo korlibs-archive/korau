@@ -1,5 +1,14 @@
 dependencies {
 	commonMainApi "com.soywiz:korio:$korioVersion"
+	commonMainApi "com.soywiz:kds:$kdsVersion"
+}
+
+for (target in ["macosX64", "linuxX64", "mingwX64"]) {
+	kotlin.targets[target].compilations.main {
+		cinterops {
+			minimp3 {}
+		}
+	}
 }
 
 kotlin.targets.macosX64.compilations.main {

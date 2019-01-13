@@ -1,5 +1,6 @@
 package com.soywiz.korau.format
 
+import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.file.*
@@ -12,7 +13,7 @@ class AudioData(
     val samples: ShortArray
 ) {
     val numSamples get() = samples.size / channels
-    val seconds: Double get() = (numSamples).toDouble() / rate.toDouble()
+    val totalTime: TimeSpan get() = ((numSamples).toDouble() / rate.toDouble()).seconds
 
     fun convertTo(rate: Int = 44100, channels: Int = 2): AudioData {
         TODO()
