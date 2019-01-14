@@ -1,8 +1,6 @@
 package com.soywiz.korau
 
 import com.soywiz.korau.format.*
-import com.soywiz.korau.format.mp3.*
-import com.soywiz.korau.internal.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import kotlin.test.*
