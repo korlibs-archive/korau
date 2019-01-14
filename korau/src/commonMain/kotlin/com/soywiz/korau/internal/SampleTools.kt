@@ -1,6 +1,8 @@
 package com.soywiz.korau.internal
 
+import com.soywiz.kds.*
 import com.soywiz.kmem.*
+import com.soywiz.korio.stream.*
 
 internal fun List<ShortArray>.combine(): ShortArray {
     val combined = ShortArray(this.sumBy { it.size })
@@ -12,3 +14,27 @@ internal fun List<ShortArray>.combine(): ShortArray {
     return combined
 }
 
+internal suspend  fun AsyncStream.copyChunkTo(deque: ByteArrayDeque, temp: ByteArray, maxSize: Int = temp.size): Int {
+    val size = this.read(temp, 0, maxSize)
+    deque.write(temp, 0, size)
+    return size
+}
+
+internal fun ShortArray.toByteArrayLE(): ByteArray {
+    val out = ByteArray(this.size * 2)
+    for (n in 0 until this.size) {
+        out[n * 2 + 0] = (this[n].toInt() shr 0).toByte()
+        out[n * 2 + 1] = (this[n].toInt() shr 8).toByte()
+    }
+    return out
+}
+
+internal fun ByteArray.toShortArrayLE(): ShortArray {
+    val out = ShortArray(this.size / 2)
+    for (n in 0 until out.size) {
+        val l = this[n * 2 + 0].toInt() and 0xFF
+        val h = this[n * 2 + 1].toInt() and 0xFF
+        out[n] = ((h shl 8) or l).toShort()
+    }
+    return out
+}

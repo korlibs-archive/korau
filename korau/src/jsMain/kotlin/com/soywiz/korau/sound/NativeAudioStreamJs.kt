@@ -38,7 +38,7 @@ class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
 
 		for (n in 0 until sampleCount) {
 			if (this.currentBuffer == null) {
-				if (this.buffers.size == 0) {
+				if (this.buffers.isEmpty()) {
 					hasData = false
 					break
 				}
