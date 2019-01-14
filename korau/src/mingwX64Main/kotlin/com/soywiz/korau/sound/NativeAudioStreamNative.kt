@@ -43,6 +43,8 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
 }
 
 class Win32NativeSoundNoStream(val coroutineScope: CoroutineScope, val data: AudioData?) : NativeSound() {
+    override suspend fun decode(): AudioData = data ?: DummyAudioData
+
     override fun play(): NativeSoundChannel {
         val data = data ?: return DummyNativeSoundChannel(this)
         val scope = Arena()

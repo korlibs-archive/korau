@@ -7,6 +7,8 @@ import com.soywiz.korio.file.*
 import com.soywiz.korio.lang.*
 import kotlin.math.*
 
+val DummyAudioData by lazy { AudioData(44100, 2, shortArrayOf()) }
+
 class AudioData(
     val rate: Int,
     val channels: Int,

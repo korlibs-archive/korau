@@ -1,6 +1,8 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
+import com.soywiz.kmem.*
+import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
@@ -95,6 +97,10 @@ class MediaNativeSound private constructor(
 		}
 	}
 
+	override suspend fun decode(): AudioData {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
 	override fun play(): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {
 			val bufferPromise = asyncImmediately(context) {
@@ -117,6 +123,22 @@ class MediaNativeSound private constructor(
 
 class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 	override val length: TimeSpan = ((buffer?.length) ?: 0.0).seconds
+
+	override suspend fun decode(): AudioData = if (buffer == null) {
+		DummyAudioData
+	} else {
+		val nchannels = buffer.numberOfChannels
+		val channels = (0 until nchannels).map { buffer.getChannelData(it) }
+		val nsamples = channels[0].length
+		val data = ShortArray(nsamples * nchannels)
+		var m = 0
+		for (n in 0 until nsamples) {
+			for (c in 0 until nchannels) {
+				data[m++] = (channels[c][n] * Short.MAX_VALUE).toShort()
+			}
+		}
+		AudioData(buffer.sampleRate, buffer.numberOfChannels, data)
+	}
 
 	override fun play(): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {

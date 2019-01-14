@@ -35,19 +35,22 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
 
     override fun createAudioStream(freq: Int): NativeAudioStream = JvmNativeAudioStream(freq)
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound = try {
-        AwtNativeSound((nativeSoundFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())).toWav()).init()
-    } catch (e: Throwable) {
-        e.printStackTrace()
-        AwtNativeSound(AudioData(44100, 2, shortArrayOf()).toWav()).init()
+    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
+        val data = try {
+            nativeSoundFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            AudioData(44100, 2, shortArrayOf())
+        }
+        return AwtNativeSound(data, data.toWav()).init()
     }
 
     override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
-        return AwtNativeSound(WAV.encodeToByteArray(data))
+        return AwtNativeSound(data, data.toWav())
     }
 }
 
-class AwtNativeSound(val data: ByteArray) : NativeSound() {
+class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSound() {
     override var length: TimeSpan = 0.milliseconds
 
     suspend fun init(): AwtNativeSound {
@@ -57,6 +60,8 @@ class AwtNativeSound(val data: ByteArray) : NativeSound() {
         }
         return this
     }
+
+    override suspend fun decode(): AudioData = audioData
 
     override fun play(): NativeSoundChannel {
         return object : NativeSoundChannel(this) {

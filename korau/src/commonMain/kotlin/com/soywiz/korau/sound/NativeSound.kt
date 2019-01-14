@@ -24,6 +24,10 @@ open class NativeSoundProvider {
 	protected open fun init(): Unit = Unit
 
 	open suspend fun createSound(data: ByteArray, streaming: Boolean = false): NativeSound = object : NativeSound() {
+		override suspend fun decode(): AudioData {
+			return AudioData(44100, 2, shortArrayOf())
+		}
+
 		override fun play(): NativeSoundChannel = object : NativeSoundChannel(this) {
 			override fun stop() {
 			}
@@ -101,6 +105,7 @@ suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: Time
 
 abstract class NativeSound {
 	open val length: TimeSpan = 0.seconds
+	abstract suspend fun decode(): AudioData
 	abstract fun play(): NativeSoundChannel
 }
 

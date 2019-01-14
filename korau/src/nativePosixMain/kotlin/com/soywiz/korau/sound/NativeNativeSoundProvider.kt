@@ -46,6 +46,8 @@ actual val nativeSoundProvider: NativeSoundProvider get() = openalNativeSoundPro
 
 // https://ffainelli.github.io/openal-example/
 class OpenALNativeSoundNoStream(val coroutineScope: CoroutineScope, val data: AudioData?) : NativeSound() {
+    override suspend fun decode(): AudioData = data ?: DummyAudioData
+
     override fun play(): NativeSoundChannel {
         if (openalNativeSoundProvider.device == null || openalNativeSoundProvider.context == null) return DummyNativeSoundChannel(this, data)
         val data = data ?: return DummyNativeSoundChannel(this)
