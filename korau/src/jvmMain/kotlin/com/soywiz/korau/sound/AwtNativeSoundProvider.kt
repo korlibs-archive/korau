@@ -1,8 +1,6 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.klock.TimeSpan
-import com.soywiz.klock.microseconds
-import com.soywiz.klock.milliseconds
+import com.soywiz.klock.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.internal.jvm.mp3.*
 import com.soywiz.korio.async.*
@@ -68,22 +66,30 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
             val sound2 = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))
             val info = DataLine.Info(Clip::class.java, sound2.format)
             val clip = AudioSystem.getLine(info) as Clip
-            val len = clip.microsecondLength.toDouble().microseconds
+            //val len = clip.microsecondLength.toDouble().microseconds
+            val len = audioData.totalTime
+
             override val current: TimeSpan get() = clip.microsecondPosition.toDouble().microseconds
             override val total: TimeSpan get() = len
-            override var playing: Boolean = true
+            var stopped = false
+            //override val playing: Boolean get() = !stopped && current < total
+            override val playing: Boolean get() = !stopped
 
             override fun stop() {
                 clip.stop()
-                playing = false
+                stopped = true
             }
 
             init {
-                clip.open(sound2)
-                clip.addLineListener(MyLineListener(clip) {
-                    stop()
-                })
-                clip.start()
+                if (len == 0.seconds) {
+                    stopped = true
+                } else {
+                    clip.open(sound2)
+                    clip.addLineListener(MyLineListener(clip) {
+                        stop()
+                    })
+                    clip.start()
+                }
             }
         }
     }
