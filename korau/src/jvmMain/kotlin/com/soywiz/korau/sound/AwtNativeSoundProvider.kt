@@ -31,14 +31,14 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
         line.close()
     }
 
-    override fun createAudioStream(freq: Int): NativeAudioStream = JvmNativeAudioStream(freq)
+    override fun createAudioStream(freq: Int): PlatformAudioOutput = JvmPlatformAudioOutput(freq)
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
         val data = try {
-            nativeSoundFormats.decode(data.openAsync()) ?: AudioData(44100, 2, shortArrayOf())
+            nativeSoundFormats.decode(data.openAsync()) ?: AudioData.DUMMY
         } catch (e: Throwable) {
             e.printStackTrace()
-            AudioData(44100, 2, shortArrayOf())
+            AudioData.DUMMY
         }
         return AwtNativeSound(data, data.toWav()).init()
     }

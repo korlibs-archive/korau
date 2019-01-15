@@ -2,6 +2,7 @@ package com.soywiz.korau.sound
 
 import com.soywiz.kds.*
 import com.soywiz.klock.*
+import com.soywiz.korau.internal.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
 import org.khronos.webgl.*
@@ -11,7 +12,7 @@ import kotlin.coroutines.*
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundProvider() }
 
-class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
+class JsPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
 	val id = lastId++
 
 	init {
@@ -26,38 +27,19 @@ class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
 	var nodeRunning = false
 	var node: ScriptProcessorNode? = null
 
-	var currentBuffer: MyNativeAudioBuffer? = null
-	val buffers = Queue<MyNativeAudioBuffer>()
+	private val nchannels = 2
+	private val deques = Array(nchannels) { FloatArrayDeque() }
 
 	private fun process(e: AudioProcessingEvent) {
-		val left = e.outputBuffer.getChannelData(0)
-		val right = e.outputBuffer.getChannelData(1)
-		val sampleCount = left.length
-		val hidden: Boolean = !!document.asDynamic().hidden
+		val outChannels = Array(e.outputBuffer.numberOfChannels) { e.outputBuffer.getChannelData(it) }
 		var hasData = true
 
-		for (n in 0 until sampleCount) {
-			if (this.currentBuffer == null) {
-				if (this.buffers.isEmpty()) {
-					hasData = false
-					break
-				}
-				this.currentBuffer = this.buffers.dequeue()
-			}
-
-			val cb = this.currentBuffer!!
-			if (cb.available >= 2) {
-				left[n] = cb.read()
-				right[n] = cb.read()
-				totalShorts -= 2
-			} else {
-				this.currentBuffer = null
-				continue
-			}
-
-			if (hidden) {
-				left[n] = 0f
-				right[n] = 0f
+		if (!document.asDynamic().hidden) {
+			for (channel in 0 until nchannels) {
+				val deque = deques[channel]
+				val outChannel = outChannels[channel]
+				val read = deque.read(outChannel.unsafeCast<FloatArray>())
+				if (read < outChannel.length) hasData = false
 			}
 		}
 
@@ -102,7 +84,7 @@ class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
 	var totalShorts = 0
 	override val availableSamples get() = totalShorts
 
-	override suspend fun addSamples(samples: ShortArray, offset: Int, size: Int): Unit {
+	override suspend fun add(samples: AudioSamples, offset: Int, size: Int): Unit {
 		//println("addSamples: $available, $size")
 		//println(samples.sliceArray(offset until offset + size).toList())
 		totalShorts += size
@@ -114,30 +96,17 @@ class JsNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
 		} else {
 			ensureRunning()
 
-			val fsamples = Float32Array(size)
-			for (n in 0 until size) fsamples[n] = (samples[offset + n].toFloat() / Short.MAX_VALUE.toFloat()).toFloat()
-			buffers.enqueue(MyNativeAudioBuffer(fsamples))
+			for (channel in 0 until nchannels) {
+				val sample = samples[channel]
+				val deque = deques[channel]
+				for (n in 0 until size) {
+					deque.write(sample[offset + n].toFloat() / Short.MAX_VALUE.toFloat())
+				}
+			}
 
-			while (buffers.size > 4) {
+			while (deques[0].availableRead > samples.totalSamples * 4) {
 				coroutineContext.delay(4.milliseconds)
 			}
 		}
 	}
-}
-
-class MyNativeAudioBuffer(val data: Float32Array, var readedCallback: (() -> Unit)? = null) {
-	var offset: Int = 0
-
-	fun resolve() {
-		val rc = readedCallback
-		readedCallback = null
-		rc?.invoke()
-	}
-
-	val hasMore: Boolean get() = this.offset < this.length
-
-	fun read() = this.data[this.offset++]
-
-	val available: Int get() = this.length - this.offset
-	val length: Int get() = this.data.length
 }

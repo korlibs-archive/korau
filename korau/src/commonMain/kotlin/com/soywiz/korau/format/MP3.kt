@@ -2,6 +2,7 @@
 
 package com.soywiz.korau.format
 
+import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
@@ -13,7 +14,7 @@ open class MP3Base : AudioFormat("mp3") {
 		val parser = Parser(data)
 		val duration = parser.getDurationEstimate()
 		//val duration = parser.getDurationExact()
-		Info(duration, parser.info?.channelMode?.channels ?: 2)
+		Info(duration.microseconds, parser.info?.channelMode?.channels ?: 2)
 	} catch (e: Throwable) {
 		null
 	}

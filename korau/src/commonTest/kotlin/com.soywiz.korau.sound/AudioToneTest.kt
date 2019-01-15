@@ -7,7 +7,7 @@ class AudioToneTest {
     @Test
     fun test() {
         val data = AudioTone.generate(1.seconds, 10000.0)
-        assertEquals(44100, data.numSamples)
-        assertEquals(44100 * 2, data.samples.size)
+        assertEquals(44100, data.totalSamples)
+        assertEquals(44100 * 2, data.data.size)
     }
 }

@@ -3,21 +3,19 @@
 package com.soywiz.korau.format
 
 import com.soywiz.kds.*
+import com.soywiz.klock.*
+import com.soywiz.korau.sound.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
-import com.soywiz.korio.file.*
 
 open class AudioFormat(vararg exts: String) {
 	val extensions = exts.map { it.toLowerCase().trim() }.toSet()
 
 	data class Info(
-		var lengthInMicroseconds: Long = 0L,
+		var duration: TimeSpan = 0.seconds,
 		var channels: Int = 2
-	) : Extra by Extra.Mixin() {
-		val msLength = lengthInMicroseconds / 1000L
-		val length = lengthInMicroseconds.toDouble() / 1_000_000.0
-	}
+	) : Extra by Extra.Mixin()
 
 	open suspend fun tryReadInfo(data: AsyncStream): Info? = null
 	open suspend fun decodeStream(data: AsyncStream): AudioStream? = null
@@ -29,14 +27,14 @@ open class AudioFormat(vararg exts: String) {
 		data: AudioData,
 		filename: String = "out.wav",
 		format: AudioFormat = this
-	): ByteArray {
-		val out = MemorySyncStream()
-		format.encode(data, out.toAsync(), filename)
-		return out.toByteArray()
-	}
+	): ByteArray = MemorySyncStreamToByteArray { format.encode(data, this.toAsync(), filename) }
 
 	override fun toString(): String = "AudioFormat(${extensions.sorted()})"
 }
+
+open class InvalidAudioFormatException(message: String) : RuntimeException(message)
+
+fun invalidAudioFormat(message: String = "invalid audio format"): Nothing = throw InvalidAudioFormatException(message)
 
 val defaultAudioFormats = AudioFormats().apply { registerStandard() }
 
@@ -79,6 +77,6 @@ class AudioFormats : AudioFormat() {
 }
 
 suspend fun VfsFile.readSoundInfo(formats: AudioFormats = defaultAudioFormats) =
-	this.openUse2 { formats.tryReadInfo(this) }
+	this.openUse { formats.tryReadInfo(this) }
 
 fun AudioFormats.registerStandard(): AudioFormats = this.apply { register(WAV, OGG, MP3) }

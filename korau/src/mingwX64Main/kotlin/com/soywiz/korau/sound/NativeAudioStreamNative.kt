@@ -1,12 +1,10 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
-import com.soywiz.korio.lang.*
 import kotlinx.cinterop.*
 import kotlin.coroutines.*
 import kotlinx.coroutines.*
@@ -21,7 +19,7 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
         super.initOnce()
     }
 
-    override fun createAudioStream(freq: Int): NativeAudioStream {
+    override fun createAudioStream(freq: Int): PlatformAudioOutput {
         return super.createAudioStream(freq)
     }
 
@@ -43,16 +41,16 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
 }
 
 class Win32NativeSoundNoStream(val coroutineScope: CoroutineScope, val data: AudioData?) : NativeSound() {
-    override suspend fun decode(): AudioData = data ?: DummyAudioData
+    override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
     override fun play(): NativeSoundChannel {
         val data = data ?: return DummyNativeSoundChannel(this)
         val scope = Arena()
         val hWaveOut = scope.alloc<HWAVEOUTVar>()
-        val samplesPin = data.samples.pin()
+        val samplesPin = data.data.pin()
         val hdr = scope.alloc<WAVEHDR>().apply {
             this.lpData = samplesPin.addressOf(0).reinterpret()
-            this.dwBufferLength = (data.samples.size * 2).convert()
+            this.dwBufferLength = (data.data.size * 2).convert()
             this.dwFlags = 0.convert()
 
             //this.dwBytesRecorded = 0.convert()

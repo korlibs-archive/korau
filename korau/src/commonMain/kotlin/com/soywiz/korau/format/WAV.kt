@@ -2,8 +2,9 @@
 
 package com.soywiz.korau.format
 
+import com.soywiz.klock.*
 import com.soywiz.kmem.*
-import com.soywiz.korio.async.*
+import com.soywiz.korau.sound.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
@@ -36,22 +37,18 @@ object WAV : AudioFormat("wav") {
 		return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
 			override var finished: Boolean = false
 
-			override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
-				val bytes = FastByteArrayInputStream(buffer.readBytesUpTo(length * bytesPerSample))
+			override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
+				val bytes = buffer.readBytesUpTo(length * bytesPerSample * channels)
 				finished = buffer.eof()
-				val availableSamples = bytes.length / bytesPerSample
-				when (bytesPerSample) {
-					2 -> {
-						val temp = bytes.readShortArrayLE(availableSamples) // @TODO: avoid allocations
-						arraycopy(temp, 0, out, offset, temp.size)
-					}
-					3 -> {
-						for (n in 0 until length) {
-							if (bytes.available < 3) return n
-							out[offset + n] = (bytes.readS24LE() ushr 8).toShort()
+				val availableSamples = bytes.size / bytesPerSample / channels
+				for (channel in 0 until channels) {
+					for (n in 0 until availableSamples) {
+						out[channel, n] = when (bytesPerSample) {
+							2 -> bytes.readS16LE((n * channels + channel) + channel).toShort()
+							3 -> (bytes.readS24LE((n * channels + channel) + channel) ushr 8).toShort()
+							else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
 						}
 					}
-					else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
 				}
 				return availableSamples
 			}
@@ -61,7 +58,7 @@ object WAV : AudioFormat("wav") {
 	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
 		// HEADER
 		out.writeString("RIFF")
-		out.write32LE(0x24 + data.samples.size * 2) // length
+		out.write32LE(0x24 + data.data.size * 2) // length
 		out.writeString("WAVE")
 
 		// FMT
@@ -76,8 +73,8 @@ object WAV : AudioFormat("wav") {
 
 		// DATA
 		out.writeString("data")
-		out.write32LE(data.samples.size * 2)
-		out.writeShortArrayLE(data.samples)
+		out.write32LE(data.data.size * 2)
+		out.writeShortArrayLE(data.data.interleaved())
 	}
 
 	data class Fmt(
@@ -118,7 +115,7 @@ object WAV : AudioFormat("wav") {
 		if (fmt.formatTag < 0) invalidOp("Couldn't find RIFF 'fmt ' chunk")
 
 		return Info(
-			lengthInMicroseconds = (dataSize * 1000 * 1000) / fmt.avgBytesPerSec,
+			duration = ((dataSize * 1000 * 1000) / fmt.avgBytesPerSec).microseconds,
 			channels = fmt.channels
 		)
 	}

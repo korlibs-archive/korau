@@ -2,7 +2,6 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
-import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
@@ -13,7 +12,7 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 	override fun initOnce() {
 	}
 
-	override fun createAudioStream(freq: Int): NativeAudioStream = JsNativeAudioStream(freq)
+	override fun createAudioStream(freq: Int): PlatformAudioOutput = JsPlatformAudioOutput(freq)
 
 	override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
 		return AudioBufferNativeSound(HtmlSimpleSound.loadSound(data))
@@ -122,30 +121,28 @@ class MediaNativeSound private constructor(
 }
 
 class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
-	override val length: TimeSpan = ((buffer?.length) ?: 0.0).seconds
+	override val length: TimeSpan = ((buffer?.duration) ?: 0.0).seconds
 
 	override suspend fun decode(): AudioData = if (buffer == null) {
-		DummyAudioData
+		AudioData.DUMMY
 	} else {
 		val nchannels = buffer.numberOfChannels
-		val channels = (0 until nchannels).map { buffer.getChannelData(it) }
-		val nsamples = channels[0].length
-		val data = ShortArray(nsamples * nchannels)
+		val nsamples = buffer.length
+		val data = AudioSamples(nchannels, nsamples)
 		var m = 0
-		for (n in 0 until nsamples) {
-			for (c in 0 until nchannels) {
-				data[m++] = (channels[c][n] * Short.MAX_VALUE).toShort()
+		for (c in 0 until nchannels) {
+			val channelF = buffer.getChannelData(c)
+			for (n in 0 until nsamples) {
+				data[c][m++] = (channelF[n] * Short.MAX_VALUE).toShort()
 			}
 		}
-		AudioData(buffer.sampleRate, buffer.numberOfChannels, data)
+		AudioData(buffer.sampleRate, data)
 	}
 
 	override fun play(): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {
 			val channel = if (buffer != null) HtmlSimpleSound.playSound(buffer) else null
-			override fun stop() {
-				channel?.stop()
-			}
+			override fun stop(): Unit = run { channel?.stop() }
 		}
 	}
 }

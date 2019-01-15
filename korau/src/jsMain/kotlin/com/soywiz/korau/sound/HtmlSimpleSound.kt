@@ -175,7 +175,7 @@ external interface AudioBufferSourceNode : AudioScheduledSourceNode {
 
 external interface AudioBuffer {
 	val duration: Double
-	val length: Double
+	val length: Int
 	val numberOfChannels: Int
 	val sampleRate: Int
 	fun copyFromChannel(destination: Float32Array, channelNumber: Int, startInChannel: Double?): Unit

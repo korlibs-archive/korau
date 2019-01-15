@@ -11,9 +11,9 @@ import javax.sound.sampled.DataLine
 import javax.sound.sampled.SourceDataLine
 import kotlin.coroutines.coroutineContext
 
-data class SampleBuffer(val timestamp: Long, val data: ShortArray)
+data class SampleBuffer(val timestamp: Long, val data: AudioSamples)
 
-class JvmNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
+class JvmPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
     companion object {
         var lastId = 0
         val mixer by lazy { AudioSystem.getMixer(null) }
@@ -47,7 +47,7 @@ class JvmNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
                             timesWithoutBuffers = 0
                             val buf = synchronized(buffers) { buffers.dequeue() }
                             synchronized(buffers) { totalShorts -= buf.data.size }
-                            val bdata = convertFromShortToByte(buf.data)
+                            val bdata = convertFromShortToByte(buf.data.interleaved())
 
                             val msChunk = (((bdata.size / 2) * 1000.0) / freq.toDouble()).toInt()
 
@@ -82,7 +82,7 @@ class JvmNativeAudioStream(val freq: Int) : NativeAudioStream(freq) {
         }
     }
 
-    override suspend fun addSamples(samples: ShortArray, offset: Int, size: Int) {
+    override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
         val buffer = SampleBuffer(System.currentTimeMillis(), samples.copyOfRange(offset, offset + size))
         synchronized(buffers) {
             totalShorts += buffer.data.size

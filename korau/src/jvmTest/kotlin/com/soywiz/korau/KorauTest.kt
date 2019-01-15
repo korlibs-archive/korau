@@ -1,6 +1,7 @@
 package com.soywiz.korau
 
 import com.soywiz.korau.format.*
+import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import kotlin.test.*

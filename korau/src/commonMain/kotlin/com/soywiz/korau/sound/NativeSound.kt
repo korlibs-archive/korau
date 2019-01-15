@@ -5,7 +5,6 @@ import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 
 expect val nativeSoundProvider: NativeSoundProvider
 
@@ -19,18 +18,14 @@ open class NativeSoundProvider {
 		}
 	}
 
-	open fun createAudioStream(freq: Int = 44100): NativeAudioStream = NativeAudioStream(freq)
+	open fun createAudioStream(freq: Int = 44100): PlatformAudioOutput = PlatformAudioOutput(freq)
 
 	protected open fun init(): Unit = Unit
 
 	open suspend fun createSound(data: ByteArray, streaming: Boolean = false): NativeSound = object : NativeSound() {
-		override suspend fun decode(): AudioData {
-			return AudioData(44100, 2, shortArrayOf())
-		}
-
+		override suspend fun decode(): AudioData = AudioData.DUMMY
 		override fun play(): NativeSoundChannel = object : NativeSoundChannel(this) {
-			override fun stop() {
-			}
+			override fun stop() = Unit
 		}
 	}
 
@@ -44,23 +39,23 @@ open class NativeSoundProvider {
 		createSound(file.getUnderlyingUnscapedFile(), streaming)
 
 	open suspend fun createSound(
-		data: com.soywiz.korau.format.AudioData,
+		data: AudioData,
 		formats: AudioFormats = defaultAudioFormats,
 		streaming: Boolean = false
 	): NativeSound {
 		return createSound(WAV.encodeToByteArray(data), streaming)
 	}
 
-	suspend fun playAndWait(stream: BaseAudioStream, bufferSeconds: Double = 0.1): Unit {
+	suspend fun playAndWait(stream: AudioStream, bufferSeconds: Double = 0.1) {
 		val nas = nativeSoundProvider.createAudioStream()
 		try {
-			val temp = ShortArray(1024)
+			val temp = AudioSamples(stream.channels, 1024)
 			val nchannels = 2
 			val minBuf = (stream.rate * nchannels * bufferSeconds).toInt()
 			nas.start()
 			while (!stream.finished) {
-				val read = stream.read(temp, 0, temp.size)
-				nas.addSamples(temp, 0, read)
+				val read = stream.read(temp, 0, temp.totalSamples)
+				nas.add(temp, 0, read)
 				while (nas.availableSamples in minBuf..minBuf * 2) delay(4.milliseconds) // 100ms of buffering, and 1s as much
 			}
 		} catch (e: CancellationException) {

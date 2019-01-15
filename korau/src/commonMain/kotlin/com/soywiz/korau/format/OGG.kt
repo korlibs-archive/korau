@@ -1,5 +1,6 @@
 package com.soywiz.korau.format
 
+import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
@@ -52,7 +53,7 @@ open class OggBase : AudioFormat("ogg") {
 				}
 			}
 			if (eos) return Info(
-				lengthInMicroseconds = ((gpos.toDouble() * 1_000_000.0 / sampleRate.toDouble())).toLong(),
+				duration = ((gpos.toDouble() * 1_000_000.0 / sampleRate.toDouble())).toLong().microseconds,
 				channels = channels
 			)
 		}
