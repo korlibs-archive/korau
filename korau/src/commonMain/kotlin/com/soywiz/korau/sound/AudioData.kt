@@ -9,19 +9,19 @@ import kotlin.math.*
 
 class AudioData(
     val rate: Int,
-    val data: AudioSamples
+    val samples: AudioSamples
 ) {
     companion object {
         val DUMMY by lazy { AudioData(44100, AudioSamples(2, 0)) }
     }
 
-    val channels get() = data.channels
-    val totalSamples get() = data.totalSamples
+    val channels get() = samples.channels
+    val totalSamples get() = samples.totalSamples
     val totalTime: TimeSpan get() = timeAtSample(totalSamples)
     fun timeAtSample(sample: Int) = ((sample).toDouble() / rate.toDouble()).seconds
 
-    operator fun get(channel: Int): ShortArray = data.data[channel]
-    operator fun get(channel: Int, sample: Int): Short = data.data[channel][sample]
+    operator fun get(channel: Int): ShortArray = samples.data[channel]
+    operator fun get(channel: Int, sample: Int): Short = samples.data[channel][sample]
 
     override fun toString(): String = "AudioData(rate=$rate, channels=$channels, samples=$totalSamples)"
 }
@@ -38,11 +38,11 @@ fun AudioData.toStream(): AudioStream = object : AudioStream(rate, channels) {
     override var finished: Boolean = false
 
     override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
-        val available = data.totalSamples - cursor
+        val available = samples.totalSamples - cursor
         val toread = min(available, length)
         if (toread > 0) {
             for (n in 0 until channels) {
-                arraycopy(data[n], cursor, out[n], offset, toread)
+                arraycopy(samples[n], cursor, out[n], offset, toread)
             }
         }
         if (toread <= 0) finished = true

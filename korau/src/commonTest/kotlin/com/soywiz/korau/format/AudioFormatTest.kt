@@ -10,11 +10,11 @@ class AudioFormatTest {
 	@kotlin.test.Test
 	fun wav() = suspendTest {
 		assertEquals(
-			"Info(lengthInMicroseconds=500000, channels=1)",
+			"Info(duration=500ms, channels=1)",
 			resourcesVfs["wav1.wav"].readSoundInfo(formats).toString()
 		)
 		assertEquals(
-			"Info(lengthInMicroseconds=500000, channels=1)",
+			"Info(duration=500ms, channels=1)",
 			resourcesVfs["wav2.wav"].readSoundInfo(formats).toString()
 		)
 	}
@@ -22,7 +22,7 @@ class AudioFormatTest {
 	@kotlin.test.Test
 	fun ogg() = suspendTest {
 		assertEquals(
-			"Info(lengthInMicroseconds=500000, channels=1)",
+			"Info(duration=500ms, channels=1)",
 			resourcesVfs["ogg1.ogg"].readSoundInfo(formats).toString()
 		)
 	}
@@ -30,7 +30,7 @@ class AudioFormatTest {
 	@kotlin.test.Test
 	fun mp3() = suspendTest {
 		assertEquals(
-			"Info(lengthInMicroseconds=546625, channels=1)",
+			"Info(duration=546.625ms, channels=1)",
 			resourcesVfs["mp31.mp3"].readSoundInfo(formats).toString()
 		)
 	}

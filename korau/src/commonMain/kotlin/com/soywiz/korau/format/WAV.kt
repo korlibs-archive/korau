@@ -43,9 +43,10 @@ object WAV : AudioFormat("wav") {
 				val availableSamples = bytes.size / bytesPerSample / channels
 				for (channel in 0 until channels) {
 					for (n in 0 until availableSamples) {
+						val index = (n * channels + channel) * bytesPerSample
 						out[channel, n] = when (bytesPerSample) {
-							2 -> bytes.readS16LE((n * channels + channel) + channel).toShort()
-							3 -> (bytes.readS24LE((n * channels + channel) + channel) ushr 8).toShort()
+							2 -> bytes.readS16LE(index).toShort()
+							3 -> (bytes.readS24LE(index) ushr 8).toShort()
 							else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
 						}
 					}
@@ -58,7 +59,7 @@ object WAV : AudioFormat("wav") {
 	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
 		// HEADER
 		out.writeString("RIFF")
-		out.write32LE(0x24 + data.data.size * 2) // length
+		out.write32LE(0x24 + data.samples.size * 2) // length
 		out.writeString("WAVE")
 
 		// FMT
@@ -73,8 +74,8 @@ object WAV : AudioFormat("wav") {
 
 		// DATA
 		out.writeString("data")
-		out.write32LE(data.data.size * 2)
-		out.writeShortArrayLE(data.data.interleaved())
+		out.write32LE(data.samples.size * 2)
+		out.writeShortArrayLE(data.samples.interleaved())
 	}
 
 	data class Fmt(

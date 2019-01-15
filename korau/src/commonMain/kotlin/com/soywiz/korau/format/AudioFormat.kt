@@ -4,6 +4,7 @@ package com.soywiz.korau.format
 
 import com.soywiz.kds.*
 import com.soywiz.klock.*
+import com.soywiz.korau.internal.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.lang.*
@@ -15,7 +16,9 @@ open class AudioFormat(vararg exts: String) {
 	data class Info(
 		var duration: TimeSpan = 0.seconds,
 		var channels: Int = 2
-	) : Extra by Extra.Mixin()
+	) : Extra by Extra.Mixin() {
+		override fun toString(): String = "Info(duration=${duration.milliseconds.niceStr}ms, channels=$channels)"
+	}
 
 	open suspend fun tryReadInfo(data: AsyncStream): Info? = null
 	open suspend fun decodeStream(data: AsyncStream): AudioStream? = null
