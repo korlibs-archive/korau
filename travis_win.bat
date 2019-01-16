@@ -30,7 +30,7 @@ REM RD /s /q C:\ProgramData
 dir
 
 choco list --local-only
-choco install jdk8 -y -params "installdir=c:\\java8"
+choco install jdk8.portable -y -params "installdir=c:\\java8"
 
 del c:\java8\src.zip
 del c:\java8\javafx-src.zip
