@@ -47,7 +47,7 @@ class Win32NativeSoundNoStream(val coroutineScope: CoroutineScope, val data: Aud
         val data = data ?: return DummyNativeSoundChannel(this)
         val scope = Arena()
         val hWaveOut = scope.alloc<HWAVEOUTVar>()
-        val samplesPin = data.samples.pin()
+        val samplesPin = data.samplesInterleaved.data.pin()
         val hdr = scope.alloc<WAVEHDR>().apply {
             this.lpData = samplesPin.addressOf(0).reinterpret()
             this.dwBufferLength = (data.samples.size * 2).convert()
