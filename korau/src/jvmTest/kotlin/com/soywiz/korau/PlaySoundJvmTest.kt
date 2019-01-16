@@ -1,12 +1,13 @@
-package com.soywiz.korau.sound
+package com.soywiz.korau
 
 import com.soywiz.klock.*
+import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import kotlinx.coroutines.*
-import kotlin.test.*
+import org.junit.*
 
-class NativeAudioStreamNativeWin32Test {
+class PlaySoundJvmTest {
     @Test
     @Ignore
     fun test() = suspendTest {

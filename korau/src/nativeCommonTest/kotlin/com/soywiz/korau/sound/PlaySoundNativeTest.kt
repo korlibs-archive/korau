@@ -6,7 +6,7 @@ import com.soywiz.korio.file.std.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class NativeAudioStreamNativeMacosX64Test {
+class PlaySoundNativeTest {
     @Test
     @Ignore
     fun test() = suspendTest {

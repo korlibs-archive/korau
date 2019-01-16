@@ -4,8 +4,8 @@ import com.soywiz.klock.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.internal.jvm.mp3.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.stream.openAsync
-import java.io.ByteArrayInputStream
+import com.soywiz.korio.stream.*
+import java.io.*
 import javax.sound.sampled.*
 import javax.sound.sampled.AudioFormat
 
@@ -15,14 +15,16 @@ private val nativeSoundFormats = AudioFormats().register(
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { AwtNativeSoundProvider() }
 
+// AudioSystem.getMixerInfo()
+val mixer by lazy { AudioSystem.getMixer(null) }
+
 class AwtNativeSoundProvider : NativeSoundProvider() {
     override fun init() {
-        AudioSystem.getMixerInfo()
-
+        // warming and preparing
+        mixer.mixerInfo
         val af = AudioFormat(44100f, 16, 2, true, false)
         val info = DataLine.Info(SourceDataLine::class.java, af)
         val line = AudioSystem.getLine(info) as SourceDataLine
-
         line.open(af, 4096)
         line.start()
         line.write(ByteArray(4), 0, 4)
@@ -34,13 +36,13 @@ class AwtNativeSoundProvider : NativeSoundProvider() {
     override fun createAudioStream(freq: Int): PlatformAudioOutput = JvmPlatformAudioOutput(freq)
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
-        val data = try {
+        val audioData = try {
             nativeSoundFormats.decode(data.openAsync()) ?: AudioData.DUMMY
         } catch (e: Throwable) {
             e.printStackTrace()
             AudioData.DUMMY
         }
-        return AwtNativeSound(data, data.toWav()).init()
+        return AwtNativeSound(audioData, audioData.toWav()).init()
     }
 
     override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
@@ -63,9 +65,8 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
 
     override fun play(): NativeSoundChannel {
         return object : NativeSoundChannel(this) {
-            val sound2 = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))
-            val info = DataLine.Info(Clip::class.java, sound2.format)
-            val clip = AudioSystem.getLine(info) as Clip
+            val clip = AudioSystem.getClip(mixer.mixerInfo)
+            val jsound = AudioSystem.getAudioInputStream(ByteArrayInputStream(data))
             //val len = clip.microsecondLength.toDouble().microseconds
             val len = audioData.totalTime
 
@@ -74,6 +75,12 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
             var stopped = false
             //override val playing: Boolean get() = !stopped && current < total
             override val playing: Boolean get() = !stopped
+
+            //override var pitch: Double = 1.0
+            //    set(value) {
+            //        field = value
+            //        //(clip.getControl(FloatControl.Type.SAMPLE_RATE) as FloatControl).value = (audioData.rate * pitch).toFloat()
+            //    }
 
             override fun stop() {
                 clip.stop()
@@ -84,23 +91,20 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
                 if (len == 0.seconds) {
                     stopped = true
                 } else {
-                    clip.open(sound2)
-                    clip.addLineListener(MyLineListener(clip) {
-                        stop()
+                    clip.open(jsound)
+                    clip.addLineListener(object : LineListener {
+                        override fun update(event: LineEvent) {
+                            when (event.type) {
+                                LineEvent.Type.STOP, LineEvent.Type.CLOSE -> {
+                                    event.line.close()
+                                    clip.removeLineListener(this)
+                                    stop()
+                                }
+                            }
+
+                        }
                     })
                     clip.start()
-                }
-            }
-        }
-    }
-
-    private class MyLineListener(val clip: Clip, val complete: () -> Unit) : LineListener {
-        override fun update(event: LineEvent) {
-            when (event.type) {
-                LineEvent.Type.STOP, LineEvent.Type.CLOSE -> {
-                    event.line.close()
-                    clip.removeLineListener(this)
-                    complete()
                 }
             }
         }
