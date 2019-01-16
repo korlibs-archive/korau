@@ -48,10 +48,10 @@ subprojects {
                     }
                 }
             }
-            if (!org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+            if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
                 fromPreset(presets.mingwX64, 'nativeCommon')
                 fromPreset(presets.mingwX64, 'nativePosix')
-            } else if (!org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
+            } else if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
                 fromPreset(presets.macosX64, 'nativeCommon')
                 fromPreset(presets.macosX64, 'nativePosix')
             } else {

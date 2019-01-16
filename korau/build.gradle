@@ -31,3 +31,12 @@ kotlin.targets.macosX64.compilations.main.cinterops {
 	AVFoundation {}
 	mac_OpenAL {}
 }
+
+if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
+	for (target in ["nativeCommon", "nativePosix"]) {
+		kotlin.targets[target].compilations.main.cinterops {
+			AVFoundation {}
+			mac_OpenAL {}
+		}
+	}
+}
