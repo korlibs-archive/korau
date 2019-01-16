@@ -1,11 +1,10 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.kds.*
-import com.soywiz.korau.format.*
 import com.soywiz.korio.stream.*
 import kotlinx.cinterop.*
 
-open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int) {
+open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
     val scope = Arena()
 
     var closed = false
@@ -13,8 +12,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int) {
     val frameData = ByteArray(16 * 1024)
     val samplesData = ShortArray(maxSamples)
     val dataBuffer = ByteArrayDeque(14)
-    val samplesBuffer = ShortArrayDeque()
-
+    val samplesBuffers = AudioSamplesDeque(maxChannels)
 
     open fun init() {
     }
@@ -27,7 +25,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int) {
         var totalLengthInSamples: Long? = null
     )
 
-    private val info = DecodeInfo(0, 0, 0, 0)
+    private val info = DecodeInfo()
 
     val nchannels: Int get() = info.nchannels
     val hz: Int get() = info.hz
@@ -36,7 +34,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int) {
 
     suspend fun decodeFrame() {
         var n = 0
-        while (samplesBuffer.availableRead == 0) {
+        while (samplesBuffers.availableRead == 0) {
             memScoped {
                 if (dataBuffer.availableRead < 16 * 1024) {
                     val temp = ByteArray(16 * 1024)
@@ -51,7 +49,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int) {
                         val frameDataPtr = it.addressOf(0)
                         decodeFrameBase(samplesDataPtr, frameDataPtr, frameSize, info)
                         dataBuffer.writeHead(frameData, info.frameBytes, frameSize - info.frameBytes)
-                        samplesBuffer.write(samplesData, 0, info.samplesDecoded)
+                        samplesBuffers.writeInterleaved(samplesData, 0, info.samplesDecoded, channels = info.nchannels)
                     }
                 }
             }
@@ -82,13 +80,13 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int) {
         }
 
         return object : AudioStream(hz, nchannels) {
-            override suspend fun read(out: ShortArray, offset: Int, length: Int): Int {
+            override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
                 if (closed) return -1
 
-                if (samplesBuffer.availableRead == 0) {
+                if (samplesBuffers.availableRead == 0) {
                     decodeFrame()
                 }
-                val result = samplesBuffer.read(out, offset, length)
+                val result = samplesBuffers.read(out, offset, length)
                 if (result <= 0) {
                     close()
                 }

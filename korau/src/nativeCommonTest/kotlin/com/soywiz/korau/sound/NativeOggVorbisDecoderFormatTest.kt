@@ -16,7 +16,7 @@ class NativeOggVorbisDecoderFormatTest {
         //localCurrentDirVfs["demo.vorbis.raw"].write(MemorySyncStreamToByteArray { writeShortArrayLE(audioData.samples) })
 
         assertEquals(1, audioData.channels)
-        assertEquals(22050, audioData.numSamples)
+        assertEquals(22050, audioData.totalSamples)
         assertEquals(44100, audioData.rate)
         assertEquals(500, audioData.totalTime.millisecondsInt)
     }

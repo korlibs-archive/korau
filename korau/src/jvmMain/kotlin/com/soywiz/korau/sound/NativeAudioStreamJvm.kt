@@ -47,7 +47,7 @@ class JvmPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
                             timesWithoutBuffers = 0
                             val buf = synchronized(buffers) { buffers.dequeue() }
                             synchronized(buffers) { totalShorts -= buf.data.size }
-                            val bdata = convertFromShortToByte(buf.data.interleaved())
+                            val bdata = convertFromShortToByte(buf.data.interleaved().data)
 
                             val msChunk = (((bdata.size / 2) * 1000.0) / freq.toDouble()).toInt()
 

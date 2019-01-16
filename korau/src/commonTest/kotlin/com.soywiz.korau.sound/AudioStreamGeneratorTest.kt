@@ -7,8 +7,8 @@ class AudioStreamGeneratorTest {
     @Test
     fun test() = suspendTest {
         val data = AudioStream.generator(44100, 2) { step ->
-            for (n in 0 until size) {
-                this[n].write(shortArrayOf(
+            for (channel in 0 until channels) {
+                write(channel, shortArrayOf(
                     (10 + step).toShort(),
                     (20 + step).toShort(),
                     (30 + step).toShort(),

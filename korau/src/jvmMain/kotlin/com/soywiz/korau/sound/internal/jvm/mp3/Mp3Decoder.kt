@@ -35,9 +35,9 @@ object MP3Decoder : MP3Base() {
                     }
                     opos++
                 }
-                this[0].write(outL)
+                this.write(0, outL)
                 if (flags.inNumChannels == 2) {
-                    this[1].write(outR)
+                    this.write(1, outR)
                 }
                 true
             } else {

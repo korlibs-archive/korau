@@ -1,5 +1,6 @@
 package com.soywiz.korau.sound
 
+import com.soywiz.klock.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
@@ -8,7 +9,7 @@ import stb_vorbis.*
 
 object NativeOggVorbisDecoderFormat : AudioFormat("ogg") {
     override suspend fun tryReadInfo(data: AsyncStream): Info? =
-        decodeStream(data)?.use { Info(it.totalLength.microseconds.toLong(), it.channels) }
+        decodeStream(data)?.use { Info(it.totalLength.microseconds.microseconds, it.channels) }
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
         return object : NativeAudioDecoder(data, 16 * 1024) {

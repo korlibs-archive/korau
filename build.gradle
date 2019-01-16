@@ -1,6 +1,7 @@
 plugins {
     id 'kotlin-multiplatform' version '1.3.11'
     id 'com.moowork.node' version '1.2.0'
+    //id "org.jetbrains.gradle.plugin.idea-ext" version "0.4.2"
 }
 
 def dump(obj) { obj.properties.each { println "$it.key : ${it.value.class.name}   ->   $it.value" } }
@@ -46,6 +47,16 @@ subprojects {
                         moduleKind = "umd"
                     }
                 }
+            }
+            if (!org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+                fromPreset(presets.mingwX64, 'nativeCommon')
+                fromPreset(presets.mingwX64, 'nativePosix')
+            } else if (!org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
+                fromPreset(presets.macosX64, 'nativeCommon')
+                fromPreset(presets.macosX64, 'nativePosix')
+            } else {
+                fromPreset(presets.linuxX64, 'nativeCommon')
+                fromPreset(presets.linuxX64, 'nativePosix')
             }
         }
         sourceSets {
@@ -278,3 +289,10 @@ subprojects {
         }
     }
 }
+
+//apply plugin: 'idea'
+//idea.project.settings {
+//    taskTriggers {
+//        //afterSync tasks.getByName("projects"), tasks.getByName("tasks")
+//    }
+//}

@@ -69,7 +69,7 @@ class OpenALNativeSoundNoStream(val coroutineScope: CoroutineScope, val data: Au
         var stopped = false
 
         val channel = object : NativeSoundChannel(this) {
-            val totalSamples get() = data.numSamples
+            val totalSamples get() = data.totalSamples
             val currentSampleOffset get() = alGetSourcei(source, AL_SAMPLE_OFFSET)
 
             override var volume: Double
@@ -115,14 +115,14 @@ private fun alGetSourcei(source: ALuint, param: ALenum): ALint =
 private fun alGetSourceState(source: ALuint): ALint = alGetSourcei(source, AL_SOURCE_STATE)
 
 private fun alBufferData(buffer: ALuint, data: AudioData) {
-    val samples = data.samples
+    val samples = data.samplesInterleaved.data
     samples.usePinned { pin ->
         alBufferData(
             buffer,
             if (data.channels == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16,
             if (samples.isNotEmpty()) pin.addressOf(0) else null,
             samples.size * 2,
-            44100.convert()
+            data.rate.convert()
         )
     }
 }

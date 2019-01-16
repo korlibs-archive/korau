@@ -12,7 +12,7 @@ class NativeMp3DecoderTest {
         val stream = decoder.decodeStream(file.open()) ?: error("Can't open decoder")
         val audioData = stream.toData()
         assertEquals(1, audioData.channels)
-        assertEquals(25344, audioData.numSamples)
+        assertEquals(25344, audioData.totalSamples)
         assertEquals(44100, audioData.rate)
         assertEquals(574, audioData.totalTime.millisecondsInt)
         //localCurrentDirVfs["demo.out.raw"].write(MemorySyncStreamToByteArray { writeShortArrayLE(audioData.samples) })

@@ -75,7 +75,7 @@ object WAV : AudioFormat("wav") {
 		// DATA
 		out.writeString("data")
 		out.write32LE(data.samples.size * 2)
-		out.writeShortArrayLE(data.samples.interleaved())
+		out.writeShortArrayLE(data.samples.interleaved().data)
 	}
 
 	data class Fmt(

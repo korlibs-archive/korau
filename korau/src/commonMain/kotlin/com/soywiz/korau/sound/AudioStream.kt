@@ -1,11 +1,9 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.lang.*
-import com.soywiz.korio.stream.*
 import kotlin.math.*
 
 open class AudioStream(
@@ -19,23 +17,23 @@ open class AudioStream(
     override fun close() = Unit
 
     companion object {
-        fun generator(rate: Int, channels: Int, generateChunk: suspend Array<ShortArrayDeque>.(step: Int) -> Boolean): AudioStream =
+        fun generator(rate: Int, channels: Int, generateChunk: suspend AudioSamplesDeque.(step: Int) -> Boolean): AudioStream =
             object : AudioStream(rate, channels) {
-                val chunks = Array(channels) { ShortArrayDeque() }
-                val available get() = chunks[0].availableRead
+                val deque = AudioSamplesDeque(channels)
+                val availableRead get() = deque.availableRead
                 override var finished: Boolean = false
                 private var step: Int = 0
 
                 override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
-                    while (available <= 0) {
-                        if (finished) return -1
-                        if (!generateChunk(chunks, step++)) {
+                    if (finished && availableRead <= 0) return -1
+                    while (availableRead <= 0) {
+                        if (!generateChunk(deque, step++)) {
                             finished = true
                             break
                         }
                     }
-                    val read = min(length, available)
-                    for (n in 0 until channels) chunks[n].read(out[n], offset, read)
+                    val read = min(length, availableRead)
+                    deque.read(out, offset, read)
                     return read
                 }
             }
@@ -43,26 +41,22 @@ open class AudioStream(
 }
 
 suspend fun AudioStream.toData(maxSamples: Int = Int.MAX_VALUE): AudioData {
-    val out = Array(channels) { ShortArrayDeque() }
+    val out = AudioSamplesDeque(channels)
     val buffer = AudioSamples(channels, 1024)
     try {
         while (!finished) {
             val read = read(buffer, 0, buffer.totalSamples)
             if (read <= 0) break
-            for (n in 0 until channels) {
-                out[n].write(buffer[n], 0, read)
-            }
-            if (out[0].availableRead >= maxSamples) break
+            out.write(buffer, 0, read)
+            if (out.availableRead >= maxSamples) break
         }
     } finally {
         close()
     }
 
-    val maxOutSamples = out.map { it.availableRead }.max() ?: 0
+    val maxOutSamples = out.maxOutSamples
 
-    return AudioData(rate, AudioSamples(channels, maxOutSamples).apply {
-        for (n in 0 until channels) out[n].read(this.data[n])
-    })
+    return AudioData(rate, AudioSamples(channels, maxOutSamples).apply { out.read(this) })
 }
 
 

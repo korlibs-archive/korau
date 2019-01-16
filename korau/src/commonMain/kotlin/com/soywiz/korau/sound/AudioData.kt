@@ -11,6 +11,8 @@ class AudioData(
     val rate: Int,
     val samples: AudioSamples
 ) {
+    val samplesInterleaved by lazy { samples.interleaved() }
+
     companion object {
         val DUMMY by lazy { AudioData(44100, AudioSamples(2, 0)) }
     }
