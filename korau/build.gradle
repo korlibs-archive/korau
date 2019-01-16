@@ -7,7 +7,7 @@ dependencies {
 
 }
 
-for (target in ["macosX64", "linuxX64", "mingwX64", "iosX64", "iosArm32", "iosArm64", "nativeCommon", "nativePosix"]) {
+for (target in ["macosX64", "linuxX64", "mingwX64", "iosX64", "iosArm32", "iosArm64"]) {
 	kotlin.targets[target].compilations.main {
 		cinterops {
 			minimp3 {}
@@ -32,11 +32,15 @@ kotlin.targets.macosX64.compilations.main.cinterops {
 	mac_OpenAL {}
 }
 
-if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
-	for (target in ["nativeCommon", "nativePosix"]) {
-		kotlin.targets[target].compilations.main.cinterops {
-			AVFoundation {}
-			mac_OpenAL {}
+if (System.getProperty("idea.version") != null) {
+	if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
+		for (target in ["nativeCommon", "nativePosix"]) {
+			kotlin.targets[target].compilations.main.cinterops {
+				minimp3 {}
+				stb_vorbis {}
+				AVFoundation {}
+				mac_OpenAL {}
+			}
 		}
 	}
 }
