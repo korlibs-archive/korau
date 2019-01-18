@@ -45,6 +45,7 @@ class AudioFormats : AudioFormat() {
 	val formats = linkedSetOf<AudioFormat>()
 
 	fun register(vararg formats: AudioFormat): AudioFormats = this.apply { this.formats += formats }
+	fun register(formats: Iterable<AudioFormat>): AudioFormats = this.apply { this.formats += formats }
 
 	override suspend fun tryReadInfo(data: AsyncStream): Info? {
 		//println("formats:$formats")

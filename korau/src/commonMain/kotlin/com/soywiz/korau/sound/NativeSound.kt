@@ -104,6 +104,9 @@ abstract class NativeSound {
 	abstract fun play(): NativeSoundChannel
 }
 
+suspend fun NativeSound.toData(): AudioData = decode()
+suspend fun NativeSound.toStream(): AudioStream = decode().toStream()
+
 suspend fun NativeSound.playAndWait(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
 	play().await(progress)
 

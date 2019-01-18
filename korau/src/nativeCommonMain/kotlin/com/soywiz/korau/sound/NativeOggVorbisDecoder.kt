@@ -2,6 +2,7 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.korau.format.*
+import com.soywiz.korau.internal.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 import kotlinx.cinterop.*
@@ -76,7 +77,7 @@ object NativeOggVorbisDecoderFormat : AudioFormat("ogg") {
                         var m = 0
                         for (n in 0 until samples) {
                             for (channel in 0 until channels) {
-                                samplesDataPtr[m++] = (outputPtr!![channel]!![n] * Short.MAX_VALUE).toShort()
+                                samplesDataPtr[m++] = SampleConvert.floatToShort(outputPtr!![channel]!![n])
                             }
                         }
                         out.frameBytes = consumed

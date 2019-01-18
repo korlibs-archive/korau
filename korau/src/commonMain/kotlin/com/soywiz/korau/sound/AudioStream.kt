@@ -54,7 +54,7 @@ suspend fun AudioStream.toData(maxSamples: Int = Int.MAX_VALUE): AudioData {
         close()
     }
 
-    val maxOutSamples = out.maxOutSamples
+    val maxOutSamples = out.availableReadMax
 
     return AudioData(rate, AudioSamples(channels, maxOutSamples).apply { out.read(this) })
 }

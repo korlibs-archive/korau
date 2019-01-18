@@ -25,15 +25,41 @@ class AudioData(
     operator fun get(channel: Int): ShortArray = samples.data[channel]
     operator fun get(channel: Int, sample: Int): Short = samples.data[channel][sample]
 
+    operator fun set(channel: Int, sample: Int, value: Short): Unit = run { samples.data[channel][sample] = value }
+
     override fun toString(): String = "AudioData(rate=$rate, channels=$channels, samples=$totalSamples)"
 }
 
 enum class AudioConversionQuality { FAST }
 
-fun AudioData.convertTo(rate: Int = 44100, channels: Int = 2, quality: AudioConversionQuality = AudioConversionQuality.FAST): AudioData {
-    TODO()
-}
+/** Change the rate, changing the pitch and the duration of the sound. */
+fun AudioData.withRate(rate: Int) = AudioData(rate, samples)
 
+// @TODO: Use FFT
+//fun AudioData.withAdjustedPitch(pitch: Double = 1.0): AudioData {
+//    val MAX_CHUNK_SIZE = 1024
+//    val inp = this
+//    val out = AudioData(inp.rate, AudioSamples(inp.samples.channels, inp.totalSamples))
+//    for (chunk in 0 until ceil(out.totalSamples.toDouble() / MAX_CHUNK_SIZE).toInt()) {
+//        val offset = chunk * MAX_CHUNK_SIZE
+//        val available = out.totalSamples - offset
+//        val chunkSize = min(MAX_CHUNK_SIZE, available)
+//        //println("chunk=$chunk, offset=$offset, available=$available, chunkSize=$chunkSize")
+//        for (channel in 0 until channels) {
+//            for (n in 0 until chunkSize) {
+//                val m = (n * pitch).toInt() % chunkSize
+//                //println("n=$n, m=$m")
+//                //println(" -> SAMPLE: ${this[channel, m]}")
+//                out[channel, offset + n] = this[channel, offset + m]
+//            }
+//        }
+//    }
+//    return out
+//}
+
+//fun AudioData.convertTo(rate: Int = 44100, channels: Int = 2, quality: AudioConversionQuality = AudioConversionQuality.FAST): AudioData {
+//    TODO()
+//}
 
 fun AudioData.toStream(): AudioStream = object : AudioStream(rate, channels) {
     var cursor = 0

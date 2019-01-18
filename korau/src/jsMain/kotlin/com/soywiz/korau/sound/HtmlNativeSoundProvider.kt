@@ -2,6 +2,7 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
+import com.soywiz.korau.internal.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
@@ -133,7 +134,7 @@ class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 		for (c in 0 until nchannels) {
 			val channelF = buffer.getChannelData(c)
 			for (n in 0 until nsamples) {
-				data[c][m++] = (channelF[n] * Short.MAX_VALUE).toShort()
+				data[c][m++] = SampleConvert.floatToShort(channelF[n])
 			}
 		}
 		AudioData(buffer.sampleRate, data)

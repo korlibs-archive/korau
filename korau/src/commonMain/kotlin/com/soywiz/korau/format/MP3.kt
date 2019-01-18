@@ -7,7 +7,9 @@ import com.soywiz.kmem.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
-object MP3 : MP3Base()
+open class MP3 : MP3Base() {
+	companion object : MP3()
+}
 
 open class MP3Base : AudioFormat("mp3") {
 	override suspend fun tryReadInfo(data: AsyncStream): Info? = try {

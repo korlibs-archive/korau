@@ -2,15 +2,15 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.korau.format.*
-import com.soywiz.korau.sound.internal.jvm.mp3.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.stream.*
 import java.io.*
+import java.util.*
 import javax.sound.sampled.*
 import javax.sound.sampled.AudioFormat
 
 private val nativeSoundFormats = AudioFormats().register(
-    WAV, MP3Decoder
+    ServiceLoader.load(com.soywiz.korau.format.AudioFormat::class.java).toList()
 )
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { AwtNativeSoundProvider() }

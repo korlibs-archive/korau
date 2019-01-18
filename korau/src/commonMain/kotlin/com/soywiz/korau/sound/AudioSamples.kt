@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.kmem.*
+import com.soywiz.korau.internal.*
 
 interface IAudioSamples {
     val channels: Int
@@ -10,8 +11,8 @@ interface IAudioSamples {
     fun isNotEmpty() = size != 0
     operator fun get(channel: Int, sample: Int): Short
     operator fun set(channel: Int, sample: Int, value: Short): Unit
-    fun getFloat(channel: Int, sample: Int): Float = this[channel, sample].toFloat() / Short.MAX_VALUE.toFloat()
-    fun setFloat(channel: Int, sample: Int, value: Float) = run { this[channel, sample] = (value.clamp(-1f, +1f) * Short.MAX_VALUE).toShort() }
+    fun getFloat(channel: Int, sample: Int): Float = SampleConvert.shortToFloat(this[channel, sample])
+    fun setFloat(channel: Int, sample: Int, value: Float) = run { this[channel, sample] = SampleConvert.floatToShort(value) }
 }
 
 class AudioSamples(override val channels: Int, override val totalSamples: Int) : IAudioSamples {
@@ -21,6 +22,11 @@ class AudioSamples(override val channels: Int, override val totalSamples: Int) :
 
     override operator fun get(channel: Int, sample: Int): Short = data[channel][sample]
     override operator fun set(channel: Int, sample: Int, value: Short) = run { data[channel][sample] = value }
+
+    override fun hashCode(): Int = channels + totalSamples * 32 + data.contentDeepHashCode() * 64
+    override fun equals(other: Any?): Boolean = (other is AudioSamples) && this.channels == other.channels && this.totalSamples == other.totalSamples && this.data.contentDeepEquals(other.data)
+
+    override fun toString(): String = "AudioSamples(channels=$channels, totalSamples=$totalSamples)"
 }
 
 class AudioSamplesInterleaved(override val channels: Int, override val totalSamples: Int) : IAudioSamples {
@@ -29,6 +35,8 @@ class AudioSamplesInterleaved(override val channels: Int, override val totalSamp
     private fun index(channel: Int, sample: Int) = (sample * channels) + channel
     override operator fun get(channel: Int, sample: Int): Short = data[index(channel, sample)]
     override operator fun set(channel: Int, sample: Int, value: Short) = run { data[index(channel, sample)] = value }
+
+    override fun toString(): String = "AudioSamplesInterleaved(channels=$channels, totalSamples=$totalSamples)"
 }
 
 fun AudioSamples.copyOfRange(start: Int, end: Int): AudioSamples {

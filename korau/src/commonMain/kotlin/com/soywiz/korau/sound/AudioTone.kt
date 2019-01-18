@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
+import com.soywiz.korau.internal.*
 import kotlin.math.*
 
 object AudioTone {
@@ -11,7 +12,7 @@ object AudioTone {
         for (n in 0 until nsamples) {
             val ratio = n.toDouble() / nsamples.toDouble()
             val sample = cos(ratio * PI * scale)
-            val shortSample = (sample * Short.MAX_VALUE).toShort()
+            val shortSample = SampleConvert.floatToShort(sample.toFloat())
             samples[0, n] = shortSample
         }
         return AudioData(rate, samples)

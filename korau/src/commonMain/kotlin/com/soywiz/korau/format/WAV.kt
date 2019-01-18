@@ -8,7 +8,9 @@ import com.soywiz.korau.sound.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
-object WAV : AudioFormat("wav") {
+open class WAV : AudioFormat("wav") {
+	companion object : WAV()
+
 	data class Chunk(val type: String, val data: AsyncStream)
 	data class ProcessedChunk(val type: String, val data: AsyncStream, val extra: Any)
 

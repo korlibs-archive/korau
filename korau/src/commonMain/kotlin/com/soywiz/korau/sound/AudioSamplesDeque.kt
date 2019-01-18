@@ -1,12 +1,13 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.kds.*
+import com.soywiz.korau.internal.*
 import kotlin.math.*
 
 class AudioSamplesDeque(val channels: Int) {
     val buffer = Array(channels) { ShortArrayDeque() }
-    val availableRead get() = buffer[0].availableRead
-    val maxOutSamples: Int get() = buffer.map { it.availableRead }.max() ?: 0
+    val availableRead get() = buffer.getOrNull(0)?.availableRead ?: 0
+    val availableReadMax: Int get() = buffer.map { it.availableRead }.max() ?: 0
 
     private val temp = ShortArray(1)
 
@@ -35,6 +36,10 @@ class AudioSamplesDeque(val channels: Int) {
     // Write raw
     fun write(channel: Int, data: ShortArray, offset: Int = 0, len: Int = data.size - offset) {
         buffer[channel].write(data, offset, len)
+    }
+
+    fun write(channel: Int, data: FloatArray, offset: Int = 0, len: Int = data.size - offset) {
+        for (n in 0 until len) write(channel, SampleConvert.floatToShort(data[offset + n]))
     }
 
     // @TODO: Important to optimize!
@@ -66,4 +71,6 @@ class AudioSamplesDeque(val channels: Int) {
         }
         return result
     }
+
+    override fun toString(): String = "AudioSamplesDeque(channels=$channels, availableRead=$availableRead)"
 }
