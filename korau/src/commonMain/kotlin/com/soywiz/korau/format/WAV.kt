@@ -5,9 +5,11 @@ package com.soywiz.korau.format
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
+import com.soywiz.korio.annotations.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
+@Keep
 open class WAV : AudioFormat("wav") {
 	companion object : WAV()
 

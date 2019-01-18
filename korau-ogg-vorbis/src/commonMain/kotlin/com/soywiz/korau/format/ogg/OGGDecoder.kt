@@ -3,11 +3,13 @@ package com.soywiz.korau.format.ogg
 import com.soywiz.korau.format.*
 import com.soywiz.korau.format.ogg.jcraft.*
 import com.soywiz.korau.sound.*
+import com.soywiz.korio.annotations.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 import kotlin.math.*
 
+@Keep
 open class OGGDecoder : OggBase() {
     companion object : OGGDecoder()
 

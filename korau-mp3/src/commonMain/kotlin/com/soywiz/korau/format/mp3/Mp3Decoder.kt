@@ -3,10 +3,11 @@ package com.soywiz.korau.format.mp3
 import com.soywiz.korau.format.*
 import com.soywiz.korau.format.mp3.lame.*
 import com.soywiz.korau.sound.*
+import com.soywiz.korio.annotations.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
-//@Keep
+@Keep
 open class MP3Decoder : MP3Base() {
     companion object : MP3Decoder()
 
