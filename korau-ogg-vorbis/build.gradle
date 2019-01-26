@@ -7,11 +7,11 @@ dependencies {
     commonMainApi "com.soywiz:klock:$klockVersion"
     commonMainApi "com.soywiz:korio:$korioVersion"
     commonMainApi "com.soywiz:kds:$kdsVersion"
+    commonMainApi project(":korau")
 
     commonTestApi "com.soywiz:kmem:$kmemVersion"
     commonTestApi "com.soywiz:klock:$klockVersion"
     commonTestApi "com.soywiz:korio:$korioVersion"
     commonTestApi "com.soywiz:kds:$kdsVersion"
-
-    commonMainApi project(":korau")
+    commonTestApi project(":korau")
 }
