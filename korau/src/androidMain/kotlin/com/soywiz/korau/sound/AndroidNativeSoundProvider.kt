@@ -1,20 +1,20 @@
-package com.soywiz.korau
+package com.soywiz.korau.sound
 
 import android.media.*
+import com.soywiz.klock.*
 import com.soywiz.kds.*
-import com.soywiz.korau.format.*
-import com.soywiz.korau.sound.*
-import com.soywiz.korio.crypto.*
 import com.soywiz.korio.file.*
+import com.soywiz.korio.file.std.*
+import com.soywiz.korio.util.encoding.*
 
 class AndroidNativeSoundProvider : NativeSoundProvider() {
-	val mpPool = Pool(reset = {
+	val mediaPlayerPool = Pool(reset = {
 		it.setOnCompletionListener(null)
 		it.reset()
 	}) { MediaPlayer() }
 
 	fun getDurationInMs(url: String): Int {
-		return mpPool.alloc { mp ->
+		return mediaPlayerPool.alloc { mp ->
 			mp.setDataSource(url)
 			mp.prepare()
 			mp.duration
@@ -34,24 +34,29 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
 			}
 		} catch (e: Throwable) {
 			e.printStackTrace()
-			nativeSoundProvider.createSound(AudioData(44100, 2, shortArrayOf()))
+			nativeSoundProvider.createSound(AudioData(44100, AudioSamples(2, 0)))
 		}
 	}
 }
 
 class AndroidNativeSound(val prov: AndroidNativeSoundProvider, val url: String) : NativeSound() {
-	override val lengthInMs: Long by lazy { prov.getDurationInMs(url).toLong() }
+	//override val lengthInMs: Long by lazy { prov.getDurationInMs(url).toLong() }
+	override val length: TimeSpan get() = prov.getDurationInMs(url).milliseconds
+
+	override suspend fun decode(): AudioData {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
 
 	override fun play(): NativeSoundChannel {
-		var mp: MediaPlayer? = prov.mpPool.alloc()
+		var mp: MediaPlayer? = prov.mediaPlayerPool.alloc()
 		return object : NativeSoundChannel(this) {
-			override val current: Double = mp?.currentPosition?.toDouble() ?: 0.0
-			override val total: Double = mp?.duration?.toDouble() ?: 0.0
+			override val current: TimeSpan = mp?.currentPosition?.toDouble()?.milliseconds ?: 0.milliseconds
+			override val total: TimeSpan = mp?.duration?.toDouble()?.milliseconds ?: 0.milliseconds
 			override var playing: Boolean = true
 
 			override fun stop() {
 				playing = false
-				if (mp != null) prov.mpPool.free(mp!!)
+				if (mp != null) prov.mediaPlayerPool.free(mp!!)
 				mp = null
 			}
 

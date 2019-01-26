@@ -1,3 +1,3 @@
 package com.soywiz.korau.internal
 
-internal const val KORAU_VERSION = "1.0.0-eap-100"
+internal const val KORAU_VERSION = "1.0.0-rc-1"

@@ -1,4 +1,9 @@
 dependencies {
+	if (hasAndroid) {
+		androidMainApi "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+	}
+	commonMainApi "com.soywiz:kmem:$kmemVersion"
+	commonMainApi "com.soywiz:klock:$klockVersion"
 	commonMainApi "com.soywiz:korio:$korioVersion"
 	commonMainApi "com.soywiz:kds:$kdsVersion"
 
