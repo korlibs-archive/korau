@@ -1,11 +1,17 @@
 dependencies {
 	if (hasAndroid) {
 		androidMainApi "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+		androidTestApi "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
 	}
 	commonMainApi "com.soywiz:kmem:$kmemVersion"
 	commonMainApi "com.soywiz:klock:$klockVersion"
 	commonMainApi "com.soywiz:korio:$korioVersion"
 	commonMainApi "com.soywiz:kds:$kdsVersion"
+
+	commonTestApi "com.soywiz:kmem:$kmemVersion"
+	commonTestApi "com.soywiz:klock:$klockVersion"
+	commonTestApi "com.soywiz:korio:$korioVersion"
+	commonTestApi "com.soywiz:kds:$kdsVersion"
 
 	//jvmMainImplementation files('lib/java-lame-3.98.4.jar')
 	//jvmMainImplementation files('lib/javamp3-1.0.1.jar')

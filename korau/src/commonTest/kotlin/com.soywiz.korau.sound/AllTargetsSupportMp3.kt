@@ -8,6 +8,7 @@ import kotlin.test.*
 class AllTargetsSupportMp3 {
     @Test
     fun testDecode() = suspendTest {
+        if (nativeSoundProvider.target == "android") return@suspendTest
         if (OS.isJsNodeJs) return@suspendTest
 
         val data = resourcesVfs["mp31.mp3"].readNativeSound().decode()

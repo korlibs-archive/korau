@@ -8,6 +8,8 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korio.util.encoding.*
 
 class AndroidNativeSoundProvider : NativeSoundProvider() {
+	override val target: String = "android"
+
 	val mediaPlayerPool = Pool(reset = {
 		it.setOnCompletionListener(null)
 		it.reset()

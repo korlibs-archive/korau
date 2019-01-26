@@ -9,6 +9,8 @@ import kotlinx.coroutines.*
 expect val nativeSoundProvider: NativeSoundProvider
 
 open class NativeSoundProvider {
+	open val target: String = "unknown"
+
 	private var initialized = false
 
 	open fun initOnce() {
