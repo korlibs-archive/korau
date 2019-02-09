@@ -3,3 +3,4 @@ set -e
 ./gradlew publishToMavenLocal
 ./gradlew_linux publishLinuxX64PublicationToMavenLocal
 ./gradlew_win publishMingwX64PublicationToMavenLocal
+
