@@ -36,4 +36,16 @@ class DecodeTest {
         //LocalVfs("c:/temp/lol.wav").write(wavContentsGen)
         //Assert.assertArrayEquals(wavContents, wavContentsGen)
     }
+
+    @kotlin.test.Test
+    fun wav8bit() = suspendTest {
+        val wavContents = resourcesVfs["wav8bit.wav"].read()
+        val wavData = formats.decode(wavContents.openAsync())!!
+
+        assertEquals("AudioData(rate=44100, channels=2, samples=22050)", "$wavData")
+        val wavContentsGen = formats.encodeToByteArray(wavData, "out.wav")
+
+        //LocalVfs("c:/temp/lol.wav").write(wavContentsGen)
+        //Assert.assertArrayEquals(wavContents, wavContentsGen)
+    }
 }

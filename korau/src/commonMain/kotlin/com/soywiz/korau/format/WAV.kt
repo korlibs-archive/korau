@@ -41,22 +41,31 @@ open class WAV : AudioFormat("wav") {
 		return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
 			override var finished: Boolean = false
 
+
 			override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
 				val bytes = buffer.readBytesUpTo(length * bytesPerSample * channels)
 				finished = buffer.eof()
 				val availableSamples = bytes.size / bytesPerSample / channels
 				for (channel in 0 until channels) {
-					for (n in 0 until availableSamples) {
-						val index = (n * channels + channel) * bytesPerSample
-						out[channel, n] = when (bytesPerSample) {
-							2 -> bytes.readS16LE(index).toShort()
-							3 -> (bytes.readS24LE(index) ushr 8).toShort()
-							else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
-						}
+					when (bytesPerSample) {
+						1 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS8(it) shl 8).toShort() }
+						2 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS16LE(it).toShort()) }
+						3 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS24LE(it) ushr 8).toShort() }
+						else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
 					}
 				}
 				return availableSamples
 			}
+		}
+	}
+
+	private inline fun readBlock(channel: Int, channels: Int, availableSamples: Int, bytesPerSample: Int, out: AudioSamples, offset: Int, read: (index: Int) -> Short) {
+		val increment = channels * bytesPerSample
+		var index = channel * bytesPerSample
+		val outc = out[channel]
+		for (n in 0 until availableSamples) {
+			outc[offset + n] = read(index)
+			index += increment
 		}
 	}
 
