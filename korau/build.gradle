@@ -8,13 +8,13 @@ korlibs {
     dependencyCInterops("win32_winmm", ["mingwX64"])
     dependencyCInterops("linux_OpenAL", ["linuxX64"])
     dependencyCInterops("mac_OpenAL", ["macosX64"])
-}
 
-if (System.getProperty("idea.version") != null) {
-    if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
-        dependencyCInterops("minimp3", ["nativeCommon", "nativePosix"])
-        dependencyCInterops("stb_vorbis", ["nativeCommon", "nativePosix"])
-        dependencyCInterops("AVFoundation", ["nativeCommon", "nativePosix"])
-        dependencyCInterops("mac_OpenAL", ["nativeCommon", "nativePosix"])
+    if (System.getProperty("idea.version") != null) {
+        if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
+            dependencyCInterops("minimp3", ["nativeCommon", "nativePosix"])
+            dependencyCInterops("stb_vorbis", ["nativeCommon", "nativePosix"])
+            dependencyCInterops("AVFoundation", ["nativeCommon", "nativePosix"])
+            dependencyCInterops("mac_OpenAL", ["nativeCommon", "nativePosix"])
+        }
     }
 }
