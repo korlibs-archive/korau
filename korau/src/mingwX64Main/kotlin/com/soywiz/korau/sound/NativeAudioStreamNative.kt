@@ -28,7 +28,7 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
     }
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
-        return Win32NativeSoundNoStream(CoroutineScope(coroutineContext), nativeAudioFormats.decode(data))
+        return Win32NativeSoundNoStream(coroutineContext, nativeAudioFormats.decode(data))
     }
 
     override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound {
@@ -40,7 +40,7 @@ actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvid
     }
 }
 
-class Win32NativeSoundNoStream(val coroutineScope: CoroutineScope, val data: AudioData?) : NativeSound() {
+class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data: AudioData?) : NativeSound() {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
     override fun play(): NativeSoundChannel {
@@ -107,14 +107,16 @@ class Win32NativeSoundNoStream(val coroutineScope: CoroutineScope, val data: Aud
                 if (!stopped) {
                     //println("stop")
                     stopped = true
+                    waveOutReset(hWaveOut.value)
                     val res = waveOutClose(hWaveOut.value)
+                    waveOutUnprepareHeader(hWaveOut.value, hdr.ptr, WAVEHDR.size.convert())
                     //println(res)
                     scope.clear()
                     samplesPin.unpin()
                 }
             }
         }
-        coroutineScope.launchImmediately {
+        launchImmediately(coroutineContext[ContinuationInterceptor.Key] ?: coroutineContext) {
             try {
                 while (channel.playing) {
                     //println("${channel.current}/${channel.total}")
