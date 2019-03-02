@@ -50,6 +50,7 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 	}
 }
 
+/*
 class MediaNativeSound private constructor(
 	val context: CoroutineContext,
 	val url: String,
@@ -120,6 +121,7 @@ class MediaNativeSound private constructor(
 		}
 	}
 }
+*/
 
 class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 	override val length: TimeSpan = ((buffer?.duration) ?: 0.0).seconds
@@ -143,6 +145,20 @@ class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 	override fun play(): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {
 			val channel = if (buffer != null) HtmlSimpleSound.playSound(buffer) else null
+
+			override var volume: Double
+				get() = channel?.gain?.gain?.value ?: 1.0
+				set(value) { channel?.gain?.gain?.value = value}
+			override var pitch: Double
+				get() = super.pitch
+				set(value) {}
+			override var panning: Double
+				get() = channel?.panner?.pan?.value ?: 0.0
+				set(value) { channel?.panner?.pan?.value = value }
+			override val current: TimeSpan get() = channel?.currentTime?.seconds ?: 0.seconds
+			override val total: TimeSpan = buffer?.duration?.seconds ?: 0.seconds
+			override val playing: Boolean get() = current < total
+
 			override fun stop(): Unit = run { channel?.stop() }
 		}
 	}

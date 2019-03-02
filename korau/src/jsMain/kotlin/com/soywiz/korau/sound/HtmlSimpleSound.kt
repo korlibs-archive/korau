@@ -8,7 +8,6 @@ import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.browser.*
 import kotlin.coroutines.*
-import kotlin.coroutines.*
 
 class MediaElementAudioSourceNodeWithAudioElement(
 	val node: MediaElementAudioSourceNode,
@@ -32,13 +31,67 @@ object HtmlSimpleSound {
 	private val unlockDeferred = CompletableDeferred<Unit>(Job())
 	val unlock = unlockDeferred as Deferred<Unit>
 
-	fun playSound(buffer: AudioBuffer): AudioBufferSourceNode? {
+	class SimpleSoundChannel(
+		val buffer: AudioBuffer,
+		val node: AudioBufferSourceNode?,
+		val gain: GainNode?,
+		val panner: StereoPannerNode?
+	) {
+		val startTime = ctx?.currentTime ?: 0.0
+		val currentTime get() = ctx?.currentTime ?: 0.0
+
+		private var running = true
+		val playing get() = running && currentTime < buffer.duration
+
+		fun stop() {
+			running = false
+			node?.stop()
+		}
+	}
+
+	fun AudioNode.panner(callback: StereoPannerNode.() -> Unit = {}): StereoPannerNode? {
+		val ctx = ctx ?: return null
+		val node = ctx.createStereoPanner()
+		callback(node)
+		node.connect(this)
+		return node
+	}
+
+	fun AudioNode.gain(callback: GainNode.() -> Unit = {}): GainNode? {
+		val ctx = ctx ?: return null
+		val node = ctx.createGain()
+		callback(node)
+		node.connect(this)
+		return node
+	}
+
+	fun AudioNode.source(buffer: AudioBuffer, callback: AudioBufferSourceNode.() -> Unit = {}): AudioBufferSourceNode? {
+		val ctx = ctx ?: return null
+		val node = ctx.createBufferSource()
+		node.buffer = buffer
+		callback(node)
+		node.connect(this)
+		return node
+	}
+
+	fun playSound(buffer: AudioBuffer): SimpleSoundChannel? {
 		if (ctx == null) return null
-		val source = ctx.createBufferSource()
-		source.buffer = buffer
-		source.connect(ctx.destination)
-		source.start(0.0)
-		return source
+
+		var gainNode: GainNode? = null
+		var pannerNode: StereoPannerNode? = null
+		var sourceNode: AudioBufferSourceNode? = null
+		ctx.destination.apply {
+			pannerNode = panner {
+				gainNode = gain {
+					this.gain.value = 1.0
+					sourceNode = source(buffer) {
+						start(0.0)
+					}
+				}
+			}
+		}
+
+		return SimpleSoundChannel(buffer, sourceNode, gainNode, pannerNode)
 	}
 
 	fun stopSound(channel: AudioBufferSourceNode?) {
@@ -130,6 +183,21 @@ object HtmlSimpleSound {
 	}
 }
 
+external interface AudioParam {
+	val defaultValue: Double
+	val minValue: Double
+	val maxValue: Double
+	var value: Double
+}
+
+external interface GainNode : AudioNode {
+	val gain: AudioParam
+}
+
+external interface StereoPannerNode : AudioNode {
+	val pan: AudioParam
+}
+
 
 open external class BaseAudioContext {
 	fun createScriptProcessor(
@@ -142,6 +210,8 @@ open external class BaseAudioContext {
 
 	fun createMediaElementSource(audio: HTMLAudioElement): MediaElementAudioSourceNode
 	fun createBufferSource(): AudioBufferSourceNode
+	fun createGain(): GainNode
+	fun createStereoPanner(): StereoPannerNode
 	fun createBuffer(numOfchannels: Int, length: Int, rate: Int): AudioBuffer
 
 	var currentTime: Double
