@@ -82,6 +82,7 @@ abstract class NativeSoundChannel(val sound: NativeSound) {
 	private val startTime = DateTime.now()
 	open var volume = 1.0
 	open var pitch = 1.0
+	open var panning = 0.0 // -1.0 left, +1.0 right
 	open val current: TimeSpan get() = DateTime.now() - startTime
 	open val total: TimeSpan get() = sound.length
 	open val playing get() = current < total

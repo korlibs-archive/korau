@@ -78,6 +78,11 @@ class OpenALNativeSoundNoStream(val coroutineScope: CoroutineScope, val data: Au
             override var pitch: Double
                 get() = run { alGetSourcef(source, AL_PITCH).toDouble() }
                 set(value) = run { alSourcef(source, AL_PITCH, value.toFloat()) }
+            override var panning: Double = 0.0
+                set(value) = run {
+                    field = value
+                    alSource3f(source, AL_POSITION, panning.toFloat(), 0f, 0f)
+                }
 
             override val current: TimeSpan get() = data.timeAtSample(currentSampleOffset)
             override val total: TimeSpan get() = data.totalTime
