@@ -2,7 +2,6 @@ apply plugin: com.soywiz.korlibs.KorlibsPlugin
 
 korlibs {
     exposeVersion()
-    dependencyMulti("com.soywiz:korio:$korioVersion")
     dependencyCInterops("minimp3", ["mingwX64", "macosX64", "linuxX64", "iosX64", "iosArm32", "iosArm64"])
     dependencyCInterops("stb_vorbis", ["mingwX64", "macosX64", "linuxX64", "iosX64", "iosArm32", "iosArm64"])
     dependencyCInterops("win32_winmm", ["mingwX64"])
@@ -19,7 +18,26 @@ korlibs {
     }
 }
 
+kotlin {
+	linuxX64 {
+		compilations.main {
+			cinterops {
+				linux_OpenAL {
+					//print(it)
+					def linuxFolder = new File(rootDir, "nlib/linuxX64")
+					compilerOpts("-I/usr/include", "-I/usr/include/x86_64-linux-gnu/")
+					compilerOpts("-I${new File(linuxFolder, "include").absolutePath}")
+					linkerOpts("-L/usr/X11R6/lib", "-L/usr/lib/x86_64-linux-gnu")
+					linkerOpts("-L${new File(linuxFolder, "lib/x86_64-linux-gnu").absolutePath}")
+				}
+			}
+		}
+	}
+}
+
 dependencies {
+	commonMainApi("com.soywiz.korlibs.korio:korio:$korioVersion")
+
     jvmMainApi "org.jogamp.joal:joal:2.3.2"
     jvmMainApi "org.jogamp.joal:joal:2.3.2:natives-windows-amd64"
     jvmMainApi "org.jogamp.joal:joal:2.3.2:natives-windows-i586"
