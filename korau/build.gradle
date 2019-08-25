@@ -23,12 +23,12 @@ kotlin {
 		compilations.main {
 			cinterops {
 				linux_OpenAL {
+					// warning: -linker-option(s)/-linkerOpts/-lopt option is not supported by cinterop. Please add linker options to .def file or binary compilation instead.
+
 					//print(it)
-					def linuxFolder = new File(rootDir, "nlib/linuxX64")
-					compilerOpts("-I/usr/include", "-I/usr/include/x86_64-linux-gnu/")
-					compilerOpts("-I${new File(linuxFolder, "include").absolutePath}")
-					linkerOpts("-L/usr/X11R6/lib", "-L/usr/lib/x86_64-linux-gnu")
-					linkerOpts("-L${new File(linuxFolder, "lib/x86_64-linux-gnu").absolutePath}")
+					//def linuxFolder = new File(rootDir, "nlib/linuxX64")
+					//compilerOpts("-I/usr/include", "-I/usr/include/x86_64-linux-gnu/", "-I${new File(linuxFolder, "include").absolutePath}")
+					//linkerOpts("-L/usr/X11R6/lib", "-L/usr/lib/x86_64-linux-gnu", "-L${new File(linuxFolder, "lib/x86_64-linux-gnu").absolutePath}", "-lopenal")
 				}
 			}
 		}
