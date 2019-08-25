@@ -12,7 +12,7 @@ class OGGDecoderTest {
 
     @Test
     //@Ignore
-    fun testDecodeWav() = suspendTest {
+    fun testDecodeWav() = suspendTestNoBrowser {
         //ResourcesVfs["ogg1.ogg"].readAudioData().play()
         //ResourcesVfs["ogg1.ogg"].readAudioStream()!!.play()
         val expected = resourcesVfs["ogg1.ogg.wav"].readAudioData(formats)

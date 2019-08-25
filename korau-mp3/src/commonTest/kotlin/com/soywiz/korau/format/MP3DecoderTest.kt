@@ -12,7 +12,7 @@ class MP3DecoderTest {
 
     // http://mpgedit.org/mpgedit/testdata/mpegdata.html
     @Test
-    fun testDecodeMp3() = suspendTest {
+    fun testDecodeMp3() = suspendTestNoBrowser {
         val output = resourcesVfs["mp31.mp3"].readAudioData(formats)
         val outputBytes = formats.encodeToByteArray(output, "out.wav")
 
