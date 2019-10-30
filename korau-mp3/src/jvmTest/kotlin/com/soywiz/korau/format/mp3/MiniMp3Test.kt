@@ -151,9 +151,9 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
     private const val MINIMP3_MAX_SAMPLES_PER_FRAME = (1152*2)
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
-        val program = Program()
+        val program = MiniMp3()
         return object : NativeAudioDecoder(program, data, MINIMP3_MAX_SAMPLES_PER_FRAME) {
-            val mp3d = scope.allocBytes<Program.mp3dec_t>(Program.mp3dec_t.SIZE_BYTES)
+            val mp3d = scope.allocBytes<MiniMp3.mp3dec_t>(MiniMp3.mp3dec_t.SIZE_BYTES)
 
             override fun init() {
                 program.mp3dec_init(mp3d)
@@ -167,8 +167,8 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
             ) {
                 program.apply {
                     program.memScoped {
-                        val info = allocBytes<Program.mp3dec_frame_info_t>(Program.mp3dec_frame_info_t.SIZE_BYTES)
-                        val infov = Program.mp3dec_frame_info_t(info.ptr)
+                        val info = allocBytes<MiniMp3.mp3dec_frame_info_t>(MiniMp3.mp3dec_frame_info_t.SIZE_BYTES)
+                        val infov = MiniMp3.mp3dec_frame_info_t(info.ptr)
                         out.samplesDecoded = program.mp3dec_decode_frame(
                             mp3d,
                             frameDataPtr as CPointer<UByte>, frameSize,
@@ -191,10 +191,15 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
     override fun toString(): String = "NativeMp3DecoderFormat"
 }
 
+//#define MINIMP3_NO_SIMD 1
+//#define MINIMP3_IMPLEMENTATION 1
+//
+//#pragma module_name MiniMp3
+//#pragma package_name com.soywiz.korau.format.mp3
 
 class MiniMp3Test {
     @Test
-    @Ignore
+    //@Ignore
     fun test() = suspendTest {
         val output = resourcesVfs["mp31.mp3"].readAudioData(AudioFormats().register(NativeMp3DecoderFormat))
     }
