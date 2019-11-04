@@ -1,4 +1,4 @@
-<p align="center"><img alt="Korau" src="https://raw.githubusercontent.com/soywiz/kor/master/logos/128/korau.png" /></p>
+<p align="center"><img alt="Korau" src="https://raw.githubusercontent.com/korlibs/korlibs-logos/master/128/korau.png" /></p>
 
 <h1 align="center">Korau</h1>
 
