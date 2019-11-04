@@ -5,6 +5,7 @@
 /classes
 /web
 /local.properties
+.DS_Store
 *.ipr
 *.iws
 *.iml
