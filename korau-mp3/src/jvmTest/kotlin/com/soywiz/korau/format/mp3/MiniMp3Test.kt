@@ -13,11 +13,11 @@ typealias ShortVar = Short
 typealias IntVar = Int
 typealias ByteVar = Byte
 
-class Arena(val runtime: Runtime) {
+internal class Arena(val runtime: AbstractRuntime) {
     val pointers = intArrayListOf()
 
     fun <T> allocBytes(size: Int): CPointer<T> {
-        val ptr = runtime.alloca(size).ptr
+        val ptr = runtime.malloc(size).ptr
         pointers.add(ptr)
         return CPointer(ptr)
     }
@@ -30,7 +30,7 @@ class Arena(val runtime: Runtime) {
     }
 }
 
-fun Runtime.memScoped(callback: Arena.() -> Unit) {
+internal fun AbstractRuntime.memScoped(callback: Arena.() -> Unit) {
     val arena = Arena(this) // @TODO: Pooling
     try {
         callback(arena)
@@ -39,19 +39,19 @@ fun Runtime.memScoped(callback: Arena.() -> Unit) {
     }
 }
 
-fun Runtime.write(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) sb(ptr.ptr + n, data[n]) }
-fun Runtime.read(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) data[n] = lb(ptr.ptr + n) }
+internal fun AbstractRuntime.write(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) sb(ptr.ptr + n, data[n]) }
+internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) data[n] = lb(ptr.ptr + n) }
 
-fun Runtime.write(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) sh(ptr.ptr + n * 2, data[n]) }
-fun Runtime.read(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) data[n] = lh(ptr.ptr + n * 2) }
+internal fun AbstractRuntime.write(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) sh(ptr.ptr + n * 2, data[n]) }
+internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) data[n] = lh(ptr.ptr + n * 2) }
 
-open class NativeAudioDecoder(val runtime: Runtime, val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
+open internal class NativeAudioDecoder(internal val runtime: Runtime, val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
     var closed = false
 
     val scope = Arena(runtime)
 
-    val frameDataPtr = scope.allocBytes<Byte>(16 * 1024)
-    val samplesDataPtr = scope.allocBytes<Short>(maxSamples * 2)
+    internal val frameDataPtr = scope.allocBytes<Byte>(16 * 1024)
+    internal val samplesDataPtr = scope.allocBytes<Short>(maxSamples * 2)
 
     val frameData = ByteArray(16 * 1024)
     val samplesData = ShortArray(maxSamples)
@@ -98,7 +98,7 @@ open class NativeAudioDecoder(val runtime: Runtime, val data: AsyncStream, val m
     }
 
     // Must set: samplesDecoded, nchannels, hz and consumedBytes
-    protected open fun decodeFrameBase(
+    internal open fun decodeFrameBase(
         samplesDataPtr: CPointer<ShortVar>,
         frameDataPtr: CPointer<ByteVar>,
         frameSize: Int,
@@ -137,6 +137,7 @@ open class NativeAudioDecoder(val runtime: Runtime, val data: AsyncStream, val m
                 if (!closed) {
                     closed = true
                     scope.clear()
+                    this@NativeAudioDecoder.close()
                 }
             }
         }
@@ -150,13 +151,27 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
 
     private const val MINIMP3_MAX_SAMPLES_PER_FRAME = (1152*2)
 
+    private val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
+
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
-        val program = MiniMp3()
+        //println(programPool.itemsInPool)
+        val program = programPool.alloc()
+
+        //println("program.HEAP_PTR: ${program.HEAP_PTR}")
+        //println("program.STACK_PTR: ${program.STACK_PTR}")
+        //println("program.mallocCount: ${program.mallocCount}")
+
         return object : NativeAudioDecoder(program, data, MINIMP3_MAX_SAMPLES_PER_FRAME) {
-            val mp3d = scope.allocBytes<MiniMp3.mp3dec_t>(MiniMp3.mp3dec_t.SIZE_BYTES)
+            val mp3d = scope.allocBytes<mp3dec_t>(mp3dec_t.SIZE_BYTES)
 
             override fun init() {
                 program.mp3dec_init(mp3d)
+            }
+
+            override fun close() {
+                super.close()
+                //println("FREED")
+                programPool.free(program)
             }
 
             override fun decodeFrameBase(
@@ -167,8 +182,8 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
             ) {
                 program.apply {
                     program.memScoped {
-                        val info = allocBytes<MiniMp3.mp3dec_frame_info_t>(MiniMp3.mp3dec_frame_info_t.SIZE_BYTES)
-                        val infov = MiniMp3.mp3dec_frame_info_t(info.ptr)
+                        val info = allocBytes<mp3dec_frame_info_t>(mp3dec_frame_info_t.SIZE_BYTES)
+                        val infov = mp3dec_frame_info_t(info.ptr)
                         out.samplesDecoded = program.mp3dec_decode_frame(
                             mp3d,
                             frameDataPtr as CPointer<UByte>, frameSize,
@@ -200,7 +215,17 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
 class MiniMp3Test {
     @Test
     //@Ignore
-    fun test() = suspendTest {
-        val output = resourcesVfs["mp31.mp3"].readAudioData(AudioFormats().register(NativeMp3DecoderFormat))
+    fun testMiniMp3() = suspendTest {
+        for (n in 0 until 100) {
+            val output = resourcesVfs["mp31.mp3"].readAudioData(AudioFormats().register(NativeMp3DecoderFormat))
+        }
+    }
+
+    @Test
+    //@Ignore
+    fun testLame() = suspendTest {
+        for (n in 0 until 100) {
+            val output = resourcesVfs["mp31.mp3"].readAudioData(AudioFormats().register(MP3Decoder))
+        }
     }
 }
