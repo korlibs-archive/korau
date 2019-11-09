@@ -30,15 +30,6 @@ internal class Arena(val runtime: AbstractRuntime) {
     }
 }
 
-internal fun AbstractRuntime.memScoped(callback: Arena.() -> Unit) {
-    val arena = Arena(this) // @TODO: Pooling
-    try {
-        callback(arena)
-    } finally {
-        arena.clear()
-    }
-}
-
 internal fun AbstractRuntime.write(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) sb(ptr.ptr + n, data[n]) }
 internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) data[n] = lb(ptr.ptr + n) }
 
@@ -178,11 +169,11 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
                 samplesDataPtr: CPointer<ShortVar>,
                 frameDataPtr: CPointer<ByteVar>,
                 frameSize: Int,
-                out: NativeAudioDecoder.DecodeInfo
+                out: DecodeInfo
             ) {
                 program.apply {
-                    program.memScoped {
-                        val info = allocBytes<mp3dec_frame_info_t>(mp3dec_frame_info_t.SIZE_BYTES)
+                    program.stackFrame {
+                        val info = CPointer<mp3dec_frame_info_t>(alloca(mp3dec_frame_info_t.SIZE_BYTES).ptr)
                         val infov = mp3dec_frame_info_t(info.ptr)
                         out.samplesDecoded = program.mp3dec_decode_frame(
                             mp3d,
