@@ -10,8 +10,10 @@ class SoftMp3DecoderTest {
     @Test
     //@Ignore
     fun testMiniMp3() = suspendTest {
-        for (n in 0 until 100) {
-            val output = resourcesVfs["mp31.mp3"].readAudioData(AudioFormats().register(MP3Decoder))
+        //for (n in 0 until 100) {
+        val formats = AudioFormats().register(MP3Decoder)
+        for (n in 0 until 10) {
+            val output = resourcesVfs["mp31.mp3"].readAudioData(formats)
         }
     }
 }

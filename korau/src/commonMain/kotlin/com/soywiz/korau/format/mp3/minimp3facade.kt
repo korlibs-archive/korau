@@ -7,22 +7,15 @@ import com.soywiz.korau.sound.*
 import com.soywiz.korio.annotations.*
 import com.soywiz.korio.stream.*
 
-@Keep
-open class MP3Decoder : NativeMp3DecoderFormat() {
-    companion object : MP3Decoder()
-}
-
-open class NativeMp3DecoderFormat : AudioFormat("mp3") {
-    companion object : NativeMp3DecoderFormat() {
-    }
-
+object MP3Decoder : AudioFormat("mp3") {
     override suspend fun tryReadInfo(data: AsyncStream): Info? {
         return MP3.tryReadInfo(data)
     }
 
-    private val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
+    //private val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
+        val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
         //println(programPool.itemsInPool)
         val program = programPool.alloc()
 
