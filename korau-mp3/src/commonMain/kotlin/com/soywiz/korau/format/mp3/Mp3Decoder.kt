@@ -8,8 +8,8 @@ import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
 @Keep
-open class MP3Decoder : MP3Base() {
-    companion object : MP3Decoder()
+open class MP3DecoderLame : MP3Base() {
+    companion object : MP3DecoderLame()
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
         val lame = Lame(warningProcessor = null)
