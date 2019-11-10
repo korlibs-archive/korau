@@ -69,7 +69,10 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
     }
 
     open fun close() {
-        scope.clear()
+        if (!closed) {
+            closed = true
+            scope.clear()
+        }
     }
 
     suspend fun createAudioStream(): AudioStream? {
@@ -95,11 +98,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
             }
 
             override fun close() {
-                if (!closed) {
-                    closed = true
-                    scope.clear()
-                    this@NativeAudioDecoder.close()
-                }
+                this@NativeAudioDecoder.close()
             }
         }
     }

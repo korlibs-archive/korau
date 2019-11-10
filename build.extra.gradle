@@ -22,5 +22,6 @@ idea.module {
     if (excludeDirs == null) {
         excludeDirs = []
     }
-    excludeDirs += rootProject.file("@old")
+    excludeDirs += new File(rootProject.rootDir, "@old")
+    excludeDirs += new File(rootProject.rootDir, "nlib")
 }
