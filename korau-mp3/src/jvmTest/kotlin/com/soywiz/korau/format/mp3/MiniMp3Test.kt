@@ -36,7 +36,7 @@ internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ByteArray) = run { for
 internal fun AbstractRuntime.write(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) sh(ptr.ptr + n * 2, data[n]) }
 internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) data[n] = lh(ptr.ptr + n * 2) }
 
-open internal class NativeAudioDecoder(internal val runtime: Runtime, val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
+open internal class NativeAudioDecoder(internal val runtime: AbstractRuntime, val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
     var closed = false
 
     val scope = Arena(runtime)

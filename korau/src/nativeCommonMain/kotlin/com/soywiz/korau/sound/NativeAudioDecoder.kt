@@ -98,6 +98,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
                 if (!closed) {
                     closed = true
                     scope.clear()
+                    this@NativeAudioDecoder.close()
                 }
             }
         }

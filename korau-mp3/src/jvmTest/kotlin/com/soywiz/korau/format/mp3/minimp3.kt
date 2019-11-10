@@ -81,12 +81,13 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
     // typealias L12_subband_alloc_t = L12_subband_alloc_t
     // typealias L3_gr_info_t = L3_gr_info_t
     // typealias mp3dec_scratch_t = mp3dec_scratch_t
-    fun bs_init(bs: CPointer<bs_t>, data: CPointer<UByte>, bytes: Int): Unit = stackFrame {
+    fun bs_init(bs: CPointer<bs_t>, data: CPointer<UByte>, bytes: Int): Unit {
         bs.value.buf = data
         bs.value.pos = 0
         bs.value.limit = bytes * 8
+
     }
-    fun get_bits(bs: CPointer<bs_t>, n: Int): UInt = stackFrame {
+    fun get_bits(bs: CPointer<bs_t>, n: Int): UInt {
         var next: UInt = 0u
         var cache: UInt = 0u
         var s: UInt = (((bs.value.pos and 7)).toUInt())
@@ -101,54 +102,64 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             next = (p.also { p = p.plus(1) }.value).toUInt()
         }
         return cache or (next shr (-shl))
+
     }
-    fun hdr_valid(h: CPointer<UByte>): Int = stackFrame {
+    fun hdr_valid(h: CPointer<UByte>): Int {
         return ((((((h[0] == ((255).toUByte())) && (((((((h[1]).toUInt()) and 240u)).toInt()) == 240) || ((((((h[1]).toUInt()) and 254u)).toInt()) == 226))) && (((((((h[1]).toUInt()) shr 1) and 3u)).toInt()) != 0)) && ((((((h[2]).toUInt()) shr 4)).toInt()) != 15)) && (((((((h[2]).toUInt()) shr 2) and 3u)).toInt()) != 3))).toInt().toInt()
+
     }
-    fun hdr_compare(h1: CPointer<UByte>, h2: CPointer<UByte>): Int = stackFrame {
+    fun hdr_compare(h1: CPointer<UByte>, h2: CPointer<UByte>): Int {
         return ((((((hdr_valid(h2)).toBool()) && (((((((h1[1]).toUInt()) xor ((h2[1]).toUInt())) and 254u)).toInt()) == 0)) && (((((((h1[2]).toUInt()) xor ((h2[2]).toUInt())) and 12u)).toInt()) == 0)) && (!(((((((((((h1[2]).toUInt()) and 240u)).toInt()) == 0)).toInt().toInt()) xor ((((((((h2[2]).toUInt()) and 240u)).toInt()) == 0)).toInt().toInt()))).toBool())))).toInt().toInt()
+
     }
-    fun hdr_bitrate_kbps(h: CPointer<UByte>): UInt = stackFrame {
+    fun hdr_bitrate_kbps(h: CPointer<UByte>): UInt {
         var halfrate: Array2Array3Array15UByte = __STATIC_hdr_bitrate_kbps_halfrate
         return ((2 * ((halfrate[((!(!(((((h[1]).toUInt()) and 8u)).toBool())))).toInt().toInt()][((((((h[1]).toUInt()) shr 1) and 3u)).toInt()) - 1][((((h[2]).toUInt()) shr 4)).toInt()]).toInt()))).toUInt()
+
     }
-    fun hdr_sample_rate_hz(h: CPointer<UByte>): UInt = stackFrame {
+    fun hdr_sample_rate_hz(h: CPointer<UByte>): UInt {
         var g_hz: Array3UInt = __STATIC_hdr_sample_rate_hz_g_hz
         return (g_hz[(((((h[2]).toUInt()) shr 2) and 3u)).toInt()] shr (((!(((((h[1]).toUInt()) and 8u)).toBool()))).toInt().toInt())) shr (((!(((((h[1]).toUInt()) and 16u)).toBool()))).toInt().toInt())
+
     }
-    fun hdr_frame_samples(h: CPointer<UByte>): UInt = stackFrame {
+    fun hdr_frame_samples(h: CPointer<UByte>): UInt {
         return ((if ((((((h[1]).toUInt()) and 6u)).toInt()) == 6) 384 else (1152 shr ((((((((h[1]).toUInt()) and 14u)).toInt()) == 2)).toInt().toInt())))).toUInt()
+
     }
-    fun hdr_frame_bytes(h: CPointer<UByte>, free_format_size: Int): Int = stackFrame {
+    fun hdr_frame_bytes(h: CPointer<UByte>, free_format_size: Int): Int {
         var frame_bytes: Int = (((((hdr_frame_samples(h) * hdr_bitrate_kbps(h)) * 125u) / hdr_sample_rate_hz(h))).toInt())
         if ((((((h[1]).toUInt()) and 6u)).toInt()) == 6) {
             frame_bytes = frame_bytes and ((3).inv())
         }
         return (if ((frame_bytes).toBool()) frame_bytes else free_format_size)
+
     }
-    fun hdr_padding(h: CPointer<UByte>): Int = stackFrame {
+    fun hdr_padding(h: CPointer<UByte>): Int {
         return (if (((((h[2]).toUInt()) and 2u)).toBool()) (if ((((((h[1]).toUInt()) and 6u)).toInt()) == 6) 4 else 1) else 0)
+
     }
-    fun L12_subband_alloc_table(hdr: CPointer<UByte>, sci: CPointer<L12_scale_info>): CPointer<L12_subband_alloc_t> = stackFrame {
+    fun L12_subband_alloc_table(hdr: CPointer<UByte>, sci: CPointer<L12_scale_info>): CPointer<L12_subband_alloc_t> {
         var alloc: CPointer<L12_subband_alloc_t> = CPointer(0)
         var mode: Int = ((((((hdr[3]).toUInt()) shr 6) and 3u)).toInt())
         var nbands: Int = 0
         var stereo_bands: Int = (if (mode == 3) 0 else (if (mode == 1) ((((((((hdr[3]).toUInt()) shr 4) and 3u) shl 2)).toInt()) + 4) else 32))
         if ((((((hdr[1]).toUInt()) and 6u)).toInt()) == 6) {
-            stackFrame {
+            run {
                 var g_alloc_L1: CPointer<L12_subband_alloc_t> = __STATIC_L12_subband_alloc_table_g_alloc_L1
                 alloc = CPointer<L12_subband_alloc_t>(((g_alloc_L1).ptr).toInt())
                 nbands = 32
+
             }
         } else {
             if (!(((((hdr[1]).toUInt()) and 8u)).toBool())) {
-                stackFrame {
+                run {
                     var g_alloc_L2M2: CPointer<L12_subband_alloc_t> = __STATIC_L12_subband_alloc_table_g_alloc_L2M2
                     alloc = CPointer<L12_subband_alloc_t>(((g_alloc_L2M2).ptr).toInt())
                     nbands = 30
+
                 }
             } else {
-                stackFrame {
+                run {
                     var g_alloc_L2M1: CPointer<L12_subband_alloc_t> = __STATIC_L12_subband_alloc_table_g_alloc_L2M1
                     var sample_rate_idx: Int = ((((((hdr[2]).toUInt()) shr 2) and 3u)).toInt())
                     var kbps: UInt = (hdr_bitrate_kbps(hdr) shr (((mode != 3)).toInt().toInt()))
@@ -158,24 +169,27 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     alloc = CPointer<L12_subband_alloc_t>(((g_alloc_L2M1).ptr).toInt())
                     nbands = 27
                     if (((kbps).toInt()) < 56) {
-                        stackFrame {
+                        run {
                             var g_alloc_L2M1_lowrate: CPointer<L12_subband_alloc_t> = __STATIC_L12_subband_alloc_table_g_alloc_L2M1_lowrate
                             alloc = CPointer<L12_subband_alloc_t>(((g_alloc_L2M1_lowrate).ptr).toInt())
                             nbands = (if (sample_rate_idx == 2) 12 else 8)
+
                         }
                     } else {
                         if ((((kbps).toInt()) >= 96) && (sample_rate_idx != 1)) {
                             nbands = 30
                         }
                     }
+
                 }
             }
         }
         sci.value.total_bands = (nbands).toUByte()
         sci.value.stereo_bands = ((if (stereo_bands > nbands) nbands else stereo_bands)).toUByte()
         return alloc
+
     }
-    fun L12_read_scalefactors(bs: CPointer<bs_t>, pba: CPointer<UByte>, scfcod: CPointer<UByte>, bands: Int, scf: CPointer<Float>): Unit = stackFrame {
+    fun L12_read_scalefactors(bs: CPointer<bs_t>, pba: CPointer<UByte>, scfcod: CPointer<UByte>, bands: Int, scf: CPointer<Float>): Unit {
         var pba = pba // Mutating parameter
         var scf = scf // Mutating parameter
         var g_deq_L12: Array54Float = __STATIC_L12_read_scalefactors_g_deq_L12
@@ -183,26 +197,29 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         var m: Int = 0
         i = 0
         while (i < bands) {
-            stackFrame {
+            run {
                 var s: Float = 0f
                 var ba: Int = ((pba.also { pba = pba.plus(1) }.value).toInt())
                 var mask: Int = (if ((ba).toBool()) (4 + ((19 shr ((scfcod[i]).toInt())) and 3)) else 0)
                 m = 4
                 while ((m).toBool()) {
                     if (((mask and m)).toBool()) {
-                        stackFrame {
+                        run {
                             var b: Int = ((get_bits(bs, 6)).toInt())
                             s = g_deq_L12[((ba * 3) - 6) + (b % 3)] * ((((1 shl 21) shr (b / 3))).toFloat())
+
                         }
                     }
                     scf.also { scf = scf.plus(1) }.value = s
                     m = m shr 1
                 }
+
             }
             i = i + 1
         }
+
     }
-    fun L12_read_scale_info(hdr: CPointer<UByte>, bs: CPointer<bs_t>, sci: CPointer<L12_scale_info>): Unit = stackFrame {
+    fun L12_read_scale_info(hdr: CPointer<UByte>, bs: CPointer<bs_t>, sci: CPointer<L12_scale_info>): Unit {
         var g_bitalloc_code_tab: CPointer<UByte> = __STATIC_L12_read_scale_info_g_bitalloc_code_tab
         var subband_alloc: CPointer<L12_subband_alloc_t> = L12_subband_alloc_table(hdr, sci)
         var i: Int = 0
@@ -211,7 +228,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         var ba_code_tab: CPointer<UByte> = (CPointer<UByte>(((g_bitalloc_code_tab).ptr).toInt()))
         i = 0
         while (i < ((sci.value.total_bands).toInt())) {
-            stackFrame {
+            run {
                 var ba: UByte = 0u
                 if (i == k) {
                     k = k + ((subband_alloc.value.band_count).toInt())
@@ -225,6 +242,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     ba = ba_code_tab[(get_bits(bs, ba_bits)).toInt()]
                 }
                 sci.value.bitalloc[(2 * i) + 1] = (if ((sci.value.stereo_bands).toBool()) ba else ((0).toUByte()))
+
             }
             i = i + 1
         }
@@ -239,32 +257,34 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             sci.value.bitalloc[(2 * i) + 1] = (0).toUByte()
             i = i + 1
         }
+
     }
-    fun L12_dequantize_granule(grbuf: CPointer<Float>, bs: CPointer<bs_t>, sci: CPointer<L12_scale_info>, group_size: Int): Int = stackFrame {
+    fun L12_dequantize_granule(grbuf: CPointer<Float>, bs: CPointer<bs_t>, sci: CPointer<L12_scale_info>, group_size: Int): Int {
         var i: Int = 0
         var j: Int = 0
         var k: Int = 0
         var choff: Int = 576
         j = 0
         while (j < 4) {
-            stackFrame {
+            run {
                 var dst: CPointer<Float> = (grbuf.plus((group_size * j)))
                 i = 0
                 while (i < (2 * ((sci.value.total_bands).toInt()))) {
-                    stackFrame {
+                    run {
                         var ba: Int = ((sci.value.bitalloc[i]).toInt())
                         if (ba != 0) {
                             if (ba < 17) {
-                                stackFrame {
+                                run {
                                     var half: Int = ((1 shl (ba - 1)) - 1)
                                     k = 0
                                     while (k < group_size) {
                                         dst[k] = ((((get_bits(bs, ba)).toInt()) - half)).toFloat()
                                         k = k + 1
                                     }
+
                                 }
                             } else {
-                                stackFrame {
+                                run {
                                     var mod: UInt = ((((2 shl (ba - 17)) + 1)).toUInt())
                                     var code: UInt = get_bits(bs, ((((mod).toInt()) + 2) - (((mod shr 3)).toInt())))
                                     k = 0
@@ -272,20 +292,24 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                         dst[k] = (((((code % mod) - (mod / 2u))).toInt())).toFloat()
                                         run { k++; run { code / mod }.also { `$` -> code = `$` } }
                                     }
+
                                 }
                             }
                         }
                         dst = dst.plus(choff)
                         choff = 18 - choff
+
                     }
                     i = i + 1
                 }
+
             }
             j = j + 1
         }
         return group_size * 4
+
     }
-    fun L12_apply_scf_384(sci: CPointer<L12_scale_info>, scf: CPointer<Float>, dst: CPointer<Float>): Unit = stackFrame {
+    fun L12_apply_scf_384(sci: CPointer<L12_scale_info>, scf: CPointer<Float>, dst: CPointer<Float>): Unit {
         var scf = scf // Mutating parameter
         var dst = dst // Mutating parameter
         var i: Int = 0
@@ -301,8 +325,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             }
             run { i++; run { dst.plus(18) }.also { `$` -> dst = `$` }; run { scf.plus(6) }.also { `$` -> scf = `$` } }
         }
+
     }
-    fun L3_read_side_info(bs: CPointer<bs_t>, gr: CPointer<L3_gr_info_t>, hdr: CPointer<UByte>): Int = stackFrame {
+    fun L3_read_side_info(bs: CPointer<bs_t>, gr: CPointer<L3_gr_info_t>, hdr: CPointer<UByte>): Int {
         var gr = gr // Mutating parameter
         var g_scf_long: Array8Array23UByte = __STATIC_L3_read_side_info_g_scf_long
         var g_scf_short: Array8Array40UByte = __STATIC_L3_read_side_info_g_scf_short
@@ -384,8 +409,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             return -1
         }
         return main_data_begin
+
     }
-    fun L3_read_scalefactors(scf: CPointer<UByte>, ist_pos: CPointer<UByte>, scf_size: CPointer<UByte>, scf_count: CPointer<UByte>, bitbuf: CPointer<bs_t>, scfsi: Int): Unit = stackFrame {
+    fun L3_read_scalefactors(scf: CPointer<UByte>, ist_pos: CPointer<UByte>, scf_size: CPointer<UByte>, scf_count: CPointer<UByte>, bitbuf: CPointer<bs_t>, scfsi: Int): Unit {
         var scf = scf // Mutating parameter
         var ist_pos = ist_pos // Mutating parameter
         var scfsi = scfsi // Mutating parameter
@@ -393,40 +419,45 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         var k: Int = 0
         i = 0
         while ((i < 4) && ((scf_count[i]).toBool())) {
-            stackFrame {
+            run {
                 var cnt: Int = ((scf_count[i]).toInt())
                 if (((scfsi and 8)).toBool()) {
                     memcpy((CPointer<Unit>(((scf).ptr).toInt())), (CPointer<Unit>(((ist_pos).ptr).toInt())), cnt)
                 } else {
-                    stackFrame {
+                    run {
                         var bits: Int = ((scf_size[i]).toInt())
                         if (!((bits).toBool())) {
                             memset((CPointer<Unit>(((scf).ptr).toInt())), 0, cnt)
                             memset((CPointer<Unit>(((ist_pos).ptr).toInt())), 0, cnt)
                         } else {
-                            stackFrame {
+                            run {
                                 var max_scf: Int = (((if (scfsi < 0) ((((1 shl bits) - 1)).toLong()) else -1L)).toInt())
                                 k = 0
                                 while (k < cnt) {
-                                    stackFrame {
+                                    run {
                                         var s: Int = ((get_bits(bitbuf, bits)).toInt())
                                         ist_pos[k] = ((if (s == max_scf) -1L else ((s).toLong()))).toUByte()
                                         scf[k] = (s).toUByte()
+
                                     }
                                     k = k + 1
                                 }
+
                             }
                         }
+
                     }
                 }
                 ist_pos = ist_pos.plus(cnt)
                 scf = scf.plus(cnt)
+
             }
             run { i++; run { scfsi * 2 }.also { `$` -> scfsi = `$` } }
         }
         scf[0] = run { run { (0).toUByte() }.also { `$` -> scf[2] = `$` } }.also { `$` -> scf[1] = `$` }
+
     }
-    fun L3_ldexp_q2(y: Float, exp_q2: Int): Float = stackFrame {
+    fun L3_ldexp_q2(y: Float, exp_q2: Int): Float {
         var y = y // Mutating parameter
         var exp_q2 = exp_q2 // Mutating parameter
         var g_expfrac: Array4Float = __STATIC_L3_ldexp_q2_g_expfrac
@@ -436,6 +467,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             y = y * (g_expfrac[e and 3] * ((((1 shl 30) shr (e shr 2))).toFloat()))
         } while ((run { exp_q2 - e }.also { `$` -> exp_q2 = `$` }) > 0)
         return y
+
     }
     fun L3_decode_scalefactors(hdr: CPointer<UByte>, ist_pos: CPointer<UByte>, bs: CPointer<bs_t>, gr: CPointer<L3_gr_info_t>, scf: CPointer<Float>, ch: Int): Unit = stackFrame {
         var g_scf_partitions: Array3Array28UByte = __STATIC_L3_decode_scalefactors_g_scf_partitions
@@ -448,14 +480,15 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         var scfsi: Int = ((gr.value.scfsi).toInt())
         var gain: Float = 0f
         if (((((hdr[1]).toUInt()) and 8u)).toBool()) {
-            stackFrame {
+            run {
                 var g_scfc_decode: Array16UByte = __STATIC_L3_decode_scalefactors_g_scfc_decode
                 var part: Int = ((g_scfc_decode[(gr.value.scalefac_compress).toInt()]).toInt())
                 scf_size[1] = run { ((part shr 2)).toUByte() }.also { `$` -> scf_size[0] = `$` }
                 scf_size[3] = run { ((part and 3)).toUByte() }.also { `$` -> scf_size[2] = `$` }
+
             }
         } else {
-            stackFrame {
+            run {
                 var g_mod: Array24UByte = __STATIC_L3_decode_scalefactors_g_mod
                 var k: Int = 0
                 var modprod: Int = 0
@@ -474,11 +507,12 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 }
                 scf_partition = scf_partition.plus(k)
                 scfsi = -16
+
             }
         }
         L3_read_scalefactors((CPointer<UByte>(((iscf).ptr).toInt())), ist_pos, (CPointer<UByte>(((scf_size).ptr).toInt())), scf_partition, bs, scfsi)
         if ((gr.value.n_short_sfb).toBool()) {
-            stackFrame {
+            run {
                 var sh: Int = (3 - scf_shift)
                 i = 0
                 while (i < ((gr.value.n_short_sfb).toInt())) {
@@ -487,16 +521,18 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     iscf[(((((gr.value.n_long_sfb).toUInt()) + ((i).toUInt()))).toInt()) + 2] = ((((iscf[(((((gr.value.n_long_sfb).toUInt()) + ((i).toUInt()))).toInt()) + 2]).toUInt()) + (((gr.value.subblock_gain[2]).toUInt()) shl sh))).toUByte()
                     i = i + 3
                 }
+
             }
         } else {
             if ((gr.value.preflag).toBool()) {
-                stackFrame {
+                run {
                     var g_preamp: Array10UByte = __STATIC_L3_decode_scalefactors_g_preamp
                     i = 0
                     while (i < 10) {
                         iscf[11 + i] = ((((iscf[11 + i]).toUInt()) + ((g_preamp[i]).toUInt()))).toUByte()
                         i = i + 1
                     }
+
                 }
             }
         }
@@ -507,9 +543,10 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             scf[i] = L3_ldexp_q2(gain, (((((iscf[i]).toUInt()) shl scf_shift)).toInt()))
             i = i + 1
         }
+
     }
     var g_pow43: Array145Float /*static*/ = Array145FloatAlloc { this[0] = 0f; this[1] = -1f; this[2] = -2.519842f; this[3] = -4.326749f; this[4] = -6.349604f; this[5] = -8.54988f; this[6] = -10.902724f; this[7] = -13.390518f; this[8] = -16f; this[9] = -18.720754f; this[10] = -21.544347f; this[11] = -24.463781f; this[12] = -27.473142f; this[13] = -30.567351f; this[14] = -33.741992f; this[15] = -36.993181f; this[16] = 0f; this[17] = 1f; this[18] = 2.519842f; this[19] = 4.326749f; this[20] = 6.349604f; this[21] = 8.54988f; this[22] = 10.902724f; this[23] = 13.390518f; this[24] = 16f; this[25] = 18.720754f; this[26] = 21.544347f; this[27] = 24.463781f; this[28] = 27.473142f; this[29] = 30.567351f; this[30] = 33.741992f; this[31] = 36.993181f; this[32] = 40.317474f; this[33] = 43.711787f; this[34] = 47.173345f; this[35] = 50.699631f; this[36] = 54.288352f; this[37] = 57.937408f; this[38] = 61.644865f; this[39] = 65.408941f; this[40] = 69.227979f; this[41] = 73.100443f; this[42] = 77.024898f; this[43] = 81f; this[44] = 85.024491f; this[45] = 89.097188f; this[46] = 93.216975f; this[47] = 97.3828f; this[48] = 101.593667f; this[49] = 105.848633f; this[50] = 110.146801f; this[51] = 114.487321f; this[52] = 118.869381f; this[53] = 123.292209f; this[54] = 127.755065f; this[55] = 132.257246f; this[56] = 136.798076f; this[57] = 141.376907f; this[58] = 145.993119f; this[59] = 150.646117f; this[60] = 155.335327f; this[61] = 160.060199f; this[62] = 164.820202f; this[63] = 169.614826f; this[64] = 174.443577f; this[65] = 179.30598f; this[66] = 184.201575f; this[67] = 189.129918f; this[68] = 194.09058f; this[69] = 199.083145f; this[70] = 204.10721f; this[71] = 209.162385f; this[72] = 214.248292f; this[73] = 219.364564f; this[74] = 224.510845f; this[75] = 229.686789f; this[76] = 234.892058f; this[77] = 240.126328f; this[78] = 245.38928f; this[79] = 250.680604f; this[80] = 256f; this[81] = 261.347174f; this[82] = 266.721841f; this[83] = 272.123723f; this[84] = 277.552547f; this[85] = 283.008049f; this[86] = 288.489971f; this[87] = 293.99806f; this[88] = 299.532071f; this[89] = 305.091761f; this[90] = 310.676898f; this[91] = 316.287249f; this[92] = 321.922592f; this[93] = 327.582707f; this[94] = 333.267377f; this[95] = 338.976394f; this[96] = 344.70955f; this[97] = 350.466646f; this[98] = 356.247482f; this[99] = 362.051866f; this[100] = 367.879608f; this[101] = 373.730522f; this[102] = 379.604427f; this[103] = 385.501143f; this[104] = 391.420496f; this[105] = 397.362314f; this[106] = 403.326427f; this[107] = 409.312672f; this[108] = 415.320884f; this[109] = 421.350905f; this[110] = 427.402579f; this[111] = 433.47575f; this[112] = 439.570269f; this[113] = 445.685987f; this[114] = 451.822757f; this[115] = 457.980436f; this[116] = 464.158883f; this[117] = 470.35796f; this[118] = 476.57753f; this[119] = 482.817459f; this[120] = 489.077615f; this[121] = 495.357868f; this[122] = 501.65809f; this[123] = 507.978156f; this[124] = 514.317941f; this[125] = 520.677324f; this[126] = 527.056184f; this[127] = 533.454404f; this[128] = 539.871867f; this[129] = 546.308458f; this[130] = 552.764065f; this[131] = 559.238575f; this[132] = 565.731879f; this[133] = 572.24387f; this[134] = 578.77444f; this[135] = 585.323483f; this[136] = 591.890898f; this[137] = 598.476581f; this[138] = 605.080431f; this[139] = 611.702349f; this[140] = 618.342238f; this[141] = 625f; this[142] = 631.67554f; this[143] = 638.368763f; this[144] = 645.079578f }
-    fun L3_pow_43(x: Int): Float = stackFrame {
+    fun L3_pow_43(x: Int): Float {
         var x = x // Mutating parameter
         var frac: Float = 0f
         var sign: Int = 0
@@ -524,8 +561,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         sign = (2 * x) and 64
         frac = ((((x and 63) - sign)).toFloat()) / ((((x and ((63).inv())) + sign)).toFloat())
         return (g_pow43[16 + ((x + sign) shr 6)] * (1f + (frac * ((4f / 3f) + (frac * (2f / 9f)))))) * ((mult).toFloat())
+
     }
-    fun L3_huffman(dst: CPointer<Float>, bs: CPointer<bs_t>, gr_info: CPointer<L3_gr_info_t>, scf: CPointer<Float>, layer3gr_limit: Int): Unit = stackFrame {
+    fun L3_huffman(dst: CPointer<Float>, bs: CPointer<bs_t>, gr_info: CPointer<L3_gr_info_t>, scf: CPointer<Float>, layer3gr_limit: Int): Unit {
         var dst = dst // Mutating parameter
         var scf = scf // Mutating parameter
         var tabs: CPointer<Short> = __STATIC_L3_huffman_tabs
@@ -544,7 +582,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         var bs_sh: Int = ((bs.value.pos and 7) - 8)
         bs_next_ptr = bs_next_ptr.plus(4)
         while (big_val_cnt > 0) {
-            stackFrame {
+            run {
                 var tab_num: Int = ((gr_info.value.table_select[ireg]).toInt())
                 var sfb_cnt: Int = ((gr_info.value.region_count[ireg++]).toInt())
                 var codebook: CPointer<Short> = (CPointer<Short>((((tabs.plus(((tabindex[tab_num]).toInt())))).ptr).toInt()))
@@ -555,7 +593,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         pairs_to_decode = (if (big_val_cnt > np) np else big_val_cnt)
                         one = scf.also { scf = scf.plus(1) }.value
                         do1@do {
-                            stackFrame {
+                            run {
                                 var j: Int = 0
                                 var w: Int = 5
                                 var leaf: Int = ((codebook[((bs_cache shr (32 - w))).toInt()]).toInt())
@@ -569,7 +607,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                 bs_sh = bs_sh + (leaf shr 8)
                                 j = 0
                                 while (j < 2) {
-                                    stackFrame {
+                                    run {
                                         var lsb: Int = (leaf and 15)
                                         if (lsb == 15) {
                                             lsb = lsb + (((bs_cache shr (32 - linbits))).toInt())
@@ -585,6 +623,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                         }
                                         bs_cache = bs_cache shl (if ((lsb).toBool()) 1 else 0)
                                         bs_sh = bs_sh + (if ((lsb).toBool()) 1 else 0)
+
                                     }
                                     run { j++; dst.also { dst = dst.plus(1) }; run { leaf shr 4 }.also { `$` -> leaf = `$` } }
                                 }
@@ -592,6 +631,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                     bs_cache = bs_cache or (((bs_next_ptr.also { bs_next_ptr = bs_next_ptr.plus(1) }.value).toUInt()) shl bs_sh)
                                     bs_sh = bs_sh - 8
                                 }
+
                             }
                         } while (((--pairs_to_decode)).toBool())
                     } while (((run { big_val_cnt - np }.also { `$` -> big_val_cnt = `$` }) > 0) && ((--sfb_cnt) >= 0))
@@ -601,7 +641,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         pairs_to_decode = (if (big_val_cnt > np) np else big_val_cnt)
                         one = scf.also { scf = scf.plus(1) }.value
                         do1@do {
-                            stackFrame {
+                            run {
                                 var j: Int = 0
                                 var w: Int = 5
                                 var leaf: Int = ((codebook[((bs_cache shr (32 - w))).toInt()]).toInt())
@@ -615,11 +655,12 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                 bs_sh = bs_sh + (leaf shr 8)
                                 j = 0
                                 while (j < 2) {
-                                    stackFrame {
+                                    run {
                                         var lsb: Int = (leaf and 15)
                                         dst.value = g_pow43[(16 + lsb) - (16 * (((bs_cache shr 31)).toInt()))] * one
                                         bs_cache = bs_cache shl (if ((lsb).toBool()) 1 else 0)
                                         bs_sh = bs_sh + (if ((lsb).toBool()) 1 else 0)
+
                                     }
                                     run { j++; dst.also { dst = dst.plus(1) }; run { leaf shr 4 }.also { `$` -> leaf = `$` } }
                                 }
@@ -627,10 +668,12 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                     bs_cache = bs_cache or (((bs_next_ptr.also { bs_next_ptr = bs_next_ptr.plus(1) }.value).toUInt()) shl bs_sh)
                                     bs_sh = bs_sh - 8
                                 }
+
                             }
                         } while (((--pairs_to_decode)).toBool())
                     } while (((run { big_val_cnt - np }.also { `$` -> big_val_cnt = `$` }) > 0) && ((--sfb_cnt) >= 0))
                 }
+
             }
         }
         np = 1 - big_val_cnt
@@ -685,6 +728,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     bs_cache = bs_cache or (((bs_next_ptr.also { bs_next_ptr = bs_next_ptr.plus(1) }.value).toUInt()) shl bs_sh)
                     bs_sh = bs_sh - 8
                 }
+
             }
             finally {
                 STACK_PTR = __oldPos0
@@ -692,21 +736,24 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             dst = dst.plus(4)
         }
         bs.value.pos = layer3gr_limit
+
     }
-    fun L3_midside_stereo(left: CPointer<Float>, n: Int): Unit = stackFrame {
+    fun L3_midside_stereo(left: CPointer<Float>, n: Int): Unit {
         var i: Int = 0
         var right: CPointer<Float> = (left.plus(576))
         while (i < n) {
-            stackFrame {
+            run {
                 var a: Float = left[i]
                 var b: Float = right[i]
                 left[i] = a + b
                 right[i] = a - b
+
             }
             i = i + 1
         }
+
     }
-    fun L3_intensity_stereo_band(left: CPointer<Float>, n: Int, kl: Float, kr: Float): Unit = stackFrame {
+    fun L3_intensity_stereo_band(left: CPointer<Float>, n: Int, kl: Float, kr: Float): Unit {
         var i: Int = 0
         i = 0
         while (i < n) {
@@ -714,8 +761,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             left[i] = left[i] * kl
             i = i + 1
         }
+
     }
-    fun L3_stereo_top_band(right: CPointer<Float>, sfb: CPointer<UByte>, nbands: Int, max_band: Array3Int): Unit = stackFrame {
+    fun L3_stereo_top_band(right: CPointer<Float>, sfb: CPointer<UByte>, nbands: Int, max_band: Array3Int): Unit {
         var right = right // Mutating parameter
         var i: Int = 0
         var k: Int = 0
@@ -733,18 +781,19 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             right = right.plus(((sfb[i]).toInt()))
             i = i + 1
         }
+
     }
-    fun L3_stereo_process(left: CPointer<Float>, ist_pos: CPointer<UByte>, sfb: CPointer<UByte>, hdr: CPointer<UByte>, max_band: Array3Int, mpeg2_sh: Int): Unit = stackFrame {
+    fun L3_stereo_process(left: CPointer<Float>, ist_pos: CPointer<UByte>, sfb: CPointer<UByte>, hdr: CPointer<UByte>, max_band: Array3Int, mpeg2_sh: Int): Unit {
         var left = left // Mutating parameter
         var g_pan: Array14Float = __STATIC_L3_stereo_process_g_pan
         var i: UInt = 0u
         var max_pos: UInt = (((if (((((hdr[1]).toUInt()) and 8u)).toBool()) 7 else 64)).toUInt())
         i = 0u
         while ((sfb[(i).toInt()]).toBool()) {
-            stackFrame {
+            run {
                 var ipos: UInt = ((ist_pos[(i).toInt()]).toUInt())
                 if ((((i).toInt()) > max_band[((i % 3u)).toInt()]) && (ipos < max_pos)) {
-                    stackFrame {
+                    run {
                         var kl: Float = 0f
                         var kr: Float = 0f
                         var s: Float = (if (((((hdr[3]).toUInt()) and 32u)).toBool()) 1.41421356f else 1f)
@@ -760,6 +809,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                             }
                         }
                         L3_intensity_stereo_band(left, ((sfb[(i).toInt()]).toInt()), (kl * s), (kr * s))
+
                     }
                 } else {
                     if (((((hdr[3]).toUInt()) and 32u)).toBool()) {
@@ -767,9 +817,11 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     }
                 }
                 left = left.plus(((sfb[(i).toInt()]).toInt()))
+
             }
             i = i + 1u
         }
+
     }
     fun L3_intensity_stereo(left: CPointer<Float>, ist_pos: CPointer<UByte>, gr: CPointer<L3_gr_info_t>, hdr: CPointer<UByte>): Unit = stackFrame {
         var max_band: Array3Int = Array3IntAlloc { this[0] = 0 }
@@ -782,17 +834,19 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         }
         i = 0
         while (i < max_blocks) {
-            stackFrame {
+            run {
                 var default_pos: Int = (if (((((hdr[1]).toUInt()) and 8u)).toBool()) 3 else 0)
                 var itop: Int = ((n_sfb - max_blocks) + i)
                 var prev: Int = (itop - max_blocks)
                 ist_pos[itop] = ((if (max_band[i] >= prev) default_pos else ((ist_pos[prev]).toInt()))).toUByte()
+
             }
             i = i + 1
         }
         L3_stereo_process(left, ist_pos, gr.value.sfbtab, hdr, max_band, (((((gr[1].scalefac_compress).toUInt()) and 1u)).toInt()))
+
     }
-    fun L3_reorder(grbuf: CPointer<Float>, scratch: CPointer<Float>, sfb: CPointer<UByte>): Unit = stackFrame {
+    fun L3_reorder(grbuf: CPointer<Float>, scratch: CPointer<Float>, sfb: CPointer<UByte>): Unit {
         var sfb = sfb // Mutating parameter
         var i: Int = 0
         var len: Int = 0
@@ -809,28 +863,32 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             run { run { sfb.plus(3) }.also { `$` -> sfb = `$` }; run { src.plus((2 * len)) }.also { `$` -> src = `$` } }
         }
         memcpy((CPointer<Unit>(((grbuf).ptr).toInt())), (CPointer<Unit>(((scratch).ptr).toInt())), ((dst.minusPtrFloat(scratch)) * Float.SIZE_BYTES))
+
     }
-    fun L3_antialias(grbuf: CPointer<Float>, nbands: Int): Unit = stackFrame {
+    fun L3_antialias(grbuf: CPointer<Float>, nbands: Int): Unit {
         var grbuf = grbuf // Mutating parameter
         var nbands = nbands // Mutating parameter
         var g_aa: Array2Array8Float = __STATIC_L3_antialias_g_aa
         while (nbands > 0) {
-            stackFrame {
+            run {
                 var i: Int = 0
                 while (i < 8) {
-                    stackFrame {
+                    run {
                         var u: Float = grbuf[18 + i]
                         var d: Float = grbuf[17 - i]
                         grbuf[18 + i] = (u * g_aa[0][i]) - (d * g_aa[1][i])
                         grbuf[17 - i] = (u * g_aa[1][i]) + (d * g_aa[0][i])
+
                     }
                     i = i + 1
                 }
+
             }
             run { nbands--; run { grbuf.plus(18) }.also { `$` -> grbuf = `$` } }
         }
+
     }
-    fun L3_dct3_9(y: CPointer<Float>): Unit = stackFrame {
+    fun L3_dct3_9(y: CPointer<Float>): Unit {
         var s0: Float = 0f
         var s1: Float = 0f
         var s2: Float = 0f
@@ -879,8 +937,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         y[6] = s0 + s3
         y[7] = s2 - s1
         y[8] = s4 + s7
+
     }
-    fun L3_imdct36(grbuf: CPointer<Float>, overlap: CPointer<Float>, window: CPointer<Float>, nbands: Int): Unit = stackFrame {
+    fun L3_imdct36(grbuf: CPointer<Float>, overlap: CPointer<Float>, window: CPointer<Float>, nbands: Int): Unit {
         var grbuf = grbuf // Mutating parameter
         var overlap = overlap // Mutating parameter
         var i: Int = 0
@@ -909,25 +968,29 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 si[7] = -si[7]
                 i = 0
                 while (i < 9) {
-                    stackFrame {
+                    run {
                         var ovl: Float = overlap[i]
                         var sum: Float = ((co[i] * g_twid9[9 + i]) + (si[i] * g_twid9[0 + i]))
                         overlap[i] = (co[i] * g_twid9[0 + i]) - (si[i] * g_twid9[9 + i])
                         grbuf[i] = (ovl * window[0 + i]) - (sum * window[9 + i])
                         grbuf[17 - i] = (ovl * window[9 + i]) + (sum * window[0 + i])
+
                     }
                     i = i + 1
                 }
+
             }
             run { j++; run { grbuf.plus(18) }.also { `$` -> grbuf = `$` }; run { overlap.plus(9) }.also { `$` -> overlap = `$` } }
         }
+
     }
-    fun L3_idct3(x0: Float, x1: Float, x2: Float, dst: CPointer<Float>): Unit = stackFrame {
+    fun L3_idct3(x0: Float, x1: Float, x2: Float, dst: CPointer<Float>): Unit {
         var m1: Float = (x1 * 0.8660254f)
         var a1: Float = (x0 - (x2 * 0.5f))
         dst[1] = x0 + x2
         dst[0] = a1 + m1
         dst[2] = a1 - m1
+
     }
     fun L3_imdct12(x: CPointer<Float>, dst: CPointer<Float>, overlap: CPointer<Float>): Unit = stackFrame {
         var g_twid3: Array6Float = __STATIC_L3_imdct12_g_twid3
@@ -939,17 +1002,19 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         si[1] = -si[1]
         i = 0
         while (i < 3) {
-            stackFrame {
+            run {
                 var ovl: Float = overlap[i]
                 var sum: Float = ((co[i] * g_twid3[3 + i]) + (si[i] * g_twid3[0 + i]))
                 overlap[i] = (co[i] * g_twid3[0 + i]) - (si[i] * g_twid3[3 + i])
                 dst[i] = (ovl * g_twid3[2 - i]) - (sum * g_twid3[5 - i])
                 dst[5 - i] = (ovl * g_twid3[5 - i]) + (sum * g_twid3[2 - i])
+
             }
             i = i + 1
         }
+
     }
-    fun L3_imdct_short(grbuf: CPointer<Float>, overlap: CPointer<Float>, nbands: Int): Unit = stackFrame {
+    fun L3_imdct_short(grbuf: CPointer<Float>, overlap: CPointer<Float>, nbands: Int): Unit {
         var grbuf = grbuf // Mutating parameter
         var overlap = overlap // Mutating parameter
         var nbands = nbands // Mutating parameter
@@ -961,11 +1026,13 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 L3_imdct12((CPointer<Float>(((tmp).ptr).toInt())), (grbuf.plus(6)), (overlap.plus(6)))
                 L3_imdct12((tmp.plus(1)), (grbuf.plus(12)), (overlap.plus(6)))
                 L3_imdct12((tmp.plus(2)), overlap, (overlap.plus(6)))
+
             }
             run { nbands--; run { overlap.plus(9) }.also { `$` -> overlap = `$` }; run { grbuf.plus(18) }.also { `$` -> grbuf = `$` } }
         }
+
     }
-    fun L3_change_sign(grbuf: CPointer<Float>): Unit = stackFrame {
+    fun L3_change_sign(grbuf: CPointer<Float>): Unit {
         var grbuf = grbuf // Mutating parameter
         var b: Int = 0
         var i: Int = 0
@@ -978,8 +1045,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             }
             run { run { b + 2 }.also { `$` -> b = `$` }; run { grbuf.plus(36) }.also { `$` -> grbuf = `$` } }
         }
+
     }
-    fun L3_imdct_gr(grbuf: CPointer<Float>, overlap: CPointer<Float>, block_type: UInt, n_long_bands: UInt): Unit = stackFrame {
+    fun L3_imdct_gr(grbuf: CPointer<Float>, overlap: CPointer<Float>, block_type: UInt, n_long_bands: UInt): Unit {
         var grbuf = grbuf // Mutating parameter
         var overlap = overlap // Mutating parameter
         var g_mdct_window: Array2Array18Float = __STATIC_L3_imdct_gr_g_mdct_window
@@ -993,8 +1061,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         } else {
             L3_imdct36(grbuf, overlap, (CPointer<Float>(((g_mdct_window[((((block_type).toInt()) == 3)).toInt().toInt()]).ptr).toInt())), (32 - ((n_long_bands).toInt())))
         }
+
     }
-    fun L3_save_reservoir(h: CPointer<mp3dec_t>, s: CPointer<mp3dec_scratch_t>): Unit = stackFrame {
+    fun L3_save_reservoir(h: CPointer<mp3dec_t>, s: CPointer<mp3dec_scratch_t>): Unit {
         var pos: Int = ((s.value.bs.pos + 7) / 8)
         var remains: Int = ((s.value.bs.limit / 8) - pos)
         if (remains > 511) {
@@ -1005,24 +1074,27 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             memmove((CPointer<Unit>(((h.value.reserv_buf).ptr).toInt())), (CPointer<Unit>((((s.value.maindata.plus(pos))).ptr).toInt())), remains)
         }
         h.value.reserv = remains
+
     }
-    fun L3_restore_reservoir(h: CPointer<mp3dec_t>, bs: CPointer<bs_t>, s: CPointer<mp3dec_scratch_t>, main_data_begin: Int): Int = stackFrame {
+    fun L3_restore_reservoir(h: CPointer<mp3dec_t>, bs: CPointer<bs_t>, s: CPointer<mp3dec_scratch_t>, main_data_begin: Int): Int {
         var frame_bytes: Int = ((bs.value.limit - bs.value.pos) / 8)
         var bytes_have: Int = (if (h.value.reserv > main_data_begin) main_data_begin else h.value.reserv)
         memcpy((CPointer<Unit>(((s.value.maindata).ptr).toInt())), (CPointer<Unit>((((h.value.reserv_buf.plus((if (0 < (h.value.reserv - main_data_begin)) (h.value.reserv - main_data_begin) else 0)))).ptr).toInt())), (if (h.value.reserv > main_data_begin) main_data_begin else h.value.reserv))
         memcpy((CPointer<Unit>((((s.value.maindata.plus(bytes_have))).ptr).toInt())), (CPointer<Unit>((((bs.value.buf.plus((bs.value.pos / 8)))).ptr).toInt())), frame_bytes)
         bs_init((CPointer((s).ptr + mp3dec_scratch_t.OFFSET_bs)), (CPointer<UByte>(((s.value.maindata).ptr).toInt())), (bytes_have + frame_bytes))
         return ((h.value.reserv >= main_data_begin)).toInt().toInt()
+
     }
-    fun L3_decode(h: CPointer<mp3dec_t>, s: CPointer<mp3dec_scratch_t>, gr_info: CPointer<L3_gr_info_t>, nch: Int): Unit = stackFrame {
+    fun L3_decode(h: CPointer<mp3dec_t>, s: CPointer<mp3dec_scratch_t>, gr_info: CPointer<L3_gr_info_t>, nch: Int): Unit {
         var gr_info = gr_info // Mutating parameter
         var ch: Int = 0
         ch = 0
         while (ch < nch) {
-            stackFrame {
+            run {
                 var layer3gr_limit: Int = (s.value.bs.pos + ((gr_info[ch].part_23_length).toInt()))
                 L3_decode_scalefactors((CPointer<UByte>(((h.value.header).ptr).toInt())), (CPointer<UByte>(((s.value.ist_pos[ch]).ptr).toInt())), (CPointer((s).ptr + mp3dec_scratch_t.OFFSET_bs)), (gr_info.plus(ch)), (CPointer<Float>(((s.value.scf).ptr).toInt())), ch)
                 L3_huffman((CPointer<Float>(((s.value.grbuf[ch]).ptr).toInt())), (CPointer((s).ptr + mp3dec_scratch_t.OFFSET_bs)), (gr_info.plus(ch)), (CPointer<Float>(((s.value.scf).ptr).toInt())), layer3gr_limit)
+
             }
             ch = ch + 1
         }
@@ -1035,7 +1107,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         }
         ch = 0
         while (ch < nch) {
-            stackFrame {
+            run {
                 var aa_bands: Int = 31
                 var n_long_bands: Int = ((if ((gr_info.value.mixed_block_flag).toBool()) 2 else 0) shl ((((((((((h.value.header[2]).toUInt()) shr 2) and 3u) + ((((((h.value.header[1]).toUInt()) shr 3) and 1u) + ((((h.value.header[1]).toUInt()) shr 4) and 1u)) * 3u))).toInt()) == 2)).toInt().toInt()))
                 if ((gr_info.value.n_short_sfb).toBool()) {
@@ -1045,11 +1117,13 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 L3_antialias((CPointer<Float>(((s.value.grbuf[ch]).ptr).toInt())), aa_bands)
                 L3_imdct_gr((CPointer<Float>(((s.value.grbuf[ch]).ptr).toInt())), (CPointer<Float>(((h.value.mdct_overlap[ch]).ptr).toInt())), ((gr_info.value.block_type).toUInt()), ((n_long_bands).toUInt()))
                 L3_change_sign((CPointer<Float>(((s.value.grbuf[ch]).ptr).toInt())))
+
             }
             run { ch++; gr_info.also { gr_info = gr_info.plus(1) } }
         }
+
     }
-    fun mp3d_DCT_II(grbuf: CPointer<Float>, n: Int): Unit = stackFrame {
+    fun mp3d_DCT_II(grbuf: CPointer<Float>, n: Int): Unit {
         var g_sec: Array24Float = __STATIC_mp3d_DCT_II_g_sec
         var i: Int = 0
         var k: Int = 0
@@ -1060,7 +1134,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 var y: CPointer<Float> = (grbuf.plus(k))
                 run { run { CPointer<Float>(((t[0]).ptr).toInt()) }.also { `$` -> x = `$` }; run { 0 }.also { `$` -> i = `$` } }
                 while (i < 8) {
-                    stackFrame {
+                    run {
                         var x0: Float = y[i * 18]
                         var x1: Float = y[(15 - i) * 18]
                         var x2: Float = y[(16 + i) * 18]
@@ -1073,12 +1147,13 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         x[8] = (t0 - t1) * g_sec[(3 * i) + 2]
                         x[16] = t3 + t2
                         x[24] = (t3 - t2) * g_sec[(3 * i) + 2]
+
                     }
                     run { i++; x.also { x = x.plus(1) } }
                 }
                 run { run { CPointer<Float>(((t[0]).ptr).toInt()) }.also { `$` -> x = `$` }; run { 0 }.also { `$` -> i = `$` } }
                 while (i < 4) {
-                    stackFrame {
+                    run {
                         var x0: Float = x[0]
                         var x1: Float = x[1]
                         var x2: Float = x[2]
@@ -1117,6 +1192,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         x[5] = (x0 + x5) * 0.89997619f
                         x[6] = (x4 - x3) * 1.30656302f
                         x[7] = (xt - x7) * 2.56291556f
+
                     }
                     run { i++; run { x.plus(8) }.also { `$` -> x = `$` } }
                 }
@@ -1132,11 +1208,13 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 y[1 * 18] = t[2][7] + t[3][7]
                 y[2 * 18] = t[1][7]
                 y[3 * 18] = t[3][7]
+
             }
             k = k + 1
         }
+
     }
-    fun mp3d_scale_pcm(sample: Float): Short = stackFrame {
+    fun mp3d_scale_pcm(sample: Float): Short {
         if (((sample).toDouble()) >= 32766.5) {
             return (32767).toShort()
         }
@@ -1146,8 +1224,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         var s: Short = (((sample + 0.5f)).toShort())
         s = ((((s).toInt()) - (((s < ((0).toShort()))).toInt().toInt()))).toShort()
         return s
+
     }
-    fun mp3d_synth_pair(pcm: CPointer<Short>, nch: Int, z: CPointer<Float>): Unit = stackFrame {
+    fun mp3d_synth_pair(pcm: CPointer<Short>, nch: Int, z: CPointer<Float>): Unit {
         var z = z // Mutating parameter
         var a: Float = 0f
         a = (z[14 * 64] - z[0]) * 29f
@@ -1169,8 +1248,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         a = a + (z[2 * 64] * 146f)
         a = a + (z[0 * 64] * -5f)
         pcm[16 * nch] = mp3d_scale_pcm(a)
+
     }
-    fun mp3d_synth(xl: CPointer<Float>, dstl: CPointer<Short>, nch: Int, lins: CPointer<Float>): Unit = stackFrame {
+    fun mp3d_synth(xl: CPointer<Float>, dstl: CPointer<Short>, nch: Int, lins: CPointer<Float>): Unit {
         var i: Int = 0
         var xr: CPointer<Float> = (xl.plus((576 * (nch - 1))))
         var dstr: CPointer<Short> = (dstl.plus((nch - 1)))
@@ -1202,7 +1282,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 zlin[(4 * (i + 16)) + 1] = xr[1 + (18 * (1 + i))]
                 zlin[(4 * (i - 16)) + 2] = xl[18 * (1 + i)]
                 zlin[(4 * (i - 16)) + 3] = xr[18 * (1 + i)]
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1213,8 +1293,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { (vz[j] * w1) + (vy[j] * w0) }.also { `$` -> b[j] = `$` }; run { (vz[j] * w0) - (vy[j] * w1) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1225,8 +1306,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vy[j] * w1) - (vz[j] * w0)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1237,8 +1319,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vz[j] * w0) - (vy[j] * w1)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1249,8 +1332,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vy[j] * w1) - (vz[j] * w0)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1261,8 +1345,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vz[j] * w0) - (vy[j] * w1)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1273,8 +1358,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vy[j] * w1) - (vz[j] * w0)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1285,8 +1371,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vz[j] * w0) - (vy[j] * w1)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
-                stackFrame {
+                run {
                     var j: Int = 0
                     var w0: Float = w.also { w = w.plus(1) }.value
                     var w1: Float = w.also { w = w.plus(1) }.value
@@ -1297,6 +1384,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         run { run { b[j] + ((vz[j] * w1) + (vy[j] * w0)) }.also { `$` -> b[j] = `$` }; run { a[j] + ((vy[j] * w1) - (vz[j] * w0)) }.also { `$` -> a[j] = `$` } }
                         j = j + 1
                     }
+
                 }
                 dstr[(15 - i) * nch] = mp3d_scale_pcm(a[1])
                 dstr[(17 + i) * nch] = mp3d_scale_pcm(b[1])
@@ -1306,11 +1394,13 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                 dstr[(49 + i) * nch] = mp3d_scale_pcm(b[3])
                 dstl[(47 - i) * nch] = mp3d_scale_pcm(a[2])
                 dstl[(49 + i) * nch] = mp3d_scale_pcm(b[2])
+
             }
             i = i - 1
         }
+
     }
-    fun mp3d_synth_granule(qmf_state: CPointer<Float>, grbuf: CPointer<Float>, nbands: Int, nch: Int, pcm: CPointer<Short>, lins: CPointer<Float>): Unit = stackFrame {
+    fun mp3d_synth_granule(qmf_state: CPointer<Float>, grbuf: CPointer<Float>, nbands: Int, nch: Int, pcm: CPointer<Short>, lins: CPointer<Float>): Unit {
         var i: Int = 0
         i = 0
         while (i < nch) {
@@ -1332,8 +1422,9 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
         } else {
             memcpy((CPointer<Unit>(((qmf_state).ptr).toInt())), (CPointer<Unit>((((lins.plus((nbands * 64)))).ptr).toInt())), ((Float.SIZE_BYTES * 15) * 64))
         }
+
     }
-    fun mp3d_match_frame(hdr: CPointer<UByte>, mp3_bytes: Int, frame_bytes: Int): Int = stackFrame {
+    fun mp3d_match_frame(hdr: CPointer<UByte>, mp3_bytes: Int, frame_bytes: Int): Int {
         var i: Int = 0
         var nmatch: Int = 0
         run { run { 0 }.also { `$` -> i = `$` }; run { 0 }.also { `$` -> nmatch = `$` } }
@@ -1348,22 +1439,23 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             nmatch = nmatch + 1
         }
         return 1
+
     }
-    fun mp3d_find_frame(mp3: CPointer<UByte>, mp3_bytes: Int, free_format_bytes: CPointer<Int>, ptr_frame_bytes: CPointer<Int>): Int = stackFrame {
+    fun mp3d_find_frame(mp3: CPointer<UByte>, mp3_bytes: Int, free_format_bytes: CPointer<Int>, ptr_frame_bytes: CPointer<Int>): Int {
         var mp3 = mp3 // Mutating parameter
         var i: Int = 0
         var k: Int = 0
         i = 0
         while0@while (i < (mp3_bytes - 4)) {
             if ((hdr_valid(mp3)).toBool()) {
-                val __oldPos1 = STACK_PTR
+                val __oldPos2 = STACK_PTR
                 try {
                     var frame_bytes: Int = hdr_frame_bytes(mp3, free_format_bytes.value)
                     var frame_and_padding: Int = (frame_bytes + hdr_padding(mp3))
                     k = 4
                     while1@while (((!((frame_bytes).toBool())) && (k < 2304)) && (((i + (2 * (((k < (mp3_bytes - 4))).toInt().toInt())))).toBool())) {
                         if ((hdr_compare(mp3, (mp3.plus(k)))).toBool()) {
-                            val __oldPos2 = STACK_PTR
+                            val __oldPos1 = STACK_PTR
                             try {
                                 var fb: Int = (k - hdr_padding(mp3))
                                 var nextfb: Int = (fb + hdr_padding((mp3.plus(k))))
@@ -1374,9 +1466,10 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                                 frame_and_padding = k
                                 frame_bytes = fb
                                 free_format_bytes.value = fb
+
                             }
                             finally {
-                                STACK_PTR = __oldPos2
+                                STACK_PTR = __oldPos1
                             }
                         }
                         k = k + 1
@@ -1386,18 +1479,21 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                         return i
                     }
                     free_format_bytes.value = 0
+
                 }
                 finally {
-                    STACK_PTR = __oldPos1
+                    STACK_PTR = __oldPos2
                 }
             }
             run { i++; mp3.also { mp3 = mp3.plus(1) } }
         }
         ptr_frame_bytes.value = 0
         return i
+
     }
-    fun mp3dec_init(dec: CPointer<mp3dec_t>): Unit = stackFrame {
+    fun mp3dec_init(dec: CPointer<mp3dec_t>): Unit {
         dec.value.header[0] = (0).toUByte()
+
     }
     fun mp3dec_decode_frame(dec: CPointer<mp3dec_t>, mp3: CPointer<UByte>, mp3_bytes: Int, pcm: CPointer<Short>, info: CPointer<mp3dec_frame_info_t>): Int = stackFrame {
         // Require alloc in stack to get pointer: frame_size
@@ -1439,7 +1535,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
             get_bits((CPointer<bs_t>(((bs_frame).ptr).toInt())), 16)
         }
         if (info.value.layer == 3) {
-            stackFrame {
+            run {
                 var main_data_begin: Int = L3_read_side_info((CPointer<bs_t>(((bs_frame).ptr).toInt())), (CPointer<L3_gr_info_t>(((scratch.gr_info).ptr).toInt())), hdr)
                 if ((main_data_begin < 0) || (bs_frame.value.pos > bs_frame.value.limit)) {
                     mp3dec_init(dec)
@@ -1456,6 +1552,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     }
                 }
                 L3_save_reservoir(dec, (CPointer<mp3dec_scratch_t>((scratch).ptr)))
+
             }
         } else {
             stackFrame {
@@ -1477,25 +1574,28 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     }
                     igr = igr + 1
                 }
+
             }
         }
         return success * ((hdr_frame_samples((CPointer<UByte>(((dec.value.header).ptr).toInt())))).toInt())
+
     }
-    fun strlen(str: CPointer<Byte>): Int = stackFrame {
+    fun strlen(str: CPointer<Byte>): Int {
         var str = str // Mutating parameter
         var out: Int = 0
         while (((str.also { str = str.plus(1) }.value).toInt()) != 0) {
             out = out + 1
         }
         return out
+
     }
-    fun memcmp(ptr1: CPointer<Unit>, ptr2: CPointer<Unit>, num: Int): Int = stackFrame {
+    fun memcmp(ptr1: CPointer<Unit>, ptr2: CPointer<Unit>, num: Int): Int {
         var a: CPointer<Byte> = (CPointer<Byte>(((ptr1).ptr).toInt()))
         var b: CPointer<Byte> = (CPointer<Byte>(((ptr2).ptr).toInt()))
-        stackFrame {
+        run {
             var n: Int = 0
             while (n < num) {
-                stackFrame {
+                run {
                     var res: Int = (((a[n]).toInt()) - ((b[n]).toInt()))
                     if (res < 0) {
                         return -1
@@ -1503,11 +1603,14 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
                     if (res > 0) {
                         return 1
                     }
+
                 }
                 n = n + 1
             }
+
         }
         return 0
+
     }
 
     //////////////////
