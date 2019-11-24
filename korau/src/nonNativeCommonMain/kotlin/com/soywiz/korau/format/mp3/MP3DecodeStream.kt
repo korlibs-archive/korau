@@ -1,5 +1,10 @@
 package com.soywiz.korau.format.mp3
 
+import com.soywiz.kds.*
+import com.soywiz.korau.format.*
+import com.soywiz.korau.sound.*
+import com.soywiz.korio.stream.*
+
 private val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
 
 actual suspend fun MP3DecodeStream(data: AsyncStream): AudioStream? {
@@ -58,7 +63,8 @@ public class Arena(val runtime: AbstractRuntime) {
     }
 
     fun clear() {
-        pointers.fastForEach {
+        for (n in 0 until pointers.size) {
+            val it = pointers[n]
             runtime.free(CPointer<Any>(it))
         }
         pointers.clear()
