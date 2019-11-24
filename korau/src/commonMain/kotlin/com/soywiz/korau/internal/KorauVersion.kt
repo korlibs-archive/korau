@@ -1,3 +1,3 @@
 package com.soywiz.korau.internal
 
-internal const val KORAU_VERSION = "1.8.7-SNAPSHOT"
+internal const val KORAU_VERSION = "1.9.0-SNAPSHOT"

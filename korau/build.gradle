@@ -2,10 +2,12 @@ apply plugin: com.soywiz.korlibs.KorlibsPlugin
 
 korlibs {
     exposeVersion()
-    dependencyCInterops("minimp3", ["mingwX64", "macosX64", "linuxX64", "iosX64", "iosArm32", "iosArm64"])
-    dependencyCInterops("stb_vorbis", ["mingwX64", "macosX64", "linuxX64", "iosX64", "iosArm32", "iosArm64"])
+    dependencyCInterops("minimp3", ["mingwX64", "macosX64", *(korlibs.linuxEnabled ? ["linuxX64"] : []), "iosX64", "iosArm32", "iosArm64"])
+    dependencyCInterops("stb_vorbis", ["mingwX64", "macosX64", *(korlibs.linuxEnabled ? ["linuxX64"] : []), "iosX64", "iosArm32", "iosArm64"])
     dependencyCInterops("win32_winmm", ["mingwX64"])
-    dependencyCInterops("linux_OpenAL", ["linuxX64"])
+    if (korlibs.linuxEnabled) {
+        dependencyCInterops("linux_OpenAL", ["linuxX64"])
+    }
     dependencyCInterops("mac_OpenAL", ["macosX64"])
 
     if (System.getProperty("idea.version") != null) {
@@ -19,20 +21,22 @@ korlibs {
 }
 
 kotlin {
-	linuxX64 {
-		compilations.main {
-			cinterops {
-				linux_OpenAL {
-					// warning: -linker-option(s)/-linkerOpts/-lopt option is not supported by cinterop. Please add linker options to .def file or binary compilation instead.
+    if (korlibs.linuxEnabled) {
+        linuxX64 {
+            compilations.main {
+                cinterops {
+                    linux_OpenAL {
+                        // warning: -linker-option(s)/-linkerOpts/-lopt option is not supported by cinterop. Please add linker options to .def file or binary compilation instead.
 
-					//print(it)
-					//def linuxFolder = new File(rootDir, "nlib/linuxX64")
-					//compilerOpts("-I/usr/include", "-I/usr/include/x86_64-linux-gnu/", "-I${new File(linuxFolder, "include").absolutePath}")
-					//linkerOpts("-L/usr/X11R6/lib", "-L/usr/lib/x86_64-linux-gnu", "-L${new File(linuxFolder, "lib/x86_64-linux-gnu").absolutePath}", "-lopenal")
-				}
-			}
-		}
-	}
+                        //print(it)
+                        //def linuxFolder = new File(rootDir, "nlib/linuxX64")
+                        //compilerOpts("-I/usr/include", "-I/usr/include/x86_64-linux-gnu/", "-I${new File(linuxFolder, "include").absolutePath}")
+                        //linkerOpts("-L/usr/X11R6/lib", "-L/usr/lib/x86_64-linux-gnu", "-L${new File(linuxFolder, "lib/x86_64-linux-gnu").absolutePath}", "-lopenal")
+                    }
+                }
+            }
+        }
+    }
 }
 
 dependencies {
