@@ -6,7 +6,7 @@ package com.soywiz.korau.format.mp3
 //Program.main(arrayOf())
 @Suppress("MemberVisibilityCanBePrivate", "FunctionName", "CanBeVal", "DoubleNegation", "LocalVariableName", "NAME_SHADOWING", "VARIABLE_WITH_REDUNDANT_INITIALIZER", "RemoveRedundantCallsOfConversionMethods", "EXPERIMENTAL_IS_NOT_ENABLED", "RedundantExplicitType", "RemoveExplicitTypeArguments", "RedundantExplicitType", "unused", "UNCHECKED_CAST", "UNUSED_VARIABLE", "UNUSED_PARAMETER", "NOTHING_TO_INLINE", "PropertyName", "ClassName", "USELESS_CAST", "PrivatePropertyName", "CanBeParameter", "UnusedMainParameter")
 @UseExperimental(ExperimentalUnsignedTypes::class)
-internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
+public class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
     companion object {
         const val MINIMP3_IMPLEMENTATION = 1
         const val MINIMP3_NO_SIMD = 1
@@ -2020,7 +2020,7 @@ internal class MiniMp3(HEAP_SIZE: Int = 0) : Runtime(HEAP_SIZE) {
 // C STRUCTURES //
 //////////////////
 
-internal inline/*!*/ class mp3dec_frame_info_t(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class mp3dec_frame_info_t(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<mp3dec_frame_info_t>  {
         const val SIZE_BYTES = 20
         override val SIZE = SIZE_BYTES
@@ -2031,7 +2031,7 @@ internal inline/*!*/ class mp3dec_frame_info_t(val ptr: Int) : AbstractRuntime.I
         const val OFFSET_bitrate_kbps = 16
     }
 }
-internal inline/*!*/ class mp3dec_t(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class mp3dec_t(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<mp3dec_t>  {
         const val SIZE_BYTES = 6667
         override val SIZE = SIZE_BYTES
@@ -2043,7 +2043,7 @@ internal inline/*!*/ class mp3dec_t(val ptr: Int) : AbstractRuntime.IStruct {
         const val OFFSET_reserv_buf = 6156
     }
 }
-internal inline/*!*/ class bs_t(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class bs_t(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<bs_t>  {
         const val SIZE_BYTES = 12
         override val SIZE = SIZE_BYTES
@@ -2052,7 +2052,7 @@ internal inline/*!*/ class bs_t(val ptr: Int) : AbstractRuntime.IStruct {
         const val OFFSET_limit = 8
     }
 }
-internal inline/*!*/ class L12_scale_info(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class L12_scale_info(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<L12_scale_info>  {
         const val SIZE_BYTES = 898
         override val SIZE = SIZE_BYTES
@@ -2063,7 +2063,7 @@ internal inline/*!*/ class L12_scale_info(val ptr: Int) : AbstractRuntime.IStruc
         const val OFFSET_scfcod = 834
     }
 }
-internal inline/*!*/ class L12_subband_alloc_t(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class L12_subband_alloc_t(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<L12_subband_alloc_t>  {
         const val SIZE_BYTES = 3
         override val SIZE = SIZE_BYTES
@@ -2072,7 +2072,7 @@ internal inline/*!*/ class L12_subband_alloc_t(val ptr: Int) : AbstractRuntime.I
         const val OFFSET_band_count = 2
     }
 }
-internal inline/*!*/ class L3_gr_info_t(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class L3_gr_info_t(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<L3_gr_info_t>  {
         const val SIZE_BYTES = 28
         override val SIZE = SIZE_BYTES
@@ -2094,7 +2094,7 @@ internal inline/*!*/ class L3_gr_info_t(val ptr: Int) : AbstractRuntime.IStruct 
         const val OFFSET_scfsi = 27
     }
 }
-internal inline/*!*/ class mp3dec_scratch_t(val ptr: Int) : AbstractRuntime.IStruct {
+public inline/*!*/ class mp3dec_scratch_t(val ptr: Int) : AbstractRuntime.IStruct {
     companion object : AbstractRuntime.IStructCompanion<mp3dec_scratch_t>  {
         const val SIZE_BYTES = 16233
         override val SIZE = SIZE_BYTES
@@ -2107,7 +2107,7 @@ internal inline/*!*/ class mp3dec_scratch_t(val ptr: Int) : AbstractRuntime.IStr
         const val OFFSET_ist_pos = 16155
     }
 }
-internal inline/*!*/ class Array2Array288Float(val ptr: Int) {
+public inline/*!*/ class Array2Array288Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2
         const val ELEMENT_SIZE_BYTES = 1152
@@ -2115,7 +2115,7 @@ internal inline/*!*/ class Array2Array288Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array288Float(val ptr: Int) {
+public inline/*!*/ class Array288Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 288
         const val ELEMENT_SIZE_BYTES = 4
@@ -2123,7 +2123,7 @@ internal inline/*!*/ class Array288Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array960Float(val ptr: Int) {
+public inline/*!*/ class Array960Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 960
         const val ELEMENT_SIZE_BYTES = 4
@@ -2131,7 +2131,7 @@ internal inline/*!*/ class Array960Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array4UByte(val ptr: Int) {
+public inline/*!*/ class Array4UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 4
         const val ELEMENT_SIZE_BYTES = 1
@@ -2139,7 +2139,7 @@ internal inline/*!*/ class Array4UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array511UByte(val ptr: Int) {
+public inline/*!*/ class Array511UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 511
         const val ELEMENT_SIZE_BYTES = 1
@@ -2147,7 +2147,7 @@ internal inline/*!*/ class Array511UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array192Float(val ptr: Int) {
+public inline/*!*/ class Array192Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 192
         const val ELEMENT_SIZE_BYTES = 4
@@ -2155,7 +2155,7 @@ internal inline/*!*/ class Array192Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array64UByte(val ptr: Int) {
+public inline/*!*/ class Array64UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 64
         const val ELEMENT_SIZE_BYTES = 1
@@ -2163,7 +2163,7 @@ internal inline/*!*/ class Array64UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array3UByte(val ptr: Int) {
+public inline/*!*/ class Array3UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 3
         const val ELEMENT_SIZE_BYTES = 1
@@ -2171,7 +2171,7 @@ internal inline/*!*/ class Array3UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array2815UByte(val ptr: Int) {
+public inline/*!*/ class Array2815UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2815
         const val ELEMENT_SIZE_BYTES = 1
@@ -2179,7 +2179,7 @@ internal inline/*!*/ class Array2815UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array4L3_gr_info_t(val ptr: Int) {
+public inline/*!*/ class Array4L3_gr_info_t(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 4
         const val ELEMENT_SIZE_BYTES = 28
@@ -2187,7 +2187,7 @@ internal inline/*!*/ class Array4L3_gr_info_t(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array2Array576Float(val ptr: Int) {
+public inline/*!*/ class Array2Array576Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2
         const val ELEMENT_SIZE_BYTES = 2304
@@ -2195,7 +2195,7 @@ internal inline/*!*/ class Array2Array576Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array576Float(val ptr: Int) {
+public inline/*!*/ class Array576Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 576
         const val ELEMENT_SIZE_BYTES = 4
@@ -2203,7 +2203,7 @@ internal inline/*!*/ class Array576Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array40Float(val ptr: Int) {
+public inline/*!*/ class Array40Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 40
         const val ELEMENT_SIZE_BYTES = 4
@@ -2211,7 +2211,7 @@ internal inline/*!*/ class Array40Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array33Array64Float(val ptr: Int) {
+public inline/*!*/ class Array33Array64Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 33
         const val ELEMENT_SIZE_BYTES = 256
@@ -2219,7 +2219,7 @@ internal inline/*!*/ class Array33Array64Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array64Float(val ptr: Int) {
+public inline/*!*/ class Array64Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 64
         const val ELEMENT_SIZE_BYTES = 4
@@ -2227,7 +2227,7 @@ internal inline/*!*/ class Array64Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array2Array39UByte(val ptr: Int) {
+public inline/*!*/ class Array2Array39UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2
         const val ELEMENT_SIZE_BYTES = 39
@@ -2235,7 +2235,7 @@ internal inline/*!*/ class Array2Array39UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array39UByte(val ptr: Int) {
+public inline/*!*/ class Array39UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 39
         const val ELEMENT_SIZE_BYTES = 1
@@ -2243,7 +2243,7 @@ internal inline/*!*/ class Array39UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array2Array3Array15UByte(val ptr: Int) {
+public inline/*!*/ class Array2Array3Array15UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2
         const val ELEMENT_SIZE_BYTES = 45
@@ -2251,7 +2251,7 @@ internal inline/*!*/ class Array2Array3Array15UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array3Array15UByte(val ptr: Int) {
+public inline/*!*/ class Array3Array15UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 3
         const val ELEMENT_SIZE_BYTES = 15
@@ -2259,7 +2259,7 @@ internal inline/*!*/ class Array3Array15UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array15UByte(val ptr: Int) {
+public inline/*!*/ class Array15UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 15
         const val ELEMENT_SIZE_BYTES = 1
@@ -2267,7 +2267,7 @@ internal inline/*!*/ class Array15UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array3UInt(val ptr: Int) {
+public inline/*!*/ class Array3UInt(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 3
         const val ELEMENT_SIZE_BYTES = 4
@@ -2275,7 +2275,7 @@ internal inline/*!*/ class Array3UInt(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array54Float(val ptr: Int) {
+public inline/*!*/ class Array54Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 54
         const val ELEMENT_SIZE_BYTES = 4
@@ -2283,7 +2283,7 @@ internal inline/*!*/ class Array54Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array8Array23UByte(val ptr: Int) {
+public inline/*!*/ class Array8Array23UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 8
         const val ELEMENT_SIZE_BYTES = 23
@@ -2291,7 +2291,7 @@ internal inline/*!*/ class Array8Array23UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array23UByte(val ptr: Int) {
+public inline/*!*/ class Array23UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 23
         const val ELEMENT_SIZE_BYTES = 1
@@ -2299,7 +2299,7 @@ internal inline/*!*/ class Array23UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array8Array40UByte(val ptr: Int) {
+public inline/*!*/ class Array8Array40UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 8
         const val ELEMENT_SIZE_BYTES = 40
@@ -2307,7 +2307,7 @@ internal inline/*!*/ class Array8Array40UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array40UByte(val ptr: Int) {
+public inline/*!*/ class Array40UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 40
         const val ELEMENT_SIZE_BYTES = 1
@@ -2315,7 +2315,7 @@ internal inline/*!*/ class Array40UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array4Float(val ptr: Int) {
+public inline/*!*/ class Array4Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 4
         const val ELEMENT_SIZE_BYTES = 4
@@ -2323,7 +2323,7 @@ internal inline/*!*/ class Array4Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array3Array28UByte(val ptr: Int) {
+public inline/*!*/ class Array3Array28UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 3
         const val ELEMENT_SIZE_BYTES = 28
@@ -2331,7 +2331,7 @@ internal inline/*!*/ class Array3Array28UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array28UByte(val ptr: Int) {
+public inline/*!*/ class Array28UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 28
         const val ELEMENT_SIZE_BYTES = 1
@@ -2339,7 +2339,7 @@ internal inline/*!*/ class Array28UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array16UByte(val ptr: Int) {
+public inline/*!*/ class Array16UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 16
         const val ELEMENT_SIZE_BYTES = 1
@@ -2347,7 +2347,7 @@ internal inline/*!*/ class Array16UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array24UByte(val ptr: Int) {
+public inline/*!*/ class Array24UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 24
         const val ELEMENT_SIZE_BYTES = 1
@@ -2355,7 +2355,7 @@ internal inline/*!*/ class Array24UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array10UByte(val ptr: Int) {
+public inline/*!*/ class Array10UByte(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 10
         const val ELEMENT_SIZE_BYTES = 1
@@ -2363,7 +2363,7 @@ internal inline/*!*/ class Array10UByte(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array145Float(val ptr: Int) {
+public inline/*!*/ class Array145Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 145
         const val ELEMENT_SIZE_BYTES = 4
@@ -2371,7 +2371,7 @@ internal inline/*!*/ class Array145Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array32Short(val ptr: Int) {
+public inline/*!*/ class Array32Short(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 32
         const val ELEMENT_SIZE_BYTES = 2
@@ -2379,7 +2379,7 @@ internal inline/*!*/ class Array32Short(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array3Int(val ptr: Int) {
+public inline/*!*/ class Array3Int(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 3
         const val ELEMENT_SIZE_BYTES = 4
@@ -2387,7 +2387,7 @@ internal inline/*!*/ class Array3Int(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array14Float(val ptr: Int) {
+public inline/*!*/ class Array14Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 14
         const val ELEMENT_SIZE_BYTES = 4
@@ -2395,7 +2395,7 @@ internal inline/*!*/ class Array14Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array2Array8Float(val ptr: Int) {
+public inline/*!*/ class Array2Array8Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2
         const val ELEMENT_SIZE_BYTES = 32
@@ -2403,7 +2403,7 @@ internal inline/*!*/ class Array2Array8Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array8Float(val ptr: Int) {
+public inline/*!*/ class Array8Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 8
         const val ELEMENT_SIZE_BYTES = 4
@@ -2411,7 +2411,7 @@ internal inline/*!*/ class Array8Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array18Float(val ptr: Int) {
+public inline/*!*/ class Array18Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 18
         const val ELEMENT_SIZE_BYTES = 4
@@ -2419,7 +2419,7 @@ internal inline/*!*/ class Array18Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array9Float(val ptr: Int) {
+public inline/*!*/ class Array9Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 9
         const val ELEMENT_SIZE_BYTES = 4
@@ -2427,7 +2427,7 @@ internal inline/*!*/ class Array9Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array6Float(val ptr: Int) {
+public inline/*!*/ class Array6Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 6
         const val ELEMENT_SIZE_BYTES = 4
@@ -2435,7 +2435,7 @@ internal inline/*!*/ class Array6Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array3Float(val ptr: Int) {
+public inline/*!*/ class Array3Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 3
         const val ELEMENT_SIZE_BYTES = 4
@@ -2443,7 +2443,7 @@ internal inline/*!*/ class Array3Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array2Array18Float(val ptr: Int) {
+public inline/*!*/ class Array2Array18Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 2
         const val ELEMENT_SIZE_BYTES = 72
@@ -2451,7 +2451,7 @@ internal inline/*!*/ class Array2Array18Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array24Float(val ptr: Int) {
+public inline/*!*/ class Array24Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 24
         const val ELEMENT_SIZE_BYTES = 4
@@ -2459,7 +2459,7 @@ internal inline/*!*/ class Array24Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array4Array8Float(val ptr: Int) {
+public inline/*!*/ class Array4Array8Float(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 4
         const val ELEMENT_SIZE_BYTES = 32
@@ -2467,7 +2467,7 @@ internal inline/*!*/ class Array4Array8Float(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array1bs_t(val ptr: Int) {
+public inline/*!*/ class Array1bs_t(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 1
         const val ELEMENT_SIZE_BYTES = 12
@@ -2475,7 +2475,7 @@ internal inline/*!*/ class Array1bs_t(val ptr: Int) {
     }
     fun addr(index: Int) = ptr + index * ELEMENT_SIZE_BYTES
 }
-internal inline/*!*/ class Array1L12_scale_info(val ptr: Int) {
+public inline/*!*/ class Array1L12_scale_info(val ptr: Int) {
     companion object {
         const val NUM_ELEMENTS = 1
         const val ELEMENT_SIZE_BYTES = 898

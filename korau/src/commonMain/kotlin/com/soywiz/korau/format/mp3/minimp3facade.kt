@@ -16,49 +16,7 @@ object MP3Decoder : AudioFormat("mp3") {
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
         val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
-        //println(programPool.itemsInPool)
-        val program = programPool.alloc()
-
-        //println("program.HEAP_PTR: ${program.HEAP_PTR}")
-        //println("program.STACK_PTR: ${program.STACK_PTR}")
-        //println("program.mallocCount: ${program.mallocCount}")
-
-        return object : NativeAudioDecoder(program, data, MiniMp3.MINIMP3_MAX_SAMPLES_PER_FRAME) {
-            val mp3d = scope.allocBytes<mp3dec_t>(mp3dec_t.SIZE_BYTES)
-
-            override fun init() {
-                program.mp3dec_init(mp3d)
-            }
-
-            override fun close() {
-                super.close()
-                //println("FREED")
-                programPool.free(program)
-            }
-
-            override fun decodeFrameBase(
-                samplesDataPtr: CPointer<ShortVar>,
-                frameDataPtr: CPointer<ByteVar>,
-                frameSize: Int,
-                out: DecodeInfo
-            ) {
-                program.apply {
-                    program.stackFrame {
-                        val info = CPointer<mp3dec_frame_info_t>(alloca(mp3dec_frame_info_t.SIZE_BYTES).ptr)
-                        val infov = mp3dec_frame_info_t(info.ptr)
-                        out.samplesDecoded = program.mp3dec_decode_frame(
-                            mp3d,
-                            frameDataPtr as CPointer<UByte>, frameSize,
-                            samplesDataPtr,
-                            info
-                        )
-                        out.frameBytes = infov.frame_bytes
-                        out.hz = infov.hz
-                        out.nchannels = infov.channels
-                    }
-                }
-            }
-        }.createAudioStream()
+        return NativeAudioDecoderProgram(programPool, data).createAudioStream()
     }
 
     override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
@@ -68,11 +26,48 @@ object MP3Decoder : AudioFormat("mp3") {
     override fun toString(): String = "NativeMp3DecoderFormat"
 }
 
-internal typealias ShortVar = Short
-internal typealias IntVar = Int
-internal typealias ByteVar = Byte
+class NativeAudioDecoderProgram(
+    val programPool: Pool<MiniMp3>,
+    data: AsyncStream,
+    val program: MiniMp3 = programPool.alloc()
+) : NativeAudioDecoder(program, data, MiniMp3.MINIMP3_MAX_SAMPLES_PER_FRAME) {
+    val mp3d = scope.allocBytes<mp3dec_t>(mp3dec_t.SIZE_BYTES)
 
-internal class Arena(val runtime: AbstractRuntime) {
+    override fun init() {
+        program.mp3dec_init(mp3d)
+    }
+
+    override fun close() {
+        super.close()
+        //println("FREED")
+        programPool.free(program)
+    }
+
+    override fun decodeFrameBase(
+        samplesDataPtr: CPointer<Short>,
+        frameDataPtr: CPointer<Byte>,
+        frameSize: Int,
+        out: DecodeInfo
+    ) {
+        program.apply {
+            program.stackFrame {
+                val info = CPointer<mp3dec_frame_info_t>(alloca(mp3dec_frame_info_t.SIZE_BYTES).ptr)
+                val infov = mp3dec_frame_info_t(info.ptr)
+                out.samplesDecoded = program.mp3dec_decode_frame(
+                    mp3d,
+                    frameDataPtr as CPointer<UByte>, frameSize,
+                    samplesDataPtr,
+                    info
+                )
+                out.frameBytes = infov.frame_bytes
+                out.hz = infov.hz
+                out.nchannels = infov.channels
+            }
+        }
+    }
+}
+
+public class Arena(val runtime: AbstractRuntime) {
     val pointers = intArrayListOf()
 
     fun <T> allocBytes(size: Int): CPointer<T> {
@@ -89,19 +84,19 @@ internal class Arena(val runtime: AbstractRuntime) {
     }
 }
 
-internal fun AbstractRuntime.write(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) sb(ptr.ptr + n, data[n]) }
-internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) data[n] = lb(ptr.ptr + n) }
+public fun AbstractRuntime.write(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) sb(ptr.ptr + n, data[n]) }
+public fun AbstractRuntime.read(ptr: CPointer<*>, data: ByteArray) = run { for (n in 0 until data.size) data[n] = lb(ptr.ptr + n) }
 
-internal fun AbstractRuntime.write(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) sh(ptr.ptr + n * 2, data[n]) }
-internal fun AbstractRuntime.read(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) data[n] = lh(ptr.ptr + n * 2) }
+public fun AbstractRuntime.write(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) sh(ptr.ptr + n * 2, data[n]) }
+public fun AbstractRuntime.read(ptr: CPointer<*>, data: ShortArray) = run { for (n in 0 until data.size) data[n] = lh(ptr.ptr + n * 2) }
 
-internal open class NativeAudioDecoder(internal val runtime: AbstractRuntime, val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
+public open class NativeAudioDecoder(public val runtime: AbstractRuntime, val data: AsyncStream, val maxSamples: Int, val maxChannels: Int = 2) {
     var closed = false
 
     val scope = Arena(runtime)
 
-    internal val frameDataPtr = scope.allocBytes<Byte>(16 * 1024)
-    internal val samplesDataPtr = scope.allocBytes<Short>(maxSamples * 2)
+    public val frameDataPtr = scope.allocBytes<Byte>(16 * 1024)
+    public val samplesDataPtr = scope.allocBytes<Short>(maxSamples * 2)
 
     val frameData = ByteArray(16 * 1024)
     val samplesData = ShortArray(maxSamples)
@@ -147,9 +142,9 @@ internal open class NativeAudioDecoder(internal val runtime: AbstractRuntime, va
     }
 
     // Must set: samplesDecoded, nchannels, hz and consumedBytes
-    internal open fun decodeFrameBase(
-        samplesDataPtr: CPointer<ShortVar>,
-        frameDataPtr: CPointer<ByteVar>,
+    public open fun decodeFrameBase(
+        samplesDataPtr: CPointer<Short>,
+        frameDataPtr: CPointer<Byte>,
         frameSize: Int,
         out: DecodeInfo
     ) {
