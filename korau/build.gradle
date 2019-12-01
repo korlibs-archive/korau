@@ -42,6 +42,10 @@ kotlin {
 dependencies {
 	commonMainApi("com.soywiz.korlibs.korio:korio:$korioVersion")
 
+    def jnaVersion = "5.5.0"
+    add("jvmMainApi", "net.java.dev.jna:jna:$jnaVersion")
+    add("jvmMainApi", "net.java.dev.jna:jna-platform:$jnaVersion")
+
     jvmMainApi "org.jogamp.gluegen:gluegen-rt-main:2.3.2"
     jvmMainApi "org.jogamp.joal:joal:2.3.2"
     jvmMainApi "org.jogamp.joal:joal:2.3.2:natives-windows-amd64"
