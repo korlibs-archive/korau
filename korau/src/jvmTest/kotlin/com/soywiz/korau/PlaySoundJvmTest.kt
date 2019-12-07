@@ -4,14 +4,17 @@ import com.soywiz.klock.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
+import com.soywiz.korio.util.*
 import kotlinx.coroutines.*
 import org.junit.*
 
 class PlaySoundJvmTest {
     @Test
     fun testReadNativeSound() = suspendTest {
-        val soundWav = resourcesVfs["wav1.wav"].readNativeSound()
-        val soundMp3 = resourcesVfs["fl4.mp1"].readNativeSound()
+        if (!OS.isLinux) {
+            val soundWav = resourcesVfs["wav1.wav"].readNativeSound()
+            val soundMp3 = resourcesVfs["fl4.mp1"].readNativeSound()
+        }
     }
 
     @Test
