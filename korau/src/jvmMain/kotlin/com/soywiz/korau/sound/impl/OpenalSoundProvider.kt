@@ -11,22 +11,35 @@ import kotlinx.coroutines.*
 import java.nio.*
 import kotlin.coroutines.*
 
-val al by lazy {
-    ALFactory.getAL().also { al ->
-        //val error = al.alGetError()
-        //if (error != AL.AL_NO_ERROR) error("Error initializing OpenAL ${error.shex}")
-    } }
+internal inline fun <T> runCatchingAl(block: () -> T): T? {
+    val result = runCatching { block() }
+    if (result.isFailure) {
+        result.exceptionOrNull()?.printStackTrace()
+    }
+    return result.getOrNull()
+}
+
+val al: AL? by lazy {
+    runCatchingAl {
+        ALFactory.getAL().also { al ->
+            //val error = al.alGetError()
+            //if (error != AL.AL_NO_ERROR) error("Error initializing OpenAL ${error.shex}")
+        }
+    }
+}
 
 class OpenALNativeSoundProvider : NativeSoundProvider() {
     init {
         //println("ALut.alutInit: ${Thread.currentThread()}")
-        ALut.alutInit()
+        runCatchingAl {
+            ALut.alutInit()
+        }
         //alc.alcMakeContextCurrent(context)
-        al.alListener3f(AL.AL_POSITION, 0f, 0f, 1.0f)
+        al?.alListener3f(AL.AL_POSITION, 0f, 0f, 1.0f)
         checkAlErrors()
-        al.alListener3f(AL.AL_VELOCITY, 0f, 0f, 0f)
+        al?.alListener3f(AL.AL_VELOCITY, 0f, 0f, 0f)
         checkAlErrors()
-        al.alListenerfv(AL.AL_ORIENTATION, floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f), 0)
+        al?.alListenerfv(AL.AL_ORIENTATION, floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f), 0)
         checkAlErrors()
     }
 
@@ -57,15 +70,15 @@ class OpenALNativeSoundNoStream(val coroutineContext: CoroutineContext, val data
         alBufferData(buffer, data)
 
         val source = alGenSource()
-        al.alSourcef(source, AL.AL_PITCH, 1f)
-        al.alSourcef(source, AL.AL_GAIN, 1f)
-        al.alSource3f(source, AL.AL_POSITION, 0f, 0f, 0f)
-        al.alSource3f(source, AL.AL_VELOCITY, 0f, 0f, 0f)
-        al.alSourcei(source, AL.AL_LOOPING, AL.AL_FALSE)
-        al.alSourcei(source, AL.AL_BUFFER, buffer)
+        al?.alSourcef(source, AL.AL_PITCH, 1f)
+        al?.alSourcef(source, AL.AL_GAIN, 1f)
+        al?.alSource3f(source, AL.AL_POSITION, 0f, 0f, 0f)
+        al?.alSource3f(source, AL.AL_VELOCITY, 0f, 0f, 0f)
+        al?.alSourcei(source, AL.AL_LOOPING, AL.AL_FALSE)
+        al?.alSourcei(source, AL.AL_BUFFER, buffer)
         checkAlErrors()
 
-        al.alSourcePlay(source)
+        al?.alSourcePlay(source)
         checkAlErrors()
 
         var stopped = false
@@ -76,14 +89,14 @@ class OpenALNativeSoundNoStream(val coroutineContext: CoroutineContext, val data
 
             override var volume: Double
                 get() = run { alGetSourcef(source, AL.AL_GAIN).toDouble() }
-                set(value) = run { al.alSourcef(source, AL.AL_GAIN, value.toFloat()) }
+                set(value) = run { al?.alSourcef(source, AL.AL_GAIN, value.toFloat()) }
             override var pitch: Double
                 get() = run { alGetSourcef(source, AL.AL_PITCH).toDouble() }
-                set(value) = run { al.alSourcef(source, AL.AL_PITCH, value.toFloat()) }
+                set(value) = run { al?.alSourcef(source, AL.AL_PITCH, value.toFloat()) }
             override var panning: Double = 0.0
                 set(value) = run {
                     field = value
-                    al.alSource3f(source, AL.AL_POSITION, panning.toFloat(), 0f, 0f)
+                    al?.alSource3f(source, AL.AL_POSITION, panning.toFloat(), 0f, 0f)
                 }
 
             override val current: TimeSpan get() = data.timeAtSample(currentSampleOffset)
@@ -120,8 +133,8 @@ class OpenALNativeSoundNoStream(val coroutineContext: CoroutineContext, val data
 
 private val tempF = FloatArray(1)
 private val tempI = IntArray(1)
-private fun alGetSourcef(source: Int, param: Int): Float = tempF.apply { al.alGetSourcef(source, param, this, 0) }[0]
-private fun alGetSourcei(source: Int, param: Int): Int = tempI.apply { al.alGetSourcei(source, param, this, 0) }[0]
+private fun alGetSourcef(source: Int, param: Int): Float = tempF.apply { al?.alGetSourcef(source, param, this, 0) }[0]
+private fun alGetSourcei(source: Int, param: Int): Int = tempI.apply { al?.alGetSourcei(source, param, this, 0) }[0]
 private fun alGetSourceState(source: Int): Int = alGetSourcei(source, AL.AL_SOURCE_STATE)
 
 private fun alBufferData(buffer: Int, data: AudioData) {
@@ -131,7 +144,7 @@ private fun alBufferData(buffer: Int, data: AudioData) {
     //val bufferData = ByteBuffer.allocateDirect(samples.size * 2).order(ByteOrder.nativeOrder())
     //bufferData.asShortBuffer().put(samples)
 
-    al.alBufferData(
+    al?.alBufferData(
         buffer,
         if (data.channels == 1) AL.AL_FORMAT_MONO16 else AL.AL_FORMAT_STEREO16,
         if (samples.isNotEmpty()) bufferData else null,
@@ -141,10 +154,10 @@ private fun alBufferData(buffer: Int, data: AudioData) {
     checkAlErrors()
 }
 
-private fun alGenBuffer(): Int = tempI.apply { al.alGenBuffers(1, this, 0) }[0]
-private fun alGenSource(): Int = tempI.apply { al.alGenSources(1, this, 0) }[0]
-private fun alDeleteBuffer(buffer: Int): Unit = al.alDeleteBuffers(1, tempI.also { it[0] = buffer }, 0)
-private fun alDeleteSource(buffer: Int): Unit = al.alDeleteSources(1, tempI.also { it[0] = buffer }, 0)
+private fun alGenBuffer(): Int = tempI.apply { al?.alGenBuffers(1, this, 0) }[0]
+private fun alGenSource(): Int = tempI.apply { al?.alGenSources(1, this, 0) }[0]
+private fun alDeleteBuffer(buffer: Int): Unit = run { al?.alDeleteBuffers(1, tempI.also { it[0] = buffer }, 0) }
+private fun alDeleteSource(buffer: Int): Unit = run { al?.alDeleteSources(1, tempI.also { it[0] = buffer }, 0) }
 
 /*
 val alc by lazy {

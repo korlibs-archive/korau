@@ -11,10 +11,8 @@ import org.junit.*
 class PlaySoundJvmTest {
     @Test
     fun testReadNativeSound() = suspendTest {
-        if (!OS.isLinux) {
-            val soundWav = resourcesVfs["wav1.wav"].readNativeSound()
-            val soundMp3 = resourcesVfs["fl4.mp1"].readNativeSound()
-        }
+        val soundWav = resourcesVfs["wav1.wav"].readNativeSound()
+        val soundMp3 = resourcesVfs["fl4.mp1"].readNativeSound()
     }
 
     @Test
