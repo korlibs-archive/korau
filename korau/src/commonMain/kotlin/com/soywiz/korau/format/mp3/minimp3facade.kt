@@ -5,7 +5,9 @@ import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
 
-object MP3Decoder : AudioFormat("mp3") {
+open class MP3Decoder() : AudioFormat("mp3") {
+    companion object : MP3Decoder()
+
     override suspend fun tryReadInfo(data: AsyncStream): Info? {
         return MP3.tryReadInfo(data)
     }
