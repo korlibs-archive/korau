@@ -1,5 +1,6 @@
-package com.soywiz.korau.sound.impl
+package com.soywiz.korau.sound.impl.jogamp
 
+/*
 import com.jogamp.openal.*
 import com.jogamp.openal.util.*
 import com.soywiz.klock.*
@@ -28,7 +29,7 @@ val al: AL? by lazy {
     }
 }
 
-class OpenALNativeSoundProvider : NativeSoundProvider() {
+class JogampNativeSoundProvider : NativeSoundProvider() {
     init {
         //println("ALut.alutInit: ${Thread.currentThread()}")
         runCatchingAl {
@@ -178,3 +179,4 @@ fun checkAlErrors() {
 //    val error = al.alGetError()
 //    if (error != AL.AL_NO_ERROR) error("OpenAL error ${error.shex}")
 }
+*/

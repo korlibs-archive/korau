@@ -1,4 +1,4 @@
-package com.soywiz.korau.sound.impl
+package com.soywiz.korau.sound.impl.awt
 
 import com.soywiz.kds.*
 import com.soywiz.klock.*
@@ -152,7 +152,8 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
                 clip = null
             }
 
-            var clip: PooledClip? = PooledClip.play(this)
+            var clip: PooledClip? =
+                PooledClip.play(this)
         }
     }
 }

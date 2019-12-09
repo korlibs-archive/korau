@@ -116,3 +116,5 @@ suspend fun NativeSound.playAndWait(progress: NativeSoundChannel.(current: TimeS
 suspend fun VfsFile.readNativeSound(streaming: Boolean = false) = nativeSoundProvider.createSound(this, streaming)
 suspend fun VfsFile.readNativeSoundOptimized(streaming: Boolean = false) =
 	nativeSoundProvider.createSound(this, streaming)
+
+suspend fun ByteArray.readNativeSound(streaming: Boolean = false) = nativeSoundProvider.createSound(this, streaming)
