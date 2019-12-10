@@ -225,14 +225,21 @@ private val arch by lazy { System.getProperty("os.arch").toLowerCase() }
 private val alClassLoader by lazy { JnaOpenALNativeSoundProvider::class.java.classLoader }
 private fun getNativeFile(path: String): ByteArray = alClassLoader.getResource(path)?.readBytes() ?: error("Can't find '$path'")
 private fun getNativeFileLocalPath(path: String): String {
-    val tempFile = File.createTempFile("libopenal_", ".${File(path).extension}")
-    tempFile.writeBytes(getNativeFile(path))
+    val tempDir = File(System.getProperty("java.io.tmpdir"))
+    //val tempFile = File.createTempFile("libopenal_", ".${File(path).extension}")
+    val tempFile = File(tempDir, "korau_openal.${File(path).extension}")
+    if (!tempFile.exists()) {
+        try {
+            tempFile.writeBytes(getNativeFile(path))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
     return tempFile.absolutePath
 }
 
 val nativeOpenALLibraryPath: String? by lazy {
-    println("Initializing OpenAL: arch=$arch, OS.rawName=${OS.rawName}")
-    val result = when {
+    when {
         OS.isMac -> {
             //getNativeFileLocalPath("natives/macosx64/libopenal.dylib")
             "OpenAL" // Mac already includes the OpenAL library
@@ -255,13 +262,17 @@ val nativeOpenALLibraryPath: String? by lazy {
             null
         }
     }
-    println("   -> $result")
-    result
 }
 
 val al: AL? by lazy {
     runCatchingAl {
-        Native.load(nativeOpenALLibraryPath, AL::class.java)
+        try {
+            Native.load(nativeOpenALLibraryPath, AL::class.java)
+        } catch (e: Throwable) {
+            println("Failed to initialize OpenAL: arch=$arch, OS.rawName=${OS.rawName}, nativeOpenALLibraryPath=$nativeOpenALLibraryPath")
+            e.printStackTrace()
+            throw e
+        }
     }
 }
 
