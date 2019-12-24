@@ -4,8 +4,8 @@
 
 <!-- BADGES -->
 <p align="center">
-	<a href="https://travis-ci.org/korlibs/korau"><img alt="Build Status" src="https://travis-ci.org/korlibs/korau.svg?branch=master" /></a>
-	<a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22korau%22"><img alt="Maven Version" src="https://img.shields.io/github/tag/korlibs/korau.svg?style=flat&label=maven" /></a>
+	<a href="https://github.com/korlibs/korau/actions"><img alt="Build Status" src="https://github.com/korlibs/korau/workflows/CI/badge.svg" /></a>
+	<a href="https://bintray.com/korlibs/korlibs/korau"><img alt="Maven Version" src="https://img.shields.io/bintray/v/korlibs/korlibs/korau.svg?style=flat&label=maven" /></a>
 	<a href="https://slack.soywiz.com/"><img alt="Slack" src="https://img.shields.io/badge/chat-on%20slack-green?style=flat&logo=slack" /></a>
 </p>
 <!-- /BADGES -->
