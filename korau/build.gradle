@@ -4,8 +4,15 @@ apply plugin: com.soywiz.korlibs.KorlibsPlugin
 
 korlibs {
     exposeVersion()
-    dependencyCInterops("minimp3", ["mingwX64", "macosX64", *(korlibs.linuxEnabled ? ["linuxX64"] : []), "iosX64", "iosArm32", "iosArm64"])
-    dependencyCInterops("stb_vorbis", ["mingwX64", "macosX64", *(korlibs.linuxEnabled ? ["linuxX64"] : []), "iosX64", "iosArm32", "iosArm64"])
+    def nativeTargets = [
+        "mingwX64", "macosX64",
+        *(korlibs.linuxEnabled ? ["linuxX64"] : []),
+        "iosX64", "iosArm32", "iosArm64",
+        "tvOSX64", "tvOSArm64",
+        "watchOSX86", "watchOSArm32"
+    ]
+    dependencyCInterops("minimp3",    nativeTargets)
+    dependencyCInterops("stb_vorbis", nativeTargets)
     dependencyCInterops("win32_winmm", ["mingwX64"])
     if (korlibs.linuxEnabled) {
         dependencyCInterops("linux_OpenAL", ["linuxX64"])
