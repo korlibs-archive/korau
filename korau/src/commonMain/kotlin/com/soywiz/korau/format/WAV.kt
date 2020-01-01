@@ -6,6 +6,7 @@ import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.annotations.*
+import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
 
@@ -153,4 +154,4 @@ open class WAV : AudioFormat("wav") {
 	}
 }
 
-suspend fun AudioData.toWav() = WAV.encodeToByteArray(this)
+fun AudioData.toWav() = runBlockingNoSuspensions { WAV.encodeToByteArray(this) }
