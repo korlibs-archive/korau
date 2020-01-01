@@ -8,8 +8,8 @@ korlibs {
         "mingwX64", "macosX64",
         *(korlibs.linuxEnabled ? ["linuxX64"] : []),
         "iosX64", "iosArm32", "iosArm64",
-        "tvOSX64", "tvOSArm64",
-        "watchOSX86", "watchOSArm32"
+        "tvosX64", "tvosArm64",
+        "watchosX86", "watchosArm32"
     ]
     dependencyCInterops("minimp3",    nativeTargets)
     dependencyCInterops("stb_vorbis", nativeTargets)
