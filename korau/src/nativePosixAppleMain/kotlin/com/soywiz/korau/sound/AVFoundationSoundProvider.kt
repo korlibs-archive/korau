@@ -36,7 +36,7 @@ val avFoundationNativeSoundProvider: AvFoundationNativeSoundProvider by lazy {
 }
 actual val nativeSoundProvider: NativeSoundProvider get() = avFoundationNativeSoundProvider
 
-private fun ByteArray.toNsData(): NSData {
+private fun ByteArray.toNSData(): NSData {
     val array = this
     return memScoped {
         array.usePinned { arrayPin ->
@@ -54,7 +54,7 @@ class AVFoundationNativeSoundNoStream(val coroutineScope: CoroutineScope, val da
 
         val player = memScoped {
             val error = alloc<ObjCObjectVar<NSError?>>().ptr
-            AVAudioPlayer(data.toWav().toNsData(), error)
+            AVAudioPlayer(data.toWav().toNSData(), error)
         }
         player.play()
 
