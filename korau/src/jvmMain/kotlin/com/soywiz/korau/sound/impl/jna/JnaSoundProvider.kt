@@ -1,13 +1,9 @@
 package com.soywiz.korau.sound.impl.jna
 
 import com.soywiz.klock.*
-import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.file.*
-import com.soywiz.korio.file.std.*
 import com.soywiz.korio.util.*
-import com.soywiz.korio.util.encoding.*
 import com.sun.jna.*
 import kotlinx.coroutines.*
 import java.io.*
@@ -167,13 +163,97 @@ interface AL : Library {
     }
 }
 
+object ALDummy : AL {
+    override fun alDopplerFactor(value: Float) = Unit
+    override fun alDopplerVelocity(value: Float) = Unit
+    override fun alSpeedOfSound(value: Float) = Unit
+    override fun alDistanceModel(distanceModel: Int) = Unit
+    override fun alEnable(capability: Int) = Unit
+    override fun alDisable(capability: Int) = Unit
+    override fun alIsEnabled(capability: Int): Boolean = false
+    override fun alGetString(param: Int): String = "ALDummy"
+    override fun alGetBooleanv(param: Int, values: BooleanArray) = Unit
+    override fun alGetIntegerv(param: Int, values: IntArray) = Unit
+    override fun alGetFloatv(param: Int, values: FloatArray) = Unit
+    override fun alGetDoublev(param: Int, values: DoubleArray) = Unit
+    override fun alGetBoolean(param: Int): Boolean = false
+    override fun alGetInteger(param: Int): Int = 0
+    override fun alGetFloat(param: Int): Float = 0f
+    override fun alGetDouble(param: Int): Double = 0.0
+    override fun alGetError(): Int = 0
+    override fun alIsExtensionPresent(extname: String): Boolean = false
+    override fun alGetProcAddress(fname: String): Pointer = TODO()
+    override fun alGetEnumValue(ename: String): Int = 0
+    override fun alListenerf(param: Int, value: Float) = Unit
+    override fun alListener3f(param: Int, value1: Float, value2: Float, value3: Float) = Unit
+    override fun alListenerfv(param: Int, values: FloatArray) = Unit
+    override fun alListeneri(param: Int, value: Int) = Unit
+    override fun alListener3i(param: Int, value1: Int, value2: Int, value3: Int) = Unit
+    override fun alListeneriv(param: Int, values: IntArray) = Unit
+    override fun alGetListenerf(param: Int, value: FloatArray) = Unit
+    override fun alGetListener3f(param: Int, value1: FloatArray, value2: FloatArray, value3: FloatArray) = Unit
+    override fun alGetListenerfv(param: Int, values: FloatArray) = Unit
+    override fun alGetListeneri(param: Int, value: IntArray) = Unit
+    override fun alGetListener3i(param: Int, value1: IntArray, value2: IntArray, value3: IntArray) = Unit
+    override fun alGetListeneriv(param: Int, values: IntArray) = Unit
+    override fun alGenSources(n: Int, sources: IntArray) = Unit
+    override fun alDeleteSources(n: Int, sources: IntArray) = Unit
+    override fun alIsSource(source: Int): Boolean = false
+    override fun alSourcef(source: Int, param: Int, value: Float) = Unit
+    override fun alSource3f(source: Int, param: Int, value1: Float, value2: Float, value3: Float) = Unit
+    override fun alSourcefv(source: Int, param: Int, values: FloatArray) = Unit
+    override fun alSourcei(source: Int, param: Int, value: Int) = Unit
+    override fun alSource3i(source: Int, param: Int, value1: Int, value2: Int, value3: Int) = Unit
+    override fun alSourceiv(source: Int, param: Int, values: IntArray) = Unit
+    override fun alGetSourcef(source: Int, param: Int, value: FloatArray) = Unit
+    override fun alGetSource3f(source: Int, param: Int, value1: FloatArray, value2: FloatArray, value3: FloatArray) = Unit
+    override fun alGetSourcefv(source: Int, param: Int, values: FloatArray) = Unit
+    override fun alGetSourcei(source: Int, param: Int, value: IntArray) = Unit
+    override fun alGetSource3i(source: Int, param: Int, value1: IntArray, value2: IntArray, value3: IntArray) = Unit
+    override fun alGetSourceiv(source: Int, param: Int, values: IntArray) = Unit
+    override fun alSourcePlayv(n: Int, sources: IntArray) = Unit
+    override fun alSourceStopv(n: Int, sources: IntArray) = Unit
+    override fun alSourceRewindv(n: Int, sources: IntArray) = Unit
+    override fun alSourcePausev(n: Int, sources: IntArray) = Unit
+    override fun alSourcePlay(source: Int) = Unit
+    override fun alSourceStop(source: Int) = Unit
+    override fun alSourceRewind(source: Int) = Unit
+    override fun alSourcePause(source: Int) = Unit
+    override fun alSourceQueueBuffers(source: Int, nb: Int, buffers: IntArray) = Unit
+    override fun alSourceUnqueueBuffers(source: Int, nb: Int, buffers: IntArray) = Unit
+    override fun alGenBuffers(n: Int, buffers: IntArray) = Unit
+    override fun alDeleteBuffers(n: Int, buffers: IntArray) = Unit
+    override fun alIsBuffer(buffer: Int): Boolean = false
+    override fun alBufferData(buffer: Int, format: Int, data: Buffer?, size: Int, freq: Int) = Unit
+    override fun alBufferf(buffer: Int, param: Int, value: Float) = Unit
+    override fun alBuffer3f(buffer: Int, param: Int, value1: Float, value2: Float, value3: Float) = Unit
+    override fun alBufferfv(buffer: Int, param: Int, values: FloatArray) = Unit
+    override fun alBufferi(buffer: Int, param: Int, value: Int) = Unit
+    override fun alBuffer3i(buffer: Int, param: Int, value1: Int, value2: Int, value3: Int) = Unit
+    override fun alBufferiv(buffer: Int, param: Int, values: IntArray) = Unit
+    override fun alGetBufferf(buffer: Int, param: Int, value: FloatArray) = Unit
+    override fun alGetBuffer3f(buffer: Int, param: Int, value1: FloatArray, value2: FloatArray, value3: FloatArray) = Unit
+    override fun alGetBufferfv(buffer: Int, param: Int, values: FloatArray) = Unit
+    override fun alGetBufferi(buffer: Int, param: Int, value: IntArray) = Unit
+    override fun alGetBuffer3i(buffer: Int, param: Int, value1: IntArray, value2: IntArray, value3: IntArray) = Unit
+    override fun alGetBufferiv(buffer: Int, param: Int, values: IntArray) = Unit
+}
+
+fun AL.alGenBuffer(): Int = tempI.apply { al.alGenBuffers(1, this) }[0]
+fun AL.alGenSource(): Int = tempI.apply { al.alGenSources(1, this) }[0]
+fun AL.alDeleteBuffer(buffer: Int): Unit = run { al.alDeleteBuffers(1, tempI.also { it[0] = buffer }) }
+fun AL.alDeleteSource(buffer: Int): Unit = run { al.alDeleteSources(1, tempI.also { it[0] = buffer }) }
+fun AL.alGetSourcef(source: Int, param: Int): Float = tempF.apply { al.alGetSourcef(source, param, this) }[0]
+fun AL.alGetSourcei(source: Int, param: Int): Int = tempI.apply { al.alGetSourcei(source, param, this) }[0]
+fun AL.alGetSourceState(source: Int): Int = alGetSourcei(source, AL.AL_SOURCE_STATE)
+
 @Suppress("unused")
 interface ALC : Library {
-    fun alcCreateContext(device: Pointer, attrlist: IntArray?): Pointer;
+    fun alcCreateContext(device: Pointer, attrlist: IntArray?): Pointer
     fun alcMakeContextCurrent(context: Pointer): Boolean
-    fun alcProcessContext(context: Pointer);
-    fun alcSuspendContext(context: Pointer);
-    fun alcDestroyContext(context: Pointer);
+    fun alcProcessContext(context: Pointer)
+    fun alcSuspendContext(context: Pointer)
+    fun alcDestroyContext(context: Pointer)
     fun alcGetCurrentContext(): Pointer
     fun alcGetContextsDevice(context: Pointer): Pointer
     fun alcOpenDevice(devicename: String?): Pointer
@@ -183,12 +263,12 @@ interface ALC : Library {
     fun alcGetProcAddress(device: Pointer, funcname: String): Pointer
     fun alcGetEnumValue(device: Pointer, enumname: String): Int
     fun alcGetString(device: Pointer, param: Int): String
-    fun alcGetIntegerv(device: Pointer, param: Int, size: Int, values: IntArray);
+    fun alcGetIntegerv(device: Pointer, param: Int, size: Int, values: IntArray)
     fun alcCaptureOpenDevice(devicename: String, frequency: Int, format: Int, buffersize: Int): Pointer
     fun alcCaptureCloseDevice(device: Pointer): Boolean
-    fun alcCaptureStart(device: Pointer);
-    fun alcCaptureStop(device: Pointer);
-    fun alcCaptureSamples(device: Pointer, buffer: Buffer, samples: Int);
+    fun alcCaptureStart(device: Pointer)
+    fun alcCaptureStop(device: Pointer)
+    fun alcCaptureSamples(device: Pointer, buffer: Buffer, samples: Int)
 
     companion object {
         const val ALC_FALSE = 0
@@ -264,7 +344,7 @@ val nativeOpenALLibraryPath: String? by lazy {
     }
 }
 
-val al: AL? by lazy {
+val alq: AL? by lazy {
     runCatchingAl {
         try {
             Native.load(nativeOpenALLibraryPath, AL::class.java)
@@ -275,6 +355,8 @@ val al: AL? by lazy {
         }
     }
 }
+
+val al: AL by lazy { alq ?: ALDummy }
 
 val alc: ALC? by lazy {
     runCatchingAl {
@@ -292,31 +374,124 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
 
     fun makeCurrent() {
         context?.let { alc?.alcMakeContextCurrent(it) }
-
     }
 
     private fun doInit() {
         //println("ALut.alutInit: ${Thread.currentThread()}")
         makeCurrent()
 
-        al?.alListener3f(AL.AL_POSITION, 0f, 0f, 1.0f)
-        checkAlErrors()
-        al?.alListener3f(AL.AL_VELOCITY, 0f, 0f, 0f)
-        checkAlErrors()
+        al.alListener3f(AL.AL_POSITION, 0f, 0f, 1.0f)
+        checkAlErrors("alListener3f")
+        al.alListener3f(AL.AL_VELOCITY, 0f, 0f, 0f)
+        checkAlErrors("alListener3f")
         //al?.alListenerfv(AL.AL_ORIENTATION, floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f), 0)
-        al?.alListenerfv(AL.AL_ORIENTATION, floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f))
-        checkAlErrors()
+        al.alListenerfv(AL.AL_ORIENTATION, floatArrayOf(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f))
+        checkAlErrors("alListenerfv")
     }
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound =
         OpenALNativeSoundNoStream(this, coroutineContext, nativeAudioFormats.decode(data))
 
-    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound {
-        return super.createSound(vfs, path, streaming)
+    override fun createAudioStream(freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, freq)
+}
+
+class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val freq: Int) : PlatformAudioOutput(freq) {
+    override var availableSamples: Int = 0
+
+    //val source
+
+    //alSourceQueueBuffers
+
+    //val buffersPool = Pool(6) { all.alGenBuffer() }
+    //val buffers = IntArray(32)
+    val buffers = IntArray(6)
+    var source: Int = 0
+
+    init {
+        start()
     }
 
-    override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
-        return super.createSound(data, formats, streaming)
+    override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
+        availableSamples += samples.size
+        provider.makeCurrent()
+        val tempBuffers = IntArray(1)
+        ensureSource()
+        while (true) {
+            //val buffer = al.alGetSourcei(source, AL.AL_BUFFER)
+            //val sampleOffset = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
+            val processed = al.alGetSourcei(source, AL.AL_BUFFERS_PROCESSED)
+            val queued = al.alGetSourcei(source, AL.AL_BUFFERS_QUEUED)
+            val total = processed + queued
+            val state = al.alGetSourceState(source)
+            val playing = state == AL.AL_PLAYING
+
+            //println("buffer=$buffer, processed=$processed, queued=$queued, state=$state, playing=$playing, sampleOffset=$sampleOffset")
+
+            if (processed <= 0 && total >= 6) {
+                delay(10.milliseconds)
+                continue
+            }
+
+            if (total < 6) {
+                al.alGenBuffers(1, tempBuffers)
+                checkAlErrors("alGenBuffers")
+                //println("alGenBuffers: ${tempBuffers[0]}")
+            } else {
+                al.alSourceUnqueueBuffers(source, 1, tempBuffers)
+                checkAlErrors("alSourceUnqueueBuffers")
+                //println("alSourceUnqueueBuffers: ${tempBuffers[0]}")
+            }
+            //println("samples: $samples - $offset, $size")
+            al.alBufferData(tempBuffers[0], samples.copyOfRange(offset, offset + size), freq)
+            al.alSourceQueueBuffers(source, 1, tempBuffers)
+            checkAlErrors("alSourceQueueBuffers")
+
+            if (!playing) {
+                al.alSourcePlay(source)
+            }
+            break
+        }
+    }
+
+    fun ensureSource() {
+        if (source != 0) return
+        provider.makeCurrent()
+
+        source = al.alGenSource().also { source ->
+            al.alSourcef(source, AL.AL_PITCH, 1f)
+            al.alSourcef(source, AL.AL_GAIN, 1f)
+            al.alSource3f(source, AL.AL_POSITION, 0f, 0f, 0f)
+            al.alSource3f(source, AL.AL_VELOCITY, 0f, 0f, 0f)
+            al.alSourcei(source, AL.AL_LOOPING, AL.AL_FALSE)
+        }
+        al.alGenBuffers(buffers.size, buffers)
+    }
+
+    override fun start() {
+        ensureSource()
+        al.alSourcePlay(source)
+        checkAlErrors("alSourcePlay")
+        //checkAlErrors()
+    }
+
+    override fun stop() {
+        dispose()
+    }
+
+    override fun dispose() {
+        provider.makeCurrent()
+
+        al.alSourceStop(source)
+        if (source != 0) {
+            al.alDeleteSource(source)
+            source = 0
+        }
+        for (n in buffers.indices) {
+            if (buffers[n] != 0) {
+                al.alDeleteBuffer(buffers[n])
+                buffers[n] = 0
+            }
+        }
     }
 }
 
@@ -331,53 +506,53 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
 
         provider.makeCurrent()
 
-        val buffer = alGenBuffer()
-        alBufferData(buffer, data)
+        val buffer = al.alGenBuffer()
+        al.alBufferData(buffer, data)
 
-        val source = alGenSource()
-        al?.alSourcef(source, AL.AL_PITCH, 1f)
-        al?.alSourcef(source, AL.AL_GAIN, 1f)
-        al?.alSource3f(source, AL.AL_POSITION, 0f, 0f, 0f)
-        al?.alSource3f(source, AL.AL_VELOCITY, 0f, 0f, 0f)
-        al?.alSourcei(source, AL.AL_LOOPING, AL.AL_FALSE)
-        al?.alSourcei(source, AL.AL_BUFFER, buffer)
-        checkAlErrors()
+        val source = al.alGenSource()
+        al.alSourcef(source, AL.AL_PITCH, 1f)
+        al.alSourcef(source, AL.AL_GAIN, 1f)
+        al.alSource3f(source, AL.AL_POSITION, 0f, 0f, 0f)
+        al.alSource3f(source, AL.AL_VELOCITY, 0f, 0f, 0f)
+        al.alSourcei(source, AL.AL_LOOPING, AL.AL_FALSE)
+        al.alSourcei(source, AL.AL_BUFFER, buffer)
+        checkAlErrors("alSourcei")
 
-        al?.alSourcePlay(source)
-        checkAlErrors()
+        al.alSourcePlay(source)
+        checkAlErrors("alSourcePlay")
 
         var stopped = false
 
         val channel = object : NativeSoundChannel(this) {
             val totalSamples get() = data.totalSamples
-            val currentSampleOffset get() = alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
+            val currentSampleOffset get() = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
 
             override var volume: Double
-                get() = run { alGetSourcef(source, AL.AL_GAIN).toDouble() }
-                set(value) = run { al?.alSourcef(source, AL.AL_GAIN, value.toFloat()) }
+                get() = run { al.alGetSourcef(source, AL.AL_GAIN).toDouble() }
+                set(value) = run { al.alSourcef(source, AL.AL_GAIN, value.toFloat()) }
             override var pitch: Double
-                get() = run { alGetSourcef(source, AL.AL_PITCH).toDouble() }
-                set(value) = run { al?.alSourcef(source, AL.AL_PITCH, value.toFloat()) }
+                get() = run { al.alGetSourcef(source, AL.AL_PITCH).toDouble() }
+                set(value) = run { al.alSourcef(source, AL.AL_PITCH, value.toFloat()) }
             override var panning: Double = 0.0
                 set(value) = run {
                     field = value
-                    al?.alSource3f(source, AL.AL_POSITION, panning.toFloat(), 0f, 0f)
+                    al.alSource3f(source, AL.AL_POSITION, panning.toFloat(), 0f, 0f)
                 }
 
             override val current: TimeSpan get() = data.timeAtSample(currentSampleOffset)
             override val total: TimeSpan get() = data.totalTime
             override val playing: Boolean
                 get() {
-                    val result = alGetSourceState(source) == AL.AL_PLAYING
-                    checkAlErrors()
+                    val result = al.alGetSourceState(source) == AL.AL_PLAYING
+                    checkAlErrors("alGetSourceState")
                     return result
                 }
 
             override fun stop() {
                 if (!stopped) {
                     stopped = true
-                    alDeleteSource(source)
-                    alDeleteBuffer(buffer)
+                    al.alDeleteSource(source)
+                    al.alDeleteBuffer(buffer)
                 }
             }
         }
@@ -401,31 +576,26 @@ private val tempI = IntArray(1)
 //private fun alGetSourcef(source: Int, param: Int): Float = tempF.apply { al?.alGetSourcef(source, param, this, 0) }[0]
 //private fun alGetSourcei(source: Int, param: Int): Int = tempI.apply { al?.alGetSourcei(source, param, this, 0) }[0]
 
-private fun alGetSourcef(source: Int, param: Int): Float = tempF.apply { al?.alGetSourcef(source, param, this) }[0]
-private fun alGetSourcei(source: Int, param: Int): Int = tempI.apply { al?.alGetSourcei(source, param, this) }[0]
-private fun alGetSourceState(source: Int): Int = alGetSourcei(source, AL.AL_SOURCE_STATE)
+private fun AL.alBufferData(buffer: Int, data: AudioSamples, freq: Int) {
+    alBufferData(buffer, AudioData(freq, data))
+}
 
-private fun alBufferData(buffer: Int, data: AudioData) {
+private fun AL.alBufferData(buffer: Int, data: AudioData) {
     val samples = data.samplesInterleaved.data
 
     val bufferData = ShortBuffer.wrap(samples)
     //val bufferData = ByteBuffer.allocateDirect(samples.size * 2).order(ByteOrder.nativeOrder())
     //bufferData.asShortBuffer().put(samples)
 
-    al?.alBufferData(
+    al.alBufferData(
         buffer,
         if (data.channels == 1) AL.AL_FORMAT_MONO16 else AL.AL_FORMAT_STEREO16,
         if (samples.isNotEmpty()) bufferData else null,
         samples.size * 2,
         data.rate
     )
-    checkAlErrors()
+    checkAlErrors("alBufferData")
 }
-
-private fun alGenBuffer(): Int = tempI.apply { al?.alGenBuffers(1, this) }[0]
-private fun alGenSource(): Int = tempI.apply { al?.alGenSources(1, this) }[0]
-private fun alDeleteBuffer(buffer: Int): Unit = run { al?.alDeleteBuffers(1, tempI.also { it[0] = buffer }) }
-private fun alDeleteSource(buffer: Int): Unit = run { al?.alDeleteSources(1, tempI.also { it[0] = buffer }) }
 
 //private fun alGenBuffer(): Int = tempI.apply { al?.alGenBuffers(1, this, 0) }[0]
 //private fun alGenSource(): Int = tempI.apply { al?.alGenSources(1, this, 0) }[0]
@@ -447,7 +617,7 @@ private val context by lazy { alc.alcCreateContext(device, null).also {
 } }
 */
 
-fun checkAlErrors() {
-//    val error = al.alGetError()
-//    if (error != AL.AL_NO_ERROR) error("OpenAL error ${error.shex}")
+fun checkAlErrors(name: String) {
+    //val error = al.alGetError()
+    //if (error != AL.AL_NO_ERROR) error("OpenAL error ${error.shex} '$name'")
 }
