@@ -153,8 +153,8 @@ class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 				get() = super.pitch
 				set(value) {}
 			override var panning: Double
-				get() = channel?.panner?.pan?.value ?: 0.0
-				set(value) { channel?.panner?.pan?.value = value }
+				get() = channel?.panning ?: 0.0
+				set(value) { channel?.panning = value }
 			override val current: TimeSpan get() = channel?.currentTime?.seconds ?: 0.seconds
 			override val total: TimeSpan = buffer?.duration?.seconds ?: 0.seconds
 			override val playing: Boolean get() = current < total
