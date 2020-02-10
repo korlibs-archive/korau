@@ -35,10 +35,15 @@ object HtmlSimpleSound {
 		val buffer: AudioBuffer,
 		val node: AudioBufferSourceNode?,
 		val gain: GainNode?,
-		val panner: StereoPannerNode?
+		val panner: PannerNode?
 	) {
 		val startTime = ctx?.currentTime ?: 0.0
 		val currentTime get() = ctx?.currentTime ?: 0.0
+        var panning: Double = 0.0
+            set(value) = run {
+                panner?.setPosition(panning, 0.0, 0.0)
+                field = value
+            }
 
 		private var running = true
 		val playing get() = running && currentTime < buffer.duration
@@ -49,9 +54,9 @@ object HtmlSimpleSound {
 		}
 	}
 
-	fun AudioNode.panner(callback: StereoPannerNode.() -> Unit = {}): StereoPannerNode? {
+	fun AudioNode.panner(callback: PannerNode.() -> Unit = {}): PannerNode? {
 		val ctx = ctx ?: return null
-		val node = ctx.createStereoPanner()
+		val node = kotlin.runCatching { ctx.createPanner() }.getOrNull() ?: return null
 		callback(node)
 		node.connect(this)
 		return node
@@ -78,7 +83,7 @@ object HtmlSimpleSound {
 		if (ctx == null) return null
 
 		var gainNode: GainNode? = null
-		var pannerNode: StereoPannerNode? = null
+		var pannerNode: PannerNode? = null
 		var sourceNode: AudioBufferSourceNode? = null
 		ctx.destination.apply {
 			pannerNode = panner {
@@ -198,6 +203,10 @@ external interface StereoPannerNode : AudioNode {
 	val pan: AudioParam
 }
 
+external interface PannerNode : AudioNode {
+    fun setPosition(x: Double, y: Double, z: Double)
+    fun setOrientation(x: Double, y: Double, z: Double)
+}
 
 open external class BaseAudioContext {
 	fun createScriptProcessor(
@@ -211,6 +220,7 @@ open external class BaseAudioContext {
 	fun createMediaElementSource(audio: HTMLAudioElement): MediaElementAudioSourceNode
 	fun createBufferSource(): AudioBufferSourceNode
 	fun createGain(): GainNode
+    fun createPanner(): PannerNode
 	fun createStereoPanner(): StereoPannerNode
 	fun createBuffer(numOfchannels: Int, length: Int, rate: Int): AudioBuffer
 
