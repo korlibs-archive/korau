@@ -96,8 +96,9 @@ class JsPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
 		} else {
 			ensureRunning()
 
+            val schannels = samples.channels
 			for (channel in 0 until nchannels) {
-				val sample = samples[channel]
+				val sample = samples[channel % schannels]
 				val deque = deques[channel]
 				for (n in 0 until size) {
 					deque.write(SampleConvert.shortToFloat(sample[offset + n]))
