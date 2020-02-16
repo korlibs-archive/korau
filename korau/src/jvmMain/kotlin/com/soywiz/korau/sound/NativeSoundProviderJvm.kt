@@ -1,12 +1,12 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.korau.format.*
+import com.soywiz.korau.format.mp3.*
 import com.soywiz.korau.sound.impl.jna.*
-import com.soywiz.korau.sound.impl.jogamp.*
 import java.util.*
 
 internal val nativeAudioFormats = AudioFormats().register(
-    ServiceLoader.load(com.soywiz.korau.format.AudioFormat::class.java).toList()
+    listOf(WAV, MP3, OGG, MP3Decoder) + (runCatching { ServiceLoader.load(AudioFormat::class.java).toList() }.getOrNull() ?: listOf())
 )
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { JnaOpenALNativeSoundProvider() }
