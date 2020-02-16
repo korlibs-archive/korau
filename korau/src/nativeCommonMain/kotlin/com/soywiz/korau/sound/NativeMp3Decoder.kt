@@ -6,9 +6,8 @@ import kotlinx.cinterop.*
 import minimp3.*
 
 object NativeMp3DecoderFormat : AudioFormat("mp3") {
-    override suspend fun tryReadInfo(data: AsyncStream): Info? {
-        return MP3.tryReadInfo(data)
-    }
+    override suspend fun tryReadInfo(data: AsyncStream): Info?
+        = MP3.tryReadInfo(data)
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
         return object : NativeAudioDecoder(data, MINIMP3_MAX_SAMPLES_PER_FRAME) {
