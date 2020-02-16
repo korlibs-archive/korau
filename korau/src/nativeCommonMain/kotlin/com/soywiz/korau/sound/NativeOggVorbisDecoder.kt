@@ -9,8 +9,9 @@ import kotlinx.cinterop.*
 import stb_vorbis.*
 
 object NativeOggVorbisDecoderFormat : AudioFormat("ogg") {
-    override suspend fun tryReadInfo(data: AsyncStream): Info? =
-        decodeStream(data)?.use { Info(it.totalLength.microseconds.microseconds, it.channels) }
+    override suspend fun tryReadInfo(data: AsyncStream): Info?
+        = OGG.tryReadInfo(data)
+        //= decodeStream(data)?.use { Info(it.totalLength.microseconds.microseconds, it.channels) }
 
     override suspend fun decodeStream(data: AsyncStream): AudioStream? {
         return object : NativeAudioDecoder(data, 16 * 1024) {
