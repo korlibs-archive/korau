@@ -10,11 +10,11 @@ import kotlin.coroutines.*
 import kotlinx.coroutines.*
 import platform.windows.*
 
-val nativeAudioFormats = AudioFormats().register(
-    WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat
-)
+val nativeAudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
 
-actual val nativeSoundProvider: NativeSoundProvider = object : NativeSoundProvider() {
+actual val nativeSoundProvider: NativeSoundProvider = NativeNativeSoundProvider
+
+object NativeNativeSoundProvider : NativeSoundProvider() {
     override fun initOnce() {
         super.initOnce()
     }

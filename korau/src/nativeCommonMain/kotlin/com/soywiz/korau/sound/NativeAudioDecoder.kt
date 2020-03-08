@@ -49,7 +49,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
                         val frameDataPtr = it.addressOf(0)
                         decodeFrameBase(samplesDataPtr, frameDataPtr, frameSize, info)
                         dataBuffer.writeHead(frameData, info.frameBytes, frameSize - info.frameBytes)
-                        samplesBuffers.writeInterleaved(samplesData, 0, info.samplesDecoded, channels = info.nchannels)
+                        samplesBuffers.writeInterleaved(samplesData, 0, info.samplesDecoded * info.nchannels, channels = info.nchannels)
                     }
                 }
             }

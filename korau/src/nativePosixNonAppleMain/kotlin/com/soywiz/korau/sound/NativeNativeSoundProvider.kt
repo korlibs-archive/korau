@@ -9,9 +9,7 @@ import kotlinx.coroutines.*
 import platform.OpenAL.*
 import kotlin.coroutines.*
 
-val nativeAudioFormats = AudioFormats().register(
-    WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat
-)
+val nativeAudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
 
 class OpenALNativeSoundProvider : NativeSoundProvider() {
     val device = alcOpenDevice(null)

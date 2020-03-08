@@ -13,9 +13,7 @@ import kotlin.coroutines.*
 
 expect fun appleInitAudio()
 
-val nativeAudioFormats = AudioFormats().register(
-    WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat
-)
+val nativeAudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
 
 class AvFoundationNativeSoundProvider : NativeSoundProvider() {
     init {

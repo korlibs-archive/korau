@@ -39,7 +39,7 @@ open class InvalidAudioFormatException(message: String) : RuntimeException(messa
 
 fun invalidAudioFormat(message: String = "invalid audio format"): Nothing = throw InvalidAudioFormatException(message)
 
-val defaultAudioFormats = AudioFormats().apply { registerStandard() }
+val defaultAudioFormats by lazy { standardAudioFormats() }
 
 class AudioFormats : AudioFormat() {
 	val formats = linkedSetOf<AudioFormat>()
@@ -49,6 +49,7 @@ class AudioFormats : AudioFormat() {
         operator fun invoke(formats: Iterable<AudioFormat>) = AudioFormats().register(formats)
     }
 
+    fun register(formats: AudioFormats): AudioFormats = this.apply { this.formats += formats.formats }
 	fun register(vararg formats: AudioFormat): AudioFormats = this.apply { this.formats += formats }
 	fun register(formats: Iterable<AudioFormat>): AudioFormats = this.apply { this.formats += formats }
 
@@ -91,4 +92,8 @@ class AudioFormats : AudioFormat() {
 suspend fun VfsFile.readSoundInfo(formats: AudioFormats = defaultAudioFormats) =
 	this.openUse { formats.tryReadInfo(this) }
 
-fun AudioFormats.registerStandard(): AudioFormats = this.apply { register(WAV, OGG, MP3) }
+fun standardAudioFormats(): AudioFormats = AudioFormats(WAV, OGG, MP3)
+
+@Deprecated("Use standardAudioFormats")
+fun AudioFormats.registerStandard(): AudioFormats = this.apply { register(standardAudioFormats()) }
+
