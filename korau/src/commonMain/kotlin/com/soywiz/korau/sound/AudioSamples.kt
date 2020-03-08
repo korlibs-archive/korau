@@ -48,8 +48,14 @@ fun AudioSamples.copyOfRange(start: Int, end: Int): AudioSamples {
 }
 
 fun IAudioSamples.interleaved(out: AudioSamplesInterleaved = AudioSamplesInterleaved(channels, totalSamples)): AudioSamplesInterleaved {
-    var m = 0
-    for (n in 0 until totalSamples) for (c in 0 until channels) out.data[m++] = this[c, n]
+    val channels = channels
+    for (c in 0 until channels) {
+        var m = c
+        for (n in 0 until totalSamples) {
+            out.data[m] = this[c, n]
+            m += channels
+        }
+    }
     return out
 }
 
