@@ -122,7 +122,7 @@ public open class NativeAudioDecoder(public val runtime: AbstractRuntime, val da
             decodeFrameBase(samplesDataPtr, frameDataPtr, frameSize, info)
             runtime.read(samplesDataPtr, samplesData)
             dataBuffer.writeHead(frameData, info.frameBytes, frameSize - info.frameBytes)
-            samplesBuffers.writeInterleaved(samplesData, 0, info.samplesDecoded, channels = info.nchannels)
+            samplesBuffers.writeInterleaved(samplesData, 0, info.samplesDecoded * info.nchannels, channels = info.nchannels)
             n++
             if (n >= 16) break
         }
