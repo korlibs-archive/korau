@@ -5,7 +5,7 @@ import com.soywiz.korio.file.std.*
 import kotlin.test.*
 
 class AudioFormatTest {
-	val formats = AudioFormats().registerStandard()
+	val formats = standardAudioFormats()
 
 	@kotlin.test.Test
 	fun wav() = suspendTest {

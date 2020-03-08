@@ -8,7 +8,7 @@ import com.soywiz.korio.util.encoding.*
 import kotlin.test.*
 
 class DecodeTest {
-    val formats = AudioFormats().register(WAV)
+    val formats = AudioFormats(WAV)
 
     @kotlin.test.Test
     fun wav() = suspendTest {

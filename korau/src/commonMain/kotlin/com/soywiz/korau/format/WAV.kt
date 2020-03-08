@@ -42,7 +42,6 @@ open class WAV : AudioFormat("wav") {
 		return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
 			override var finished: Boolean = false
 
-
 			override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
 				val bytes = buffer.readBytesUpTo(length * bytesPerSample * channels)
 				finished = buffer.eof()
