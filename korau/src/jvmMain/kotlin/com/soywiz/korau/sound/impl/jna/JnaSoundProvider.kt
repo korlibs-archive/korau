@@ -389,8 +389,18 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
         checkAlErrors("alListenerfv")
     }
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound =
-        OpenALNativeSoundNoStream(this, coroutineContext, nativeAudioFormats.decode(data))
+    //val myNativeAudioFormats = AudioFormats(MyMP3Decoder) + nativeAudioFormats
+    //val myNativeAudioFormats = AudioFormats(MyMP3Decoder)
+    //val myNativeAudioFormats = nativeAudioFormats
+    override val audioFormats = nativeAudioFormats
+
+    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
+        return if (streaming) {
+            super.createSound(data, streaming)
+        } else {
+            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data))
+        }
+    }
 
     override fun createAudioStream(freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, freq)
 }
@@ -413,43 +423,47 @@ class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val 
 
     override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
         availableSamples += samples.size
-        provider.makeCurrent()
-        val tempBuffers = IntArray(1)
-        ensureSource()
-        while (true) {
-            //val buffer = al.alGetSourcei(source, AL.AL_BUFFER)
-            //val sampleOffset = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
-            val processed = al.alGetSourcei(source, AL.AL_BUFFERS_PROCESSED)
-            val queued = al.alGetSourcei(source, AL.AL_BUFFERS_QUEUED)
-            val total = processed + queued
-            val state = al.alGetSourceState(source)
-            val playing = state == AL.AL_PLAYING
+        try {
+            provider.makeCurrent()
+            val tempBuffers = IntArray(1)
+            ensureSource()
+            while (true) {
+                //val buffer = al.alGetSourcei(source, AL.AL_BUFFER)
+                //val sampleOffset = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
+                val processed = al.alGetSourcei(source, AL.AL_BUFFERS_PROCESSED)
+                val queued = al.alGetSourcei(source, AL.AL_BUFFERS_QUEUED)
+                val total = processed + queued
+                val state = al.alGetSourceState(source)
+                val playing = state == AL.AL_PLAYING
 
-            //println("buffer=$buffer, processed=$processed, queued=$queued, state=$state, playing=$playing, sampleOffset=$sampleOffset")
+                //println("buffer=$buffer, processed=$processed, queued=$queued, state=$state, playing=$playing, sampleOffset=$sampleOffset")
 
-            if (processed <= 0 && total >= 6) {
-                delay(10.milliseconds)
-                continue
+                if (processed <= 0 && total >= 6) {
+                    delay(10.milliseconds)
+                    continue
+                }
+
+                if (total < 6) {
+                    al.alGenBuffers(1, tempBuffers)
+                    checkAlErrors("alGenBuffers")
+                    //println("alGenBuffers: ${tempBuffers[0]}")
+                } else {
+                    al.alSourceUnqueueBuffers(source, 1, tempBuffers)
+                    checkAlErrors("alSourceUnqueueBuffers")
+                    //println("alSourceUnqueueBuffers: ${tempBuffers[0]}")
+                }
+                //println("samples: $samples - $offset, $size")
+                al.alBufferData(tempBuffers[0], samples.copyOfRange(offset, offset + size), freq)
+                al.alSourceQueueBuffers(source, 1, tempBuffers)
+                checkAlErrors("alSourceQueueBuffers")
+
+                if (!playing) {
+                    al.alSourcePlay(source)
+                }
+                break
             }
-
-            if (total < 6) {
-                al.alGenBuffers(1, tempBuffers)
-                checkAlErrors("alGenBuffers")
-                //println("alGenBuffers: ${tempBuffers[0]}")
-            } else {
-                al.alSourceUnqueueBuffers(source, 1, tempBuffers)
-                checkAlErrors("alSourceUnqueueBuffers")
-                //println("alSourceUnqueueBuffers: ${tempBuffers[0]}")
-            }
-            //println("samples: $samples - $offset, $size")
-            al.alBufferData(tempBuffers[0], samples.copyOfRange(offset, offset + size), freq)
-            al.alSourceQueueBuffers(source, 1, tempBuffers)
-            checkAlErrors("alSourceQueueBuffers")
-
-            if (!playing) {
-                al.alSourcePlay(source)
-            }
-            break
+        } finally {
+            availableSamples -= samples.size
         }
     }
 
@@ -495,8 +509,15 @@ class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val 
     }
 }
 
+abstract class BaseOpenALNativeSound(
+    val provider: JnaOpenALNativeSoundProvider,
+    val coroutineContext: CoroutineContext
+) : NativeSound() {
+
+}
+
 // https://ffainelli.github.io/openal-example/
-class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val coroutineContext: CoroutineContext, val data: AudioData?) : NativeSound() {
+class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutineContext: CoroutineContext, val data: AudioData?) : BaseOpenALNativeSound(provider, coroutineContext) {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
     override fun play(): NativeSoundChannel {
@@ -570,6 +591,16 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
         return channel
     }
 }
+
+/*
+class OpenALNativeSoundStream(provider: JnaOpenALNativeSoundProvider, coroutineContext: CoroutineContext, val data: AudioStream?) : BaseOpenALNativeSound(provider, coroutineContext) {
+    override suspend fun decode(): AudioData = data?.toData() ?: AudioData.DUMMY
+
+    override fun play(): NativeSoundChannel {
+        TODO()
+    }
+}
+ */
 
 private val tempF = FloatArray(1)
 private val tempI = IntArray(1)
