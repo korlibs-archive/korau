@@ -44,6 +44,11 @@ val defaultAudioFormats = AudioFormats().apply { registerStandard() }
 class AudioFormats : AudioFormat() {
 	val formats = linkedSetOf<AudioFormat>()
 
+    companion object {
+        operator fun invoke(vararg formats: AudioFormat) = AudioFormats().register(*formats)
+        operator fun invoke(formats: Iterable<AudioFormat>) = AudioFormats().register(formats)
+    }
+
 	fun register(vararg formats: AudioFormat): AudioFormats = this.apply { this.formats += formats }
 	fun register(formats: Iterable<AudioFormat>): AudioFormats = this.apply { this.formats += formats }
 
@@ -78,6 +83,9 @@ class AudioFormats : AudioFormat() {
 				?: throw UnsupportedOperationException("Don't know how to generate file for extension '$ext'")
 		return format.encode(data, out, filename)
 	}
+
+    operator fun plus(other: AudioFormat): AudioFormats = AudioFormats(formats + other)
+    operator fun plus(other: Iterable<AudioFormat>): AudioFormats = AudioFormats(formats + other)
 }
 
 suspend fun VfsFile.readSoundInfo(formats: AudioFormats = defaultAudioFormats) =
