@@ -15,6 +15,19 @@ interface IAudioSamples {
     fun setFloat(channel: Int, sample: Int, value: Float) = run { this[channel, sample] = SampleConvert.floatToShort(value) }
 }
 
+internal fun AudioSamples.resample(scale: Double, totalSamples: Int = (this.totalSamples * scale).toInt(), out: AudioSamples = AudioSamples(channels, totalSamples)): AudioSamples {
+    val iscale = 1.0 / scale
+    for (c in 0 until channels) {
+        val outc = out[c]
+        val inpc = this[c]
+        for (n in 0 until totalSamples) {
+            // @TODO: Increase quality
+            outc[n] = inpc[(n * iscale).toInt()]
+        }
+    }
+    return out
+}
+
 class AudioSamples(override val channels: Int, override val totalSamples: Int) : IAudioSamples {
     val data = Array(channels) { ShortArray(totalSamples) }
 
