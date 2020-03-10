@@ -61,8 +61,8 @@ open class NativeSoundProvider {
 	}
 
     open suspend fun createStreamingSound(stream: AudioStream, bufferSeconds: Double = 0.1, closeStream: Boolean = false, onComplete: suspend () -> Unit = {}): NativeSound {
-        //println("STREAM.RATE:" + stream.rate)
-        //println("STREAM.CHANNELS:" + stream.channels)
+        println("STREAM.RATE:" + stream.rate)
+        println("STREAM.CHANNELS:" + stream.channels)
         val coroutineContext = coroutineContext
         return object : NativeSound() {
             val nativeSound = this
@@ -89,6 +89,7 @@ open class NativeSoundProvider {
                                     //println("STREAM.WAIT: ${nas.availableSamples}")
                                 }
                             }
+                            stream.currentPositionInSamples = 0L
                         }
                     } catch (e: CancellationException) {
                         nas.stop()
