@@ -106,7 +106,7 @@ open class NativeSoundProvider {
                     job.cancel()
                 }
                 return object : NativeSoundChannel(nativeSound) {
-                    override var volume: Double by nas::panning.redirected()
+                    override var volume: Double by nas::volume.redirected()
                     override var pitch: Double by nas::pitch.redirected()
                     override var panning: Double by nas::panning.redirected()
                     override val current: TimeSpan get() = super.current
@@ -166,6 +166,7 @@ abstract class NativeSound {
 	abstract suspend fun decode(): AudioData
 	open fun play(controller: PlaybackController): NativeSoundChannel = TODO()
     fun play(times: PlaybackTimes): NativeSoundChannel = play(times.controller())
+    fun playForever(): NativeSoundChannel = play(infinitePlaybackTimes)
     open fun play(): NativeSoundChannel = play(1.playbackTimes)
 }
 

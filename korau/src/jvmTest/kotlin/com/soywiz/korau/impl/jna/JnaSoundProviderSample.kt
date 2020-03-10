@@ -1,6 +1,6 @@
 package com.soywiz.korau.impl.jna
 
-import com.soywiz.korau.format.mp3.*
+import com.soywiz.klock.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.file.std.*
 import kotlinx.coroutines.*
@@ -9,12 +9,15 @@ object JnaSoundProviderSample {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-            //val data = resourcesVfs["monkey_drama.mp3"].readAll()
-            val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readAll()
+            val data = resourcesVfs["monkey_drama.mp3"].readNativeMusic()
+            //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
 
-            //val res = JavaMp3DecoderToAudioData(data)
-            val res = createJavaMp3DecoderStream(data)
-            res.playAndWait(infinitePlaybackTimes)
+            val result = data.playForever()
+            result.volume = 1.0
+            result.panning = 0.0
+            result.pitch = 1.5
+            com.soywiz.korio.async.delay(10.seconds)
+            result.stop()
             /*
             val decoder = JavaMp3Decoder.init(data.inputStream()) ?: error("Not a MP3 file")
             while (JavaMp3Decoder.decodeFrame(decoder)) {

@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.nio.*
 import kotlin.coroutines.*
+import kotlin.math.*
 
 internal inline fun <T> runCatchingAl(block: () -> T): T? {
     val result = runCatching { block() }
@@ -420,6 +421,29 @@ class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val 
     init {
         start()
     }
+
+    private val temp1 = FloatArray(3)
+    private val temp2 = FloatArray(3)
+    private val temp3 = FloatArray(3)
+
+    override var pitch: Double
+        get() = al.alGetSourcef(source, AL.AL_PITCH).toDouble()
+        set(value) = al.alSourcef(source, AL.AL_PITCH, value.toFloat())
+    override var volume: Double
+        get() = al.alGetSourcef(source, AL.AL_GAIN).toDouble()
+        set(value) = al.alSourcef(source, AL.AL_GAIN, value.toFloat())
+    override var panning: Double
+        get() = run {
+            al.alGetSource3f(source, AL.AL_POSITION, temp1, temp2, temp3)
+            temp1[0].toDouble()
+        }
+        set(value) = run {
+            val pan = value.toFloat()
+            al.alSource3f(source, AL.AL_POSITION, 0f, value.toFloat(), 0f)
+            al.alSourcef(source, AL.AL_ROLLOFF_FACTOR, 0.0f);
+            al.alSourcei(source, AL.AL_SOURCE_RELATIVE, 1);
+            al.alSource3f(source, AL.AL_POSITION, pan, 0f, -sqrt(1.0f - pan * pan));
+        }
 
     override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
         availableSamples += samples.size
