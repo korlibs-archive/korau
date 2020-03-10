@@ -1882,7 +1882,10 @@ object JavaMp3Decoder {
                 }
             }
         }
-        if (soundData.samplesBuffer == null) soundData.samplesBuffer = ByteArray(size * 32 * stereo * 2)
+        if (soundData.samplesBufferInit == false) {
+            soundData.samplesBufferInit = true
+            soundData.samplesBuffer = ByteArray(size * 32 * stereo * 2)
+        }
         for (i in 0 until size * 32 * stereo) {
             var sample: Int = (pcm.get(i) * 32768).toInt()
             if (sample >= 32768) {

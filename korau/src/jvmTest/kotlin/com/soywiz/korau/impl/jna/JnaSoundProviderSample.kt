@@ -13,7 +13,7 @@ object JnaSoundProviderSample {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-            val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readAll()
+            val data = resourcesVfs["monkey_drama.mp3"].readAll()
 
             val res = JavaMp3DecoderToAudioData(data)
             res.playAndWait()

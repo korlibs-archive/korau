@@ -19,7 +19,6 @@ fun JavaMp3DecoderToAudioData(data: ByteArray): AudioData {
     val samples2 = AudioSamplesInterleaved(data.nchannels, shorts.availableRead)
     shorts.read(samples2.data)
 
-    println("${data.nchannels}, ${shorts.availableRead}")
     return AudioData(data.frequency, samples2.separated())
 }
 
