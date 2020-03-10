@@ -22,13 +22,28 @@ fun JavaMp3DecoderToAudioData(data: ByteArray): AudioData {
     return AudioData(data.frequency, samples2.separated())
 }
 
-/*
-suspend fun createJavaMp3DecoderStream(): JavaMp3DecoderStream {
-    val iss: InputStream
-    val data = JavaMp3Decoder.init(iss)
-    JavaMp3Decoder.decodeFrame(data)
-    decoder.
+suspend fun createJavaMp3DecoderStream(data: ByteArray): AudioStream {
+    val data = JavaMp3Decoder.init(data.inputStream()) ?: error("Not an mp3 file")
+    val samples = ShortArray(data.samplesBuffer.size / 2)
+    val deque = AudioSamplesDeque(data.nchannels)
+
+    fun decodeSamples() {
+        for (n in samples.indices) samples[n] = data.samplesBuffer.readU16LE(n * 2).toShort()
+    }
+
+    return object : AudioStream(data.frequency, data.nchannels) {
+        override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
+            if (deque.availableRead < length) {
+                JavaMp3Decoder.decodeFrame(data)
+                decodeSamples()
+                deque.writeInterleaved(samples, 0)
+            }
+            return deque.read(out,offset, length)
+        }
+    }
 }
+
+/*
 
 class JavaMp3DecoderStream : AudioStream(0, 0) {
     override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {

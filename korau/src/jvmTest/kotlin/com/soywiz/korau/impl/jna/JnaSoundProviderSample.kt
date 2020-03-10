@@ -15,7 +15,8 @@ object JnaSoundProviderSample {
         runBlocking {
             val data = resourcesVfs["monkey_drama.mp3"].readAll()
 
-            val res = JavaMp3DecoderToAudioData(data)
+            //val res = JavaMp3DecoderToAudioData(data)
+            val res = createJavaMp3DecoderStream(data)
             res.playAndWait()
             /*
             val decoder = JavaMp3Decoder.init(data.inputStream()) ?: error("Not a MP3 file")

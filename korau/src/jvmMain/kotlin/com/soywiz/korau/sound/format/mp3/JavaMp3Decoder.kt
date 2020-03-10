@@ -440,83 +440,10 @@ object JavaMp3Decoder {
         0x0004, 0x0005, 0x0201, 0x0006, 0x0007, 0x0801, 0x0401, 0x0201, 0x0008, 0x0009, 0x0201,
         0x000a, 0x000b, 0x0401, 0x0201, 0x000c, 0x000d, 0x0201, 0x000e, 0x000f
     )
-    internal val HUFFMAN_TABLE_OFFSET_LAYER_III: IntArray = intArrayOf(
-        Short.MIN_VALUE.toInt(),
-        0,
-        7,
-        24,
-        Short.MIN_VALUE.toInt(),
-        41,
-        72,
-        103,
-        174,
-        245,
-        316,
-        443,
-        570,
-        697,
-        Short.MIN_VALUE.toInt(),
-        1208,
-        1719,
-        1719,
-        1719,
-        1719,
-        1719,
-        1719,
-        1719,
-        1719,
-        2230,
-        2230,
-        2230,
-        2230,
-        2230,
-        2230,
-        2230,
-        2230,
-        2742,
-        2261
-    )
-    internal val HUFFMAN_TREELEN_LAYER_III: IntArray = intArrayOf(
-        0,
-        7,
-        17,
-        17,
-        0,
-        31,
-        31,
-        71,
-        71,
-        71,
-        127,
-        127,
-        127,
-        511,
-        0,
-        511,
-        511,
-        511,
-        511,
-        511,
-        511,
-        511,
-        511,
-        511,
-        512,
-        512,
-        512,
-        512,
-        512,
-        512,
-        512,
-        512,
-        31,
-        31
-    )
-    internal val HUFFMAN_LINBITS_LAYER_III: IntArray = intArrayOf(
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 8, 10, 13, 4, 5, 6, 7, 8, 9, 11, 13, 0, 0
-    )
-    internal val REQUANTIZE_LONG_PRETAB_LAYER_III: FloatArray =
-        floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f, 1f, 1f, 1f, 2f, 2f, 3f, 3f, 3f, 2f)
+    internal val HUFFMAN_TABLE_OFFSET_LAYER_III: IntArray = intArrayOf(Short.MIN_VALUE.toInt(),0,7,24,Short.MIN_VALUE.toInt(),41,72,103,174,245,316,443,570,697,Short.MIN_VALUE.toInt(),1208,1719,1719,1719,1719,1719,1719,1719,1719,2230,2230,2230,2230,2230,2230,2230,2230,2742,2261)
+    internal val HUFFMAN_TREELEN_LAYER_III: IntArray = intArrayOf(0,7,17,17,0,31,31,71,71,71,127,127,127,511,0,511,511,511,511,511,511,511,511,511,512,512,512,512,512,512,512,512,31,31)
+    internal val HUFFMAN_LINBITS_LAYER_III: IntArray = intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 8, 10, 13, 4, 5, 6, 7, 8, 9, 11, 13, 0, 0)
+    internal val REQUANTIZE_LONG_PRETAB_LAYER_III: FloatArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f, 1f, 1f, 1f, 2f, 2f, 3f, 3f, 3f, 2f)
     internal val COS_12_LAYER_III: FloatArray
     internal val COS_36_LAYER_III: FloatArray
 
@@ -592,7 +519,7 @@ object JavaMp3Decoder {
 //        System.err.println("MP3 decoder warning: files with free bitrate not supported");
 //      }
         if (soundData.frequency == -1) {
-            soundData.frequency = SAMPLING_FREQUENCY.get(header.samplingFrequency)
+            soundData.frequency = SAMPLING_FREQUENCY[header.samplingFrequency]
         }
         if (soundData.stereo == -1) {
             if (header.mode == 3 /* single_channel */) {
@@ -643,7 +570,7 @@ object JavaMp3Decoder {
             }
         } else if (header.layer == 2 /* layer II */) {
             var sampleDecoded: FloatArray? = null
-            val bitrate: Int = BITRATE_LAYER_II.get(header.bitrateIndex)
+            val bitrate: Int = BITRATE_LAYER_II[header.bitrateIndex]
             if (header.mode == 3 /* single_channel */) {
                 sampleDecoded = samples_II(soundData.buffer, 1, -1, bitrate, soundData.frequency)
             } else if (header.mode == 0 /* stereo */ || header.mode == 2 /* dual_channel */) {
@@ -658,9 +585,7 @@ object JavaMp3Decoder {
             }
         } else if (header.layer == 1 /* layer III */) {
             val frameSize: Int =
-                (144 * BITRATE_LAYER_III.get(header.bitrateIndex)) / SAMPLING_FREQUENCY.get(
-                    header.samplingFrequency
-                ) + header.paddingBit
+                (144 * BITRATE_LAYER_III[header.bitrateIndex]) / SAMPLING_FREQUENCY[header.samplingFrequency] + header.paddingBit
             if (frameSize > 2000) {
                 System.err.println("Frame too large! $frameSize")
             }
@@ -729,7 +654,7 @@ object JavaMp3Decoder {
                 global_gain[ch * 2 + gr] = read(buffer, 8)
                 scalefac_compress[ch * 2 + gr] = read(buffer, 4)
                 win_switch_flag[ch * 2 + gr] = read(buffer, 1)
-                if (win_switch_flag.get(ch * 2 + gr) == 1) {
+                if (win_switch_flag[ch * 2 + gr] == 1) {
                     block_type[ch * 2 + gr] = read(buffer, 2)
                     mixed_block_flag[ch * 2 + gr] = read(buffer, 1)
                     for (region in 0..1) {
@@ -738,14 +663,14 @@ object JavaMp3Decoder {
                     for (window in 0..2) {
                         subblock_gain[(ch * 2 * 3) + (gr * 3) + window] = read(buffer, 3)
                     }
-                    if ((block_type.get(ch * 2 + gr) == 2) &&
-                        (mixed_block_flag.get(ch * 2 + gr) == 0)
+                    if ((block_type[ch * 2 + gr] == 2) &&
+                        (mixed_block_flag[ch * 2 + gr] == 0)
                     ) {
                         region0_count[ch * 2 + gr] = 8
                     } else {
                         region0_count[ch * 2 + gr] = 7
                     }
-                    region1_count[ch * 2 + gr] = 20 - region0_count.get(ch * 2 + gr)
+                    region1_count[ch * 2 + gr] = 20 - region0_count[ch * 2 + gr]
                 } else {
                     for (region in 0..2) {
                         table_select[(ch * 2 * 3) + (gr * 3) + region] = read(buffer, 5)
@@ -770,12 +695,12 @@ object JavaMp3Decoder {
                 val part_2_start: Int = mainDataReader.index * 8 + mainDataReader.current
 
                 /* Number of bits in the bitstream for the bands */
-                val slen1: Int = SCALEFACTOR_SIZES_LAYER_III.get(scalefac_compress.get(ch * 2 + gr) * 2)
-                val slen2: Int = SCALEFACTOR_SIZES_LAYER_III.get(scalefac_compress.get(ch * 2 + gr) * 2 + 1)
-                if ((win_switch_flag.get(ch * 2 + gr) != 0) &&
-                    (block_type.get(ch * 2 + gr) == 2)
+                val slen1: Int = SCALEFACTOR_SIZES_LAYER_III[scalefac_compress[ch * 2 + gr] * 2]
+                val slen2: Int = SCALEFACTOR_SIZES_LAYER_III[scalefac_compress[ch * 2 + gr] * 2 + 1]
+                if ((win_switch_flag[ch * 2 + gr] != 0) &&
+                    (block_type[ch * 2 + gr] == 2)
                 ) {
-                    if (mixed_block_flag.get(ch * 2 + gr) != 0) {
+                    if (mixed_block_flag[ch * 2 + gr] != 0) {
                         for (sfb in 0..7) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen1)
                         }
@@ -808,111 +733,107 @@ object JavaMp3Decoder {
                 } else { /* block_type == 0 if winswitch == 0 */
 
                     /* Scale factor bands 0-5 */
-                    if ((scfsi.get(ch * 4 + 0) == 0) || (gr == 0)) {
+                    if ((scfsi[ch * 4 + 0] == 0) || (gr == 0)) {
                         for (sfb in 0..5) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen1)
                         }
-                    } else if ((scfsi.get(ch * 4 + 0) == 1) && (gr == 1)) {
+                    } else if ((scfsi[ch * 4 + 0] == 1) && (gr == 1)) {
                         /* Copy scalefactors from granule 0 to granule 1 */
                         for (sfb in 0..5) {
-                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l.get((ch * 2 * 21) + (0 * 21) + sfb)
+                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l[(ch * 2 * 21) + (0 * 21) + sfb]
                         }
                     }
 
-                    /* Scale factor bands 6-10 */if ((scfsi.get(ch * 4 + 1) == 0) || (gr == 0)) {
+                    /* Scale factor bands 6-10 */if ((scfsi[ch * 4 + 1] == 0) || (gr == 0)) {
                         for (sfb in 6..10) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen1)
                         }
-                    } else if ((scfsi.get(ch * 4 + 1) == 1) && (gr == 1)) {
+                    } else if ((scfsi[ch * 4 + 1] == 1) && (gr == 1)) {
                         /* Copy scalefactors from granule 0 to granule 1 */
                         for (sfb in 6..10) {
-                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l.get((ch * 2 * 21) + (0 * 21) + sfb)
+                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l[(ch * 2 * 21) + (0 * 21) + sfb]
                         }
                     }
 
-                    /* Scale factor bands 11-15 */if ((scfsi.get(ch * 4 + 2) == 0) || (gr == 0)) {
+                    /* Scale factor bands 11-15 */if ((scfsi[ch * 4 + 2] == 0) || (gr == 0)) {
                         for (sfb in 11..15) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen2)
                         }
-                    } else if ((scfsi.get(ch * 4 + 2) == 1) && (gr == 1)) {
+                    } else if ((scfsi[ch * 4 + 2] == 1) && (gr == 1)) {
                         /* Copy scalefactors from granule 0 to granule 1 */
                         for (sfb in 11..15) {
-                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l.get((ch * 2 * 21) + (0 * 21) + sfb)
+                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l[(ch * 2 * 21) + (0 * 21) + sfb]
                         }
                     }
 
-                    /* Scale factor bands 16-20 */if ((scfsi.get(ch * 4 + 3) == 0) || (gr == 0)) {
+                    /* Scale factor bands 16-20 */if ((scfsi[ch * 4 + 3] == 0) || (gr == 0)) {
                         for (sfb in 16..20) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen2)
                         }
-                    } else if ((scfsi.get(ch * 4 + 3) == 1) && (gr == 1)) {
+                    } else if ((scfsi[ch * 4 + 3] == 1) && (gr == 1)) {
                         /* Copy scalefactors from granule 0 to granule 1 */
                         for (sfb in 16..20) {
-                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l.get((ch * 2 * 21) + (0 * 21) + sfb)
+                            scalefac_l[(ch * 2 * 21) + (1 * 21) + sfb] = scalefac_l[(ch * 2 * 21) + (0 * 21) + sfb]
                         }
                     }
                 }
 
-                /* Check that there is any data to decode. If not, zero the array. */if (part2_3_length.get(ch * 2 + gr) != 0) {
+                /* Check that there is any data to decode. If not, zero the array. */if (part2_3_length[ch * 2 + gr] != 0) {
 
                     /* Calculate bit_pos_end which is the index of the last bit for this part. */
-                    val bit_pos_end: Int = part_2_start + part2_3_length.get(ch * 2 + gr) - 1
+                    val bit_pos_end: Int = part_2_start + part2_3_length[ch * 2 + gr] - 1
                     var region_1_start: Int
                     var region_2_start: Int
                     var table_num: Int
                     var is_pos: Int
                     val huffman: IntArray = IntArray(4)
 
-                    /* Determine region boundaries */if ((win_switch_flag.get(ch * 2 + gr) == 1) &&
-                        (block_type.get(ch * 2 + gr) == 2)
+                    /* Determine region boundaries */if ((win_switch_flag[ch * 2 + gr] == 1) &&
+                        (block_type[ch * 2 + gr] == 2)
                     ) {
                         region_1_start = 36 /* sfb[9/3]*3=36 */
                         region_2_start = 576 /* No Region2 for short block case. */
                     } else {
-                        region_1_start = SCALEFACTOR_BAND_INDICES_LAYER_III.get(
-                            (samplingFrequency * (23 + 14)) + 0 + region0_count.get(ch * 2 + gr) + 1
-                        )
-                        region_2_start = SCALEFACTOR_BAND_INDICES_LAYER_III.get(
-                            (samplingFrequency * (23 + 14)) + 0 + region0_count.get(ch * 2 + gr) + region1_count.get(ch * 2 + gr) + 2
-                        )
+                        region_1_start = SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + region0_count[ch * 2 + gr] + 1]
+                        region_2_start = SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + region0_count[ch * 2 + gr] + region1_count[ch * 2 + gr] + 2]
                     }
 
                     /* Read big_values using tables according to region_x_start */is_pos = 0
-                    while (is_pos < big_values.get(ch * 2 + gr) * 2) {
+                    while (is_pos < big_values[ch * 2 + gr] * 2) {
                         if (is_pos < region_1_start) {
-                            table_num = table_select.get((ch * 2 * 3) + (gr * 3) + 0)
+                            table_num = table_select[(ch * 2 * 3) + (gr * 3) + 0]
                         } else if (is_pos < region_2_start) {
-                            table_num = table_select.get((ch * 2 * 3) + (gr * 3) + 1)
+                            table_num = table_select[(ch * 2 * 3) + (gr * 3) + 1]
                         } else {
-                            table_num = table_select.get((ch * 2 * 3) + (gr * 3) + 2)
+                            table_num = table_select[(ch * 2 * 3) + (gr * 3) + 2]
                         }
 
                         /* Get next Huffman coded words */huffman_III(mainDataReader, table_num, huffman)
 
                         /* In the big_values area there are two freq lines per Huffman word */`is`[(ch * 2 * 576) + (gr * 576) + is_pos++] =
-                            huffman.get(0).toFloat()
-                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = huffman.get(1).toFloat()
+                            huffman[0].toFloat()
+                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = huffman[1].toFloat()
                         is_pos++
                     }
 
-                    /* Read small values until is_pos = 576 or we run out of huffman data */table_num = count1table_select.get(ch * 2 + gr) + 32
-                    is_pos = big_values.get(ch * 2 + gr) * 2
+                    /* Read small values until is_pos = 576 or we run out of huffman data */table_num = count1table_select[ch * 2 + gr] + 32
+                    is_pos = big_values[ch * 2 + gr] * 2
                     while ((is_pos <= 572) && (mainDataReader.index * 8 + mainDataReader.current <= bit_pos_end)) {
 
                         /* Get next Huffman coded words */huffman_III(mainDataReader, table_num, huffman)
-                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos++] = huffman.get(2).toFloat()
+                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos++] = huffman[2].toFloat()
                         if (is_pos >= 576) {
                             break
                         }
-                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos++] = huffman.get(3).toFloat()
+                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos++] = huffman[3].toFloat()
                         if (is_pos >= 576) {
                             break
                         }
-                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos++] = huffman.get(0).toFloat()
+                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos++] = huffman[0].toFloat()
                         if (is_pos >= 576) {
                             break
                         }
-                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = huffman.get(1).toFloat()
+                        `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = huffman[1].toFloat()
                         is_pos++
                     }
 
@@ -944,25 +865,25 @@ object JavaMp3Decoder {
                 // requantize ===================================================
 
                 /* Determine type of block to process */
-                if ((win_switch_flag.get(ch * 2 + gr) == 1) &&
-                    (block_type.get(ch * 2 + gr) == 2)
+                if ((win_switch_flag[ch * 2 + gr] == 1) &&
+                    (block_type[ch * 2 + gr] == 2)
                 ) { /* Short blocks */
 
                     /* Check if the first two subbands
  * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */
-                    if (mixed_block_flag.get(ch * 2 + gr) != 0) { /* 2 longbl. sb  first */
+                    if (mixed_block_flag[ch * 2 + gr] != 0) { /* 2 longbl. sb  first */
 
                         /*
    * First process the 2 long block subbands at the start
    */
                         var sfb: Int = 0
                         var next_sfb: Int =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb + 1)
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb + 1]
                         for (i in 0..35) {
                             if (i == next_sfb) {
                                 sfb++
                                 next_sfb =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb + 1)
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb + 1]
                             } /* end if */
                             requantize_long_III(gr, ch, scalefac_scale, preflag, global_gain, scalefac_l, `is`, i, sfb)
                         }
@@ -971,20 +892,20 @@ object JavaMp3Decoder {
    * And next the remaining, non-zero, bands which uses short blocks
    */sfb = 3
                         next_sfb =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) * 3
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                         var win_len: Int =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) -
-                                SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb)
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] -
+                                SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                         var i: Int = 36
-                        while (i < count1.get(ch * 2 + gr) /* i++ done below! */) {
+                        while (i < count1[ch * 2 + gr] /* i++ done below! */) {
 
                             /* Check if we're into the next scalefac band */if (i == next_sfb) {    /* Yes */
                                 sfb++
                                 next_sfb =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) * 3
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                                 win_len =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) -
-                                        SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb)
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] -
+                                        SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                             } /* end if (next_sfb) */
                             for (win in 0..2) {
                                 for (j in 0 until win_len) {
@@ -1007,20 +928,20 @@ object JavaMp3Decoder {
                     } else {            /* Only short blocks */
                         var sfb: Int = 0
                         var next_sfb: Int =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) * 3
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                         var win_len: Int =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) -
-                                SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb)
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] -
+                                SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                         var i: Int = 0
-                        while (i < count1.get(ch * 2 + gr) /* i++ done below! */) {
+                        while (i < count1[ch * 2 + gr] /* i++ done below! */) {
 
                             /* Check if we're into the next scalefac band */if (i == next_sfb) {    /* Yes */
                                 sfb++
                                 next_sfb =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) * 3
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                                 win_len =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) -
-                                        SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb)
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] -
+                                        SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                             } /* end if (next_sfb) */
                             for (win in 0..2) {
                                 for (j in 0 until win_len) {
@@ -1044,12 +965,12 @@ object JavaMp3Decoder {
                 } else {            /* Only long blocks */
                     var sfb: Int = 0
                     var next_sfb: Int =
-                        SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb + 1)
-                    for (i in 0 until count1.get(ch * 2 + gr)) {
+                        SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb + 1]
+                    for (i in 0 until count1[ch * 2 + gr]) {
                         if (i == next_sfb) {
                             sfb++
                             next_sfb =
-                                SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb + 1)
+                                SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb + 1]
                         } /* end if */
                         requantize_long_III(gr, ch, scalefac_scale, preflag, global_gain, scalefac_l, `is`, i, sfb)
                     }
@@ -1059,8 +980,8 @@ object JavaMp3Decoder {
                 outer@ while (true) {
 
                     /* Only reorder short blocks */
-                    if ((win_switch_flag.get(ch * 2 + gr) == 1) &&
-                        (block_type.get(ch * 2 + gr) == 2)
+                    if ((win_switch_flag[ch * 2 + gr] == 1) &&
+                        (block_type[ch * 2 + gr] == 2)
                     ) { /* Short blocks */
                         val re: FloatArray = FloatArray(576)
                         var i: Int = 0
@@ -1069,15 +990,15 @@ object JavaMp3Decoder {
                         var win_len: Int
 
                         /* Check if the first two subbands
- * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */if (mixed_block_flag.get(ch * 2 + gr) != 0) { /* 2 longbl. sb  first */
+ * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */if (mixed_block_flag[ch * 2 + gr] != 0) { /* 2 longbl. sb  first */
                             sfb = 3
                             i = 36
                         }
                         next_sfb =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) * 3
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                         win_len =
-                            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) -
-                                SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb)
+                            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] -
+                                SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                         while (i < 576 /* i++ done below! */) {
 
                             /* Check if we're into the next scalefac band */if (i == next_sfb) {    /* Yes */
@@ -1085,35 +1006,33 @@ object JavaMp3Decoder {
                                 /* Copy reordered data back to the original vector */
                                 for (j in 0 until 3 * win_len) {
                                     `is`[
-                                        (ch * 2 * 576) + (gr * 576) + (3 * (SCALEFACTOR_BAND_INDICES_LAYER_III.get(
-                                            (samplingFrequency * (23 + 14)) + 23 + sfb
-                                        ))) + j
-                                    ] = re.get(j)
+                                        (ch * 2 * 576) + (gr * 576) + (3 * (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb])) + j
+                                    ] = re[j]
                                 }
 
-                                /* Check if this band is above the rzero region, if so we're done */if (i >= count1.get(ch * 2 + gr)) {
+                                /* Check if this band is above the rzero region, if so we're done */if (i >= count1[ch * 2 + gr]) {
                                     /* Done */
                                     break@outer
                                 }
                                 sfb++
                                 next_sfb =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) * 3
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                                 win_len =
-                                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) -
-                                        SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb)
+                                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] -
+                                        SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                             } /* end if (next_sfb) */
 
                             /* Do the actual reordering */for (win in 0..2) {
                                 for (j in 0 until win_len) {
-                                    re[j * 3 + win] = `is`.get((ch * 2 * 576) + (gr * 576) + i)
+                                    re[j * 3 + win] = `is`[(ch * 2 * 576) + (gr * 576) + i]
                                     i++
                                 } /* end for (j... */
                             } /* end for (win... */
                         }
 
                         /* Copy reordered data of the last band back to the original vector */for (j in 0 until 3 * win_len) {
-                            `is`[(ch * 2 * 576) + (gr * 576) + (3 * (SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + 12))) + j] =
-                                re.get(j)
+                            `is`[(ch * 2 * 576) + (gr * 576) + (3 * (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + 12])) + j] =
+                                re[j]
                         }
                     }
                     break
@@ -1126,16 +1045,16 @@ object JavaMp3Decoder {
                 /* Do Middle/Side ("normal") stereo processing */
                 if ((modeExtension and 0x2) != 0) {
                     var max_pos: Int
-                    /* Determine how many frequency lines to transform */if (count1.get(0 * 2 + gr) > count1.get(1 * 2 + gr)) {
-                        max_pos = count1.get(0 * 2 + gr)
+                    /* Determine how many frequency lines to transform */if (count1[0 * 2 + gr] > count1[1 * 2 + gr]) {
+                        max_pos = count1[0 * 2 + gr]
                     } else {
-                        max_pos = count1.get(1 * 2 + gr)
+                        max_pos = count1[1 * 2 + gr]
                     }
 
                     /* Do the actual processing */for (i in 0 until max_pos) {
-                        val left: Float = ((`is`.get((0 * 2 * 576) + (gr * 576) + i) + `is`.get((1 * 2 * 576) + (gr * 576) + i))
+                        val left: Float = ((`is`[(0 * 2 * 576) + (gr * 576) + i] + `is`[(1 * 2 * 576) + (gr * 576) + i])
                             * (INV_SQUARE_2))
-                        val right: Float = ((`is`.get((0 * 2 * 576) + (gr * 576) + i) - `is`.get((1 * 2 * 576) + (gr * 576) + i))
+                        val right: Float = ((`is`[(0 * 2 * 576) + (gr * 576) + i] - `is`[(1 * 2 * 576) + (gr * 576) + i])
                             * (INV_SQUARE_2))
                         `is`[(0 * 2 * 576) + (gr * 576) + i] = left
                         `is`[(1 * 2 * 576) + (gr * 576) + i] = right
@@ -1151,13 +1070,13 @@ object JavaMp3Decoder {
  */
 
                     /* Determine type of block to process */
-                    if ((win_switch_flag.get(0 * 2 + gr) == 1) &&
-                        (block_type.get(0 * 2 + gr) == 2)
+                    if ((win_switch_flag[0 * 2 + gr] == 1) &&
+                        (block_type[0 * 2 + gr] == 2)
                     ) { /* Short blocks */
 
                         /* Check if the first two subbands
    * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */
-                        if (mixed_block_flag.get(0 * 2 + gr) != 0) { /* 2 longbl. sb  first */
+                        if (mixed_block_flag[0 * 2 + gr] != 0) { /* 2 longbl. sb  first */
 
                             /*
      * First process the 8 sfb's at the start
@@ -1165,9 +1084,7 @@ object JavaMp3Decoder {
                             for (sfb in 0..7) {
 
                                 /* Is this scale factor band above count1 for the right channel? */
-                                if (SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb) >= count1.get(
-                                        1 * 2 + gr
-                                    )
+                                if (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb] >= count1[1 * 2 + gr]
                                 ) {
                                     stereo_long_III(`is`, scalefac_l, gr, sfb, samplingFrequency)
                                 }
@@ -1178,9 +1095,7 @@ object JavaMp3Decoder {
      */for (sfb in 3..11) {
 
                                 /* Is this scale factor band above count1 for the right channel? */
-                                if (SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb) * 3 >= count1.get(
-                                        1 * 2 + gr
-                                    )
+                                if (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb] * 3 >= count1[1 * 2 + gr]
                                 ) {
 
                                     /* Perform the intensity stereo processing */
@@ -1191,9 +1106,7 @@ object JavaMp3Decoder {
                             for (sfb in 0..11) {
 
                                 /* Is this scale factor band above count1 for the right channel? */
-                                if (SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb) * 3 >= count1.get(
-                                        1 * 2 + gr
-                                    )
+                                if (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb] * 3 >= count1[1 * 2 + gr]
                                 ) {
 
                                     /* Perform the intensity stereo processing */
@@ -1205,9 +1118,7 @@ object JavaMp3Decoder {
                         for (sfb in 0..20) {
 
                             /* Is this scale factor band above count1 for the right channel? */
-                            if (SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb) >= count1.get(
-                                    1 * 2 + gr
-                                )
+                            if (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb] >= count1[1 * 2 + gr]
                             ) {
 
                                 /* Perform the intensity stereo processing */
@@ -1222,15 +1133,15 @@ object JavaMp3Decoder {
                 // antialiasing ==============================================
 
                 /* No antialiasing is done for short blocks */
-                if (!(((win_switch_flag.get(ch * 2 + gr) == 1) &&
-                        (block_type.get(ch * 2 + gr) == 2) && (
-                        (mixed_block_flag.get(ch * 2 + gr)) == 0)))
+                if (!(((win_switch_flag[ch * 2 + gr] == 1) &&
+                        (block_type[ch * 2 + gr] == 2) && (
+                        (mixed_block_flag[ch * 2 + gr]) == 0)))
                 ) {
                     var sblim: Int
 
-                    /* Setup the limit for how many subbands to transform */if (((win_switch_flag.get(ch * 2 + gr) == 1) &&
-                            (block_type.get(ch * 2 + gr) == 2) && (
-                            (mixed_block_flag.get(ch * 2 + gr)) == 1))
+                    /* Setup the limit for how many subbands to transform */if (((win_switch_flag[ch * 2 + gr] == 1) &&
+                            (block_type[ch * 2 + gr] == 2) && (
+                            (mixed_block_flag[ch * 2 + gr]) == 1))
                     ) {
                         sblim = 2
                     } else {
@@ -1242,13 +1153,9 @@ object JavaMp3Decoder {
                             val li: Int = (18 * sb) - 1 - i
                             val ui: Int = 18 * sb + i
                             val lb: Float =
-                                `is`.get((ch * 2 * 576) + (gr * 576) + li) * CS_ALIASING_LAYER_III.get(i) - `is`.get((ch * 2 * 576) + (gr * 576) + ui) * CA_ALIASING_LAYER_III.get(
-                                    i
-                                )
+                                `is`[(ch * 2 * 576) + (gr * 576) + li] * CS_ALIASING_LAYER_III[i] - `is`[(ch * 2 * 576) + (gr * 576) + ui] * CA_ALIASING_LAYER_III[i]
                             val ub: Float =
-                                `is`.get((ch * 2 * 576) + (gr * 576) + ui) * CS_ALIASING_LAYER_III.get(i) + `is`.get((ch * 2 * 576) + (gr * 576) + li) * CA_ALIASING_LAYER_III.get(
-                                    i
-                                )
+                                `is`[(ch * 2 * 576) + (gr * 576) + ui] * CS_ALIASING_LAYER_III[i] + `is`[(ch * 2 * 576) + (gr * 576) + li] * CA_ALIASING_LAYER_III[i]
                             `is`[(ch * 2 * 576) + (gr * 576) + li] = lb
                             `is`[(ch * 2 * 576) + (gr * 576) + ui] = ub
                         }
@@ -1259,12 +1166,12 @@ object JavaMp3Decoder {
                 /* Loop through all 32 subbands */for (sb in 0..31) {
                     var bt: Int
 
-                    /* Determine blocktype for this subband */if (((win_switch_flag.get(ch * 2 + gr) == 1) &&
-                            (mixed_block_flag.get(ch * 2 + gr) == 1) && (sb < 2))
+                    /* Determine blocktype for this subband */if (((win_switch_flag[ch * 2 + gr] == 1) &&
+                            (mixed_block_flag[ch * 2 + gr] == 1) && (sb < 2))
                     ) {
                         bt = 0 /* Long blocks in first 2 subbands */
                     } else {
-                        bt = block_type.get(ch * 2 + gr)
+                        bt = block_type[ch * 2 + gr]
                     }
                     val rawout: FloatArray = FloatArray(36)
 
@@ -1277,24 +1184,24 @@ object JavaMp3Decoder {
                             for (p in 0..11) {
                                 var sum: Float = 0f
                                 for (m in 0..5) {
-                                    sum += `is`.get(offset + j + (3 * m)) * COS_12_LAYER_III.get(m * 12 + p)
+                                    sum += `is`[offset + j + (3 * m)] * COS_12_LAYER_III[m * 12 + p]
                                 }
-                                rawout[(6 * j) + p + 6] += sum * IMDCT_WINDOW_LAYER_III.get(bt * 36 + p)
+                                rawout[(6 * j) + p + 6] += sum * IMDCT_WINDOW_LAYER_III[bt * 36 + p]
                             }
                         }
                     } else {
                         for (p in 0..35) {
                             var sum: Float = 0f
                             for (m in 0..17) {
-                                sum += `is`.get(offset + m) * COS_36_LAYER_III.get(m * 36 + p)
+                                sum += `is`[offset + m] * COS_36_LAYER_III[m * 36 + p]
                             }
-                            rawout[p] = sum * IMDCT_WINDOW_LAYER_III.get(bt * 36 + p)
+                            rawout[p] = sum * IMDCT_WINDOW_LAYER_III[bt * 36 + p]
                         }
                     }
 
                     /* Overlapp add with stored vector into main_data vector */for (i in 0..17) {
-                        `is`[(ch * 2 * 576) + (gr * 576) + (sb * 18) + i] = rawout.get(i) + store.get((ch * 32 * 18) + (sb * 18) + i)
-                        store[(ch * 32 * 18) + (sb * 18) + i] = rawout.get(i + 18)
+                        `is`[(ch * 2 * 576) + (gr * 576) + (sb * 18) + i] = rawout[i] + store[(ch * 32 * 18) + (sb * 18) + i]
+                        store[(ch * 32 * 18) + (sb * 18) + i] = rawout[i + 18]
                     } /* end for (i... */
                 } /* end for (sb... */
 
@@ -1303,7 +1210,7 @@ object JavaMp3Decoder {
                 while (sb < 32) {
                     var i: Int = 1
                     while (i < 18) {
-                        `is`[(ch * 2 * 576) + (gr * 576) + (sb * 18) + i] = -`is`.get((ch * 2 * 576) + (gr * 576) + (sb * 18) + i)
+                        `is`[(ch * 2 * 576) + (gr * 576) + (sb * 18) + i] = -`is`[(ch * 2 * 576) + (gr * 576) + (sb * 18) + i]
                         i += 2
                     }
                     sb += 2
@@ -1315,35 +1222,35 @@ object JavaMp3Decoder {
 
                 /* Loop through the 18 samples in each of the 32 subbands */for (ss in 0..17) {
                     for (i in 1023 downTo 64)  /* Shift up the V vector */ {
-                        v[ch * 1024 + i] = v.get(ch * 1024 + i - 64)
+                        v[ch * 1024 + i] = v[ch * 1024 + i - 64]
                     }
 
                     /* Copy the next 32 time samples to a temp vector */for (i in 0..31) {
-                        s[i] = `is`.get((ch * 2 * 576) + (gr * 576) + (i * 18) + ss)
+                        s[i] = `is`[(ch * 2 * 576) + (gr * 576) + (i * 18) + ss]
                     }
                     for (i in 0..63) { /* Matrix multiply input with n_win[][] matrix */
                         var sum: Float = 0.0f
                         for (j in 0..31) {
-                            sum += SYNTH_WINDOW_TABLE_LAYER_III.get(i * 32 + j) * s.get(j)
+                            sum += SYNTH_WINDOW_TABLE_LAYER_III[i * 32 + j] * s[j]
                         }
                         v[ch * 1024 + i] = sum
                     } /* end for(i... */
 
                     /* Build the U vector */for (i in 0..7) {
                         for (j in 0..31) {
-                            u[i * 64 + j] = v.get((ch * 1024) + (i * 128) + j)
-                            u[(i * 64) + j + 32] = v.get((ch * 1024) + (i * 128) + j + 96)
+                            u[i * 64 + j] = v[(ch * 1024) + (i * 128) + j]
+                            u[(i * 64) + j + 32] = v[(ch * 1024) + (i * 128) + j + 96]
                         }
                     } /* end for (i... */
 
                     /* Window by u_vec[i] with g_synth_dtbl[i] */for (i in 0..511) {
-                        u[i] *= DI_COEFFICIENTS.get(i)
+                        u[i] *= DI_COEFFICIENTS[i]
                     }
 
                     /* Calculate 32 samples and store them in the outdata vector */for (i in 0..31) {
                         var sum: Float = 0.0f
                         for (j in 0..15) {
-                            sum += u.get(j * 32 + i)
+                            sum += u[j * 32 + i]
                         }
 
                         /* sum now contains time sample 32*ss+i. Convert to 16-bit signed int */
@@ -1371,18 +1278,16 @@ object JavaMp3Decoder {
     internal fun stereo_short_III(`is`: FloatArray, scalefac_s: IntArray, gr: Int, sfb: Int, samplingFrequency: Int) {
         /* The window length */
         val win_len: Int =
-            SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb + 1) - SCALEFACTOR_BAND_INDICES_LAYER_III.get(
-                (samplingFrequency * (23 + 14)) + 23 + sfb
-            )
+            SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] - SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
 
         /* The three windows within the band has different scalefactors */for (win in 0..2) {
             var is_pos: Int
 
-            /* Check that ((is_pos[sfb]=scalefac) != 7) => no intensity stereo */if ((scalefac_s.get((0 * 2 * 12 * 3) + (gr * 12 * 3) + (sfb * 3) + win)
+            /* Check that ((is_pos[sfb]=scalefac) != 7) => no intensity stereo */if ((scalefac_s[(0 * 2 * 12 * 3) + (gr * 12 * 3) + (sfb * 3) + win]
                     .also { is_pos = it }) != 7
             ) {
                 val sfb_start: Int =
-                    SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 23 + sfb) * 3 + win_len * win
+                    SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb] * 3 + win_len * win
                 val sfb_stop: Int = sfb_start + win_len
                 var is_ratio_l: Float
                 var is_ratio_r: Float
@@ -1392,10 +1297,8 @@ object JavaMp3Decoder {
                     is_ratio_r = 0.0f
                 } else {
                     is_ratio_l =
-                        IS_RATIOS_LAYER_III.get(is_pos) / (1.0f + IS_RATIOS_LAYER_III.get(
-                            is_pos
-                        ))
-                    is_ratio_r = 1.0f / (1.0f + IS_RATIOS_LAYER_III.get(is_pos))
+                        IS_RATIOS_LAYER_III[is_pos] / (1.0f + IS_RATIOS_LAYER_III[is_pos])
+                    is_ratio_r = 1.0f / (1.0f + IS_RATIOS_LAYER_III[is_pos])
                 }
 
                 /* Now decode all samples in this scale factor band */for (i in sfb_start until sfb_stop) {
@@ -1408,11 +1311,11 @@ object JavaMp3Decoder {
 
     internal fun stereo_long_III(`is`: FloatArray, scalefac_l: IntArray, gr: Int, sfb: Int, samplingFrequency: Int) {
         var is_pos: Int
-        /* Check that ((is_pos[sfb]=scalefac) != 7) => no intensity stereo */if ((scalefac_l.get((0 * 2 * 21) + (gr * 21) + sfb)
+        /* Check that ((is_pos[sfb]=scalefac) != 7) => no intensity stereo */if ((scalefac_l[(0 * 2 * 21) + (gr * 21) + sfb]
                 .also { is_pos = it }) != 7
         ) {
-            val sfb_start: Int = SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb)
-            val sfb_stop: Int = SCALEFACTOR_BAND_INDICES_LAYER_III.get((samplingFrequency * (23 + 14)) + 0 + sfb + 1)
+            val sfb_start: Int = SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb]
+            val sfb_stop: Int = SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb + 1]
             val is_ratio_l: Float
             val is_ratio_r: Float
 
@@ -1421,10 +1324,8 @@ object JavaMp3Decoder {
                 is_ratio_r = 0.0f
             } else {
                 is_ratio_l =
-                    IS_RATIOS_LAYER_III.get(is_pos) / (1.0f + IS_RATIOS_LAYER_III.get(
-                        is_pos
-                    ))
-                is_ratio_r = 1.0f / (1.0f + IS_RATIOS_LAYER_III.get(is_pos))
+                    IS_RATIOS_LAYER_III[is_pos] / (1.0f + IS_RATIOS_LAYER_III[is_pos])
+                is_ratio_r = 1.0f / (1.0f + IS_RATIOS_LAYER_III[is_pos])
             }
 
             /* Now decode all samples in this scale factor band */for (i in sfb_start until sfb_stop) {
@@ -1446,22 +1347,22 @@ object JavaMp3Decoder {
         sfb: Int,
         win: Int
     ) {
-        val sf_mult: Float = if (scalefac_scale.get(ch * 2 + gr) != 0) 1.0f else 0.5f
+        val sf_mult: Float = if (scalefac_scale[ch * 2 + gr] != 0) 1.0f else 0.5f
         val tmp1: Float
         if (sfb < 12) {
-            tmp1 = Math.pow(2.0, -(sf_mult * scalefac_s.get((ch * 2 * 12 * 3) + (gr * 12 * 3) + (sfb * 3) + win)).toDouble()).toFloat()
+            tmp1 = Math.pow(2.0, -(sf_mult * scalefac_s[(ch * 2 * 12 * 3) + (gr * 12 * 3) + (sfb * 3) + win]).toDouble()).toFloat()
         } else {
             tmp1 = 1.0f
         }
         val tmp2: Float = Math.pow(
-            2.0, 0.25f * (global_gain.get(ch * 2 + gr) - 210.0f - (
-                8.0f * (subblock_gain.get((ch * 2 * 3) + (gr * 3) + win)))).toDouble()
+            2.0, 0.25f * (global_gain[ch * 2 + gr] - 210.0f - (
+                8.0f * (subblock_gain[(ch * 2 * 3) + (gr * 3) + win]))).toDouble()
         ).toFloat()
         val tmp3: Float
-        if (`is`.get((ch * 2 * 576) + (gr * 576) + is_pos) < 0.0) {
-            tmp3 = -POWTAB_LAYER_III.get((-`is`.get((ch * 2 * 576) + (gr * 576) + is_pos)).toInt())
+        if (`is`[(ch * 2 * 576) + (gr * 576) + is_pos] < 0.0) {
+            tmp3 = -POWTAB_LAYER_III[(-`is`[(ch * 2 * 576) + (gr * 576) + is_pos]).toInt()]
         } else {
-            tmp3 = POWTAB_LAYER_III.get(`is`.get((ch * 2 * 576) + (gr * 576) + is_pos).toInt())
+            tmp3 = POWTAB_LAYER_III[`is`[(ch * 2 * 576) + (gr * 576) + is_pos].toInt()]
         }
         `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = tmp1 * tmp2 * tmp3
     }
@@ -1477,22 +1378,22 @@ object JavaMp3Decoder {
         is_pos: Int,
         sfb: Int
     ) {
-        val sf_mult: Float = if (scalefac_scale.get(ch * 2 + gr) != 0) 1.0f else 0.5f
+        val sf_mult: Float = if (scalefac_scale[ch * 2 + gr] != 0) 1.0f else 0.5f
 
         // TODO table cache Math.pow 2 ? faster alternative?
         val tmp1: Float
         if (sfb < 21) {
-            val pf_x_pt: Float = preflag.get(ch * 2 + gr) * REQUANTIZE_LONG_PRETAB_LAYER_III.get(sfb)
-            tmp1 = Math.pow(2.0, -(sf_mult * (scalefac_l.get((ch * 2 * 21) + (gr * 21) + sfb) + pf_x_pt)).toDouble()).toFloat()
+            val pf_x_pt: Float = preflag[ch * 2 + gr] * REQUANTIZE_LONG_PRETAB_LAYER_III[sfb]
+            tmp1 = Math.pow(2.0, -(sf_mult * (scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] + pf_x_pt)).toDouble()).toFloat()
         } else {
             tmp1 = 1.0f
         }
-        val tmp2: Float = Math.pow(2.0, 0.25f * (global_gain.get(ch * 2 + gr) - 210).toDouble()).toFloat()
+        val tmp2: Float = Math.pow(2.0, 0.25f * (global_gain[ch * 2 + gr] - 210).toDouble()).toFloat()
         val tmp3: Float
-        if (`is`.get((ch * 2 * 576) + (gr * 576) + is_pos) < 0.0) {
-            tmp3 = -POWTAB_LAYER_III.get((-`is`.get((ch * 2 * 576) + (gr * 576) + is_pos)).toInt())
+        if (`is`[(ch * 2 * 576) + (gr * 576) + is_pos] < 0.0) {
+            tmp3 = -POWTAB_LAYER_III[(-`is`[(ch * 2 * 576) + (gr * 576) + is_pos]).toInt()]
         } else {
-            tmp3 = POWTAB_LAYER_III.get(`is`.get((ch * 2 * 576) + (gr * 576) + is_pos).toInt())
+            tmp3 = POWTAB_LAYER_III[`is`[(ch * 2 * 576) + (gr * 576) + is_pos].toInt()]
         }
         `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = tmp1 * tmp2 * tmp3
     }
@@ -1508,90 +1409,90 @@ object JavaMp3Decoder {
         var point: Int = 0
         var currpos: Int
 
-        /* Check for empty tables */if (HUFFMAN_TREELEN_LAYER_III.get(table_num) == 0) {
+        /* Check for empty tables */if (HUFFMAN_TREELEN_LAYER_III[table_num] == 0) {
             array[3] = 0
-            array[2] = array.get(3)
-            array[1] = array.get(2)
-            array[0] = array.get(1)
+            array[2] = array[3]
+            array[1] = array[2]
+            array[0] = array[1]
             return
         }
-        val treelen: Int = HUFFMAN_TREELEN_LAYER_III.get(table_num)
-        val linbits: Int = HUFFMAN_LINBITS_LAYER_III.get(table_num)
-        val offset: Int = HUFFMAN_TABLE_OFFSET_LAYER_III.get(table_num)
+        val treelen: Int = HUFFMAN_TREELEN_LAYER_III[table_num]
+        val linbits: Int = HUFFMAN_LINBITS_LAYER_III[table_num]
+        val offset: Int = HUFFMAN_TABLE_OFFSET_LAYER_III[table_num]
         var error: Int = 1
         var bitsleft: Int = 32
         do {   /* Start reading the Huffman code word,bit by bit */
             /* Check if we've matched a code word */
-            if ((HUFFMAN_TABLE_LAYER_III.get(offset + point) and 0xff00) == 0) {
+            if ((HUFFMAN_TABLE_LAYER_III[offset + point] and 0xff00) == 0) {
                 error = 0
-                array[0] = (HUFFMAN_TABLE_LAYER_III.get(offset + point) shr 4) and 0xf
-                array[1] = HUFFMAN_TABLE_LAYER_III.get(offset + point) and 0xf
+                array[0] = (HUFFMAN_TABLE_LAYER_III[offset + point] shr 4) and 0xf
+                array[1] = HUFFMAN_TABLE_LAYER_III[offset + point] and 0xf
                 break
             }
             if (read(mainDataReader, 1) != 0) { /* Go right in tree */
-                while ((HUFFMAN_TABLE_LAYER_III.get(offset + point) and 0xff) >= 250) {
-                    point += HUFFMAN_TABLE_LAYER_III.get(offset + point) and 0xff
+                while ((HUFFMAN_TABLE_LAYER_III[offset + point] and 0xff) >= 250) {
+                    point += HUFFMAN_TABLE_LAYER_III[offset + point] and 0xff
                 }
-                point += HUFFMAN_TABLE_LAYER_III.get(offset + point) and 0xff
+                point += HUFFMAN_TABLE_LAYER_III[offset + point] and 0xff
             } else { /* Go left in tree */
-                while ((HUFFMAN_TABLE_LAYER_III.get(offset + point) shr 8) >= 250) {
-                    point += HUFFMAN_TABLE_LAYER_III.get(offset + point) shr 8
+                while ((HUFFMAN_TABLE_LAYER_III[offset + point] shr 8) >= 250) {
+                    point += HUFFMAN_TABLE_LAYER_III[offset + point] shr 8
                 }
-                point += HUFFMAN_TABLE_LAYER_III.get(offset + point) shr 8
+                point += HUFFMAN_TABLE_LAYER_III[offset + point] shr 8
             }
         } while ((--bitsleft > 0) && (point < treelen))
         if (error != 0) {  /* Check for error. */
             array[1] = 0
-            array[0] = array.get(1)
+            array[0] = array[1]
             throw IllegalStateException(
                 ("Illegal Huff code in data. bleft = %d,point = %d. tab = %d." +
                     bitsleft + " " + point + " " + table_num)
             )
         }
         /* Process sign encodings for quadruples tables. */if (table_num > 31) {
-            array[2] = (array.get(1) shr 3) and 1
-            array[3] = (array.get(1) shr 2) and 1
-            array[0] = (array.get(1) shr 1) and 1
-            array[1] = array.get(1) and 1
-            if (array.get(2) > 0) {
+            array[2] = (array[1] shr 3) and 1
+            array[3] = (array[1] shr 2) and 1
+            array[0] = (array[1] shr 1) and 1
+            array[1] = array[1] and 1
+            if (array[2] > 0) {
                 if (read(mainDataReader, 1) == 1) {
-                    array[2] = -array.get(2)
+                    array[2] = -array[2]
                 }
             }
-            if (array.get(3) > 0) {
+            if (array[3] > 0) {
                 if (read(mainDataReader, 1) == 1) {
-                    array[3] = -array.get(3)
+                    array[3] = -array[3]
                 }
             }
-            if (array.get(0) > 0) {
+            if (array[0] > 0) {
                 if (read(mainDataReader, 1) == 1) {
-                    array[0] = -array.get(0)
+                    array[0] = -array[0]
                 }
             }
-            if (array.get(1) > 0) {
+            if (array[1] > 0) {
                 if (read(mainDataReader, 1) == 1) {
-                    array[1] = -array.get(1)
+                    array[1] = -array[1]
                 }
             }
         } else {
             /* Get linbits */
-            if ((linbits > 0) && (array.get(0) == 15)) {
+            if ((linbits > 0) && (array[0] == 15)) {
                 array[0] += read(mainDataReader, linbits)
             }
 
-            /* Get sign bit */if (array.get(0) > 0) {
+            /* Get sign bit */if (array[0] > 0) {
                 if (read(mainDataReader, 1) == 1) {
-                    array[0] = -array.get(0)
+                    array[0] = -array[0]
                 }
             }
 
-            /* Get linbits */if ((linbits > 0) && (array.get(1) == 15)) {
+            /* Get linbits */if ((linbits > 0) && (array[1] == 15)) {
                 array[1] += read(mainDataReader, linbits)
             }
 
-            /* Get sign bit */if (array.get(1) > 0) {
+            /* Get sign bit */if (array[1] > 0) {
                 if (read(mainDataReader, 1) == 1) {
-                    array[1] = -array.get(1)
+                    array[1] = -array[1]
                 }
             }
         }
@@ -1617,14 +1518,14 @@ object JavaMp3Decoder {
         }
         for (sb in 0 until bound) {
             for (ch in 0 until stereo) {
-                if (allocationChannel.get(ch * bound + sb) != 0) {
+                if (allocationChannel[ch * bound + sb] != 0) {
                     scalefactorChannel[ch * 32 + sb] = read(buffer, 6)
                 }
             }
         }
         for (sb in bound..31) {
             for (ch in 0 until stereo) {
-                if (allocation.get(sb - bound) != 0) {
+                if (allocation[sb - bound] != 0) {
                     scalefactorChannel[ch * 32 + sb] = read(buffer, 6)
                 }
             }
@@ -1632,7 +1533,7 @@ object JavaMp3Decoder {
         for (s in 0..11) {
             for (sb in 0 until bound) {
                 for (ch in 0 until stereo) {
-                    val n: Int = allocationChannel.get(ch * bound + sb)
+                    val n: Int = allocationChannel[ch * bound + sb]
                     if (n == 0) {
                         sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] = 0f
                     } else {
@@ -1643,17 +1544,15 @@ object JavaMp3Decoder {
                         }
                         fraction += (read and ((1 shl n) - 1)).toFloat() / (1 shl n) + 1f / (1 shl n)
                         sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] =
-                            SCALEFACTORS.get(scalefactorChannel.get(ch * 32 + sb)) * PRE_FRACTOR_LAYER_I.get(
-                                n + 1
-                            ) * fraction
+                            SCALEFACTORS[scalefactorChannel[ch * 32 + sb]] * PRE_FRACTOR_LAYER_I[n + 1] * fraction
                     }
                 }
             }
             for (sb in bound..31) {
-                val n: Int = allocationChannel.get(sb - bound)
+                val n: Int = allocationChannel[sb - bound]
                 if (n == 0) {
                     sampleDecoded[(1 * 32 * 12) + (sb * 12) + s] = 0f
-                    sampleDecoded[(0 * 32 * 12) + (sb * 12) + s] = sampleDecoded.get((1 * 32 * 12) + (sb * 12) + s)
+                    sampleDecoded[(0 * 32 * 12) + (sb * 12) + s] = sampleDecoded[(1 * 32 * 12) + (sb * 12) + s]
                 } else {
                     val read: Int = read(buffer, n + 1)
                     var fraction: Float = 0f
@@ -1663,9 +1562,7 @@ object JavaMp3Decoder {
                     fraction += (read and ((1 shl n) - 1)).toFloat() / (1 shl n) + 1f / (1 shl n)
                     for (ch in 0..1) {
                         sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] =
-                            SCALEFACTORS.get(scalefactorChannel.get(ch * 32 + sb)) * PRE_FRACTOR_LAYER_I.get(
-                                n + 1
-                            ) * fraction
+                            SCALEFACTORS[scalefactorChannel[ch * 32 + sb]] * PRE_FRACTOR_LAYER_I[n + 1] * fraction
                     }
                 }
             }
@@ -1684,7 +1581,7 @@ object JavaMp3Decoder {
         } else if (frequency == 32000 && (bitrate > 0 && bitrate <= 48000)) {
             sbIndex = 3
         }
-        val sbLimit: Int = SB_LIMIT.get(sbIndex)
+        val sbLimit: Int = SB_LIMIT[sbIndex]
         if (bound < 0) {
             bound = sbLimit
         }
@@ -1696,70 +1593,70 @@ object JavaMp3Decoder {
         for (sb in 0 until bound) {
             for (ch in 0 until stereo) {
                 allocationChannel[ch * bound + sb] =
-                    read(buffer, NBAL.get(sbIndex).get(sb))
+                    read(buffer, NBAL[sbIndex][sb])
             }
         }
         for (sb in bound until sbLimit) {
-            allocation[sb - bound] = read(buffer, NBAL.get(sbIndex).get(sb))
+            allocation[sb - bound] = read(buffer, NBAL[sbIndex][sb])
         }
         for (sb in 0 until bound) {
             for (ch in 0 until stereo) {
-                if (allocationChannel.get(ch * bound + sb) != 0) {
+                if (allocationChannel[ch * bound + sb] != 0) {
                     scfsi[ch * sbLimit + sb] = read(buffer, 2)
                 }
             }
         }
         for (sb in bound until sbLimit) {
             for (ch in 0 until stereo) {
-                if (allocation.get(sb - bound) != 0) {
+                if (allocation[sb - bound] != 0) {
                     scfsi[ch * sbLimit + sb] = read(buffer, 2)
                 }
             }
         }
         for (sb in 0 until bound) {
             for (ch in 0 until stereo) {
-                if (allocationChannel.get(ch * bound + sb) != 0) {
+                if (allocationChannel[ch * bound + sb] != 0) {
                     val offset: Int = ch * sbLimit * 3 + sb * 3
-                    if (scfsi.get(ch * sbLimit + sb) == 0) {
+                    if (scfsi[ch * sbLimit + sb] == 0) {
                         scalefactorChannel[offset + 0] = read(buffer, 6)
                         scalefactorChannel[offset + 1] = read(buffer, 6)
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                    } else if (scfsi.get(ch * sbLimit + sb) == 1) {
+                    } else if (scfsi[ch * sbLimit + sb] == 1) {
                         scalefactorChannel[offset + 1] = read(buffer, 6)
-                        scalefactorChannel[offset + 0] = scalefactorChannel.get(offset + 1)
+                        scalefactorChannel[offset + 0] = scalefactorChannel[offset + 1]
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                    } else if (scfsi.get(ch * sbLimit + sb) == 2) {
+                    } else if (scfsi[ch * sbLimit + sb] == 2) {
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                        scalefactorChannel[offset + 1] = scalefactorChannel.get(offset + 2)
-                        scalefactorChannel[offset + 0] = scalefactorChannel.get(offset + 1)
-                    } else if (scfsi.get(ch * sbLimit + sb) == 3) {
+                        scalefactorChannel[offset + 1] = scalefactorChannel[offset + 2]
+                        scalefactorChannel[offset + 0] = scalefactorChannel[offset + 1]
+                    } else if (scfsi[ch * sbLimit + sb] == 3) {
                         scalefactorChannel[offset + 0] = read(buffer, 6)
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                        scalefactorChannel[offset + 1] = scalefactorChannel.get(offset + 2)
+                        scalefactorChannel[offset + 1] = scalefactorChannel[offset + 2]
                     }
                 }
             }
         }
         for (sb in bound until sbLimit) {
             for (ch in 0 until stereo) {
-                if (allocation.get(sb - bound) != 0) {
+                if (allocation[sb - bound] != 0) {
                     val offset: Int = ch * sbLimit * 3 + sb * 3
-                    if (scfsi.get(ch * sbLimit + sb) == 0) {
+                    if (scfsi[ch * sbLimit + sb] == 0) {
                         scalefactorChannel[offset + 0] = read(buffer, 6)
                         scalefactorChannel[offset + 1] = read(buffer, 6)
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                    } else if (scfsi.get(ch * sbLimit + sb) == 1) {
+                    } else if (scfsi[ch * sbLimit + sb] == 1) {
                         scalefactorChannel[offset + 1] = read(buffer, 6)
-                        scalefactorChannel[offset + 0] = scalefactorChannel.get(offset + 1)
+                        scalefactorChannel[offset + 0] = scalefactorChannel[offset + 1]
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                    } else if (scfsi.get(ch * sbLimit + sb) == 2) {
+                    } else if (scfsi[ch * sbLimit + sb] == 2) {
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                        scalefactorChannel[offset + 1] = scalefactorChannel.get(offset + 2)
-                        scalefactorChannel[offset + 0] = scalefactorChannel.get(offset + 1)
-                    } else if (scfsi.get(ch * sbLimit + sb) == 3) {
+                        scalefactorChannel[offset + 1] = scalefactorChannel[offset + 2]
+                        scalefactorChannel[offset + 0] = scalefactorChannel[offset + 1]
+                    } else if (scfsi[ch * sbLimit + sb] == 3) {
                         scalefactorChannel[offset + 0] = read(buffer, 6)
                         scalefactorChannel[offset + 2] = read(buffer, 6)
-                        scalefactorChannel[offset + 1] = scalefactorChannel.get(offset + 2)
+                        scalefactorChannel[offset + 1] = scalefactorChannel[offset + 2]
                     }
                 }
             }
@@ -1767,18 +1664,18 @@ object JavaMp3Decoder {
         for (gr in 0..11) {
             for (sb in 0 until bound) {
                 for (ch in 0 until stereo) {
-                    val n: Int = allocationChannel.get(ch * bound + sb)
+                    val n: Int = allocationChannel[ch * bound + sb]
                     val offset: Int = (ch * 32 * 12 * 3) + (sb * 12 * 3) + (gr * 3)
                     if (n == 0) {
                         sampleDecoded[offset + 2] = 0f
-                        sampleDecoded[offset + 1] = sampleDecoded.get(offset + 2)
-                        sampleDecoded[offset] = sampleDecoded.get(offset + 1)
+                        sampleDecoded[offset + 1] = sampleDecoded[offset + 2]
+                        sampleDecoded[offset] = sampleDecoded[offset + 1]
                     } else {
-                        val index: Int = QUANTIZATION_INDEX_LAYER_II.get(sbIndex).get(sb).get(n - 1)
+                        val index: Int = QUANTIZATION_INDEX_LAYER_II[sbIndex][sb][n - 1]
                         val sampleInt: IntArray = IntArray(3)
-                        val sampleBits: Int = BITS_LAYER_II.get(index)
-                        val nlevels: Int = NLEVELS.get(index)
-                        if (GROUPING_LAYER_II.get(index)) {
+                        val sampleBits: Int = BITS_LAYER_II[index]
+                        val nlevels: Int = NLEVELS[index]
+                        if (GROUPING_LAYER_II[index]) {
                             var samplecode: Int = read(buffer, sampleBits)
                             sampleInt[0] = samplecode % nlevels
                             samplecode /= nlevels
@@ -1797,33 +1694,33 @@ object JavaMp3Decoder {
                         msb--
                         for (i in 0..2) {
                             var sample: Float = 0f
-                            if (((sampleInt.get(i) shr msb) and 1) == 0) {
+                            if (((sampleInt[i] shr msb) and 1) == 0) {
                                 sample = -1f
                             }
-                            sample += (sampleInt.get(i) and ((1 shl msb) - 1)).toFloat() / (1 shl msb)
-                            sample += D_LAYER_II.get(index)
-                            sample *= C_LAYER_II.get(index)
-                            sample *= SCALEFACTORS.get(scalefactorChannel.get((ch * sbLimit * 3) + (sb * 3) + (gr / 4)))
+                            sample += (sampleInt[i] and ((1 shl msb) - 1)).toFloat() / (1 shl msb)
+                            sample += D_LAYER_II[index]
+                            sample *= C_LAYER_II[index]
+                            sample *= SCALEFACTORS[scalefactorChannel[(ch * sbLimit * 3) + (sb * 3) + (gr / 4)]]
                             sampleDecoded[offset + i] = sample
                         }
                     }
                 }
             }
             for (sb in bound until sbLimit) {
-                val n: Int = allocation.get(sb - bound)
+                val n: Int = allocation[sb - bound]
                 val offset: Int = sb * 12 * 3 + gr * 3
                 if (n == 0) {
                     for (ch in 0 until stereo) {
                         sampleDecoded[offset + (ch * 32 * 12 * 3) + 2] = 0f
-                        sampleDecoded[offset + (ch * 32 * 12 * 3) + 1] = sampleDecoded.get(offset + (ch * 32 * 12 * 3) + 2)
-                        sampleDecoded[offset + ch * 32 * 12 * 3] = sampleDecoded.get(offset + (ch * 32 * 12 * 3) + 1)
+                        sampleDecoded[offset + (ch * 32 * 12 * 3) + 1] = sampleDecoded[offset + (ch * 32 * 12 * 3) + 2]
+                        sampleDecoded[offset + ch * 32 * 12 * 3] = sampleDecoded[offset + (ch * 32 * 12 * 3) + 1]
                     }
                 } else {
-                    val index: Int = QUANTIZATION_INDEX_LAYER_II.get(sbIndex).get(sb).get(n - 1)
+                    val index: Int = QUANTIZATION_INDEX_LAYER_II[sbIndex][sb][n - 1]
                     val sampleInt: IntArray = IntArray(3)
-                    val sampleBits: Int = BITS_LAYER_II.get(index)
-                    val nlevels: Int = NLEVELS.get(index)
-                    if (GROUPING_LAYER_II.get(index)) {
+                    val sampleBits: Int = BITS_LAYER_II[index]
+                    val nlevels: Int = NLEVELS[index]
+                    if (GROUPING_LAYER_II[index]) {
                         var samplecode: Int = read(buffer, sampleBits)
                         sampleInt[0] = samplecode % nlevels
                         samplecode /= nlevels
@@ -1842,15 +1739,15 @@ object JavaMp3Decoder {
                     msb--
                     for (i in 0..2) {
                         var sample: Float = 0f
-                        if (((sampleInt.get(i) shr msb) and 1) == 0) {
+                        if (((sampleInt[i] shr msb) and 1) == 0) {
                             sample = -1f
                         }
-                        sample += (sampleInt.get(i) and ((1 shl msb) - 1)).toFloat() / (1 shl msb)
-                        sample += D_LAYER_II.get(index)
-                        sample *= C_LAYER_II.get(index)
+                        sample += (sampleInt[i] and ((1 shl msb) - 1)).toFloat() / (1 shl msb)
+                        sample += D_LAYER_II[index]
+                        sample *= C_LAYER_II[index]
                         for (ch in 0 until stereo) {
                             sampleDecoded[offset + (ch * 32 * 12 * 3) + i] =
-                                sample * SCALEFACTORS.get(scalefactorChannel.get((ch * sbLimit * 3) + (sb * 3) + (gr / 4)))
+                                sample * SCALEFACTORS[scalefactorChannel[(ch * sbLimit * 3) + (sb * 3) + (gr / 4)]]
                         }
                     }
                 }
@@ -1864,19 +1761,19 @@ object JavaMp3Decoder {
         val pcm: FloatArray = FloatArray(size * 32 * stereo)
         for (ch in 0 until stereo) {
             for (s in 0 until size) {
-                synthOffset[ch] = (synthOffset.get(ch) - 64) and 0x3ff
+                synthOffset[ch] = (synthOffset[ch] - 64) and 0x3ff
                 for (i in 0..63) {
                     var sum: Float = 0f
                     for (k in 0..31) {
-                        sum += NIK_COEFFICIENTS.get(i * 32 + k) * samples.get((ch * 32 * size) + (k * size) + s)
+                        sum += NIK_COEFFICIENTS[i * 32 + k] * samples[(ch * 32 * size) + (k * size) + s]
                     }
-                    synthBuffer[(ch * 1024) + synthOffset.get(ch) + i] = sum
+                    synthBuffer[(ch * 1024) + synthOffset[ch] + i] = sum
                 }
                 for (j in 0..31) {
                     var sum: Float = 0f
                     for (i in 0..15) {
                         val k: Int = j + (i shl 5)
-                        sum += DI_COEFFICIENTS.get(k) * synthBuffer.get(ch * 1024 + ((synthOffset.get(ch) + (k + (((i + 1) shr 1) shl 6))) and 0x3FF))
+                        sum += DI_COEFFICIENTS[k] * synthBuffer[ch * 1024 + ((synthOffset[ch] + (k + (((i + 1) shr 1) shl 6))) and 0x3FF)]
                     }
                     pcm[(s * 32 * stereo) + (j * stereo) + ch] = sum
                 }
@@ -1887,7 +1784,7 @@ object JavaMp3Decoder {
             soundData.samplesBuffer = ByteArray(size * 32 * stereo * 2)
         }
         for (i in 0 until size * 32 * stereo) {
-            var sample: Int = (pcm.get(i) * 32768).toInt()
+            var sample: Int = (pcm[i] * 32768).toInt()
             if (sample >= 32768) {
                 sample = 32767
             } else if (sample < -32768) {
@@ -1905,7 +1802,7 @@ object JavaMp3Decoder {
             val advance: Int = Math.min(bits, 8 - reader!!.current)
             bits -= advance
             reader.current += advance
-            number = number or ((((reader.array.get(reader.index).toInt() and 0xFF) ushr (8 - reader.current)) and (0xFF ushr (8 - advance))) shl bits)
+            number = number or ((((reader.array[reader.index].toInt() and 0xFF) ushr (8 - reader.current)) and (0xFF ushr (8 - advance))) shl bits)
             if (reader.current == 8) {
                 reader.current = 0
                 reader.index++
