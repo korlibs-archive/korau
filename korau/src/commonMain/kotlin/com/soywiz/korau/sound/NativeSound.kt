@@ -173,6 +173,7 @@ interface PlaybackController {
     fun mustPlay(): Boolean
 }
 
+val infinitePlaybackTimes get() = PlaybackTimes.INFINITE
 inline val Int.playbackTimes get() = PlaybackTimes(this)
 
 inline class PlaybackTimes(val count: Int) {

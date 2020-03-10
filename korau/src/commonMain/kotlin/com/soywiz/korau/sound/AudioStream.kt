@@ -70,6 +70,7 @@ suspend fun AudioStream.toData(maxSamples: Int = Int.MAX_VALUE): AudioData {
 
 
 suspend fun AudioStream.playAndWait(bufferSeconds: Double = 0.1) = nativeSoundProvider.playAndWait(this, bufferSeconds)
+suspend fun AudioStream.playAndWait(times: PlaybackTimes = 1.playbackTimes, bufferSeconds: Double = 0.1) = nativeSoundProvider.createStreamingSound(this, bufferSeconds).playAndWait(times)
 
 suspend fun VfsFile.readAudioStream(formats: AudioFormats = defaultAudioFormats) = formats.decodeStream(this.open())
 
