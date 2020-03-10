@@ -1,12 +1,8 @@
 package com.soywiz.korau.impl.jna
 
-import com.soywiz.kmem.*
+import com.soywiz.korau.format.mp3.*
 import com.soywiz.korau.sound.*
-import com.soywiz.korau.sound.format.mp3.*
-import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
-import com.soywiz.korio.util.encoding.*
-import fr.delthas.javamp3.*
 import kotlinx.coroutines.*
 
 object JnaSoundProviderSample {

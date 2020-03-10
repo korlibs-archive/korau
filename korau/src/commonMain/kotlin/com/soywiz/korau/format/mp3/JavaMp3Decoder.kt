@@ -1,6 +1,16 @@
 package fr.delthas.javamp3
 
-import java.io.*
+import com.soywiz.kmem.*
+import com.soywiz.korio.lang.*
+import com.soywiz.korio.stream.*
+import kotlin.math.*
+
+/*
+https://github.com/kevinstadler/JavaMP3
+his is a fork of delthas' Java MP3 decoding library, incorporating fixes by josephx86, GlaDOSik as well as myself.
+The build from this repository is the basis for the MP3 decoding dependency that is shipped with the Processing Sound library.
+Currently supports MPEG-1 Layer I/II/III (that is, most MP1, MP2, and MP3 files)
+ */
 
 object JavaMp3Decoder {
     internal val INV_SQUARE_2: Float = 0.70710678118654752440f
@@ -32,12 +42,48 @@ object JavaMp3Decoder {
         floatArrayOf(0.857493f, 0.881742f, 0.949629f, 0.983315f, 0.995518f, 0.999161f, 0.999899f, 0.999993f)
     internal val CA_ALIASING_LAYER_III: FloatArray =
         floatArrayOf(-0.514496f, -0.471732f, -0.313377f, -0.181913f, -0.094574f, -0.040966f, -0.014199f, -0.003700f)
-    internal val POWTAB_LAYER_III: FloatArray
-    internal val IS_RATIOS_LAYER_III: FloatArray
-    internal val IMDCT_WINDOW_LAYER_III: FloatArray = FloatArray(4 * 36)
-    internal val PRE_FRACTOR_LAYER_I: FloatArray
-    internal val NIK_COEFFICIENTS: FloatArray
-    internal val SYNTH_WINDOW_TABLE_LAYER_III: FloatArray
+    internal val POWTAB_LAYER_III: FloatArray = FloatArray(8207) { i -> pow(i.toDouble(), 4.0 / 3.0).toFloat() }
+    internal val IS_RATIOS_LAYER_III: FloatArray = FloatArray(6) { i -> tan((i * PI) / 12.0).toFloat() }
+    internal val IMDCT_WINDOW_LAYER_III: FloatArray = FloatArray(4 * 36).also { IMDCT_WINDOW_LAYER_III ->
+        /* Blocktype 0 */
+        for (i in 0..35) IMDCT_WINDOW_LAYER_III[0 * 36 + i] = sin(PI / 36 * (i + 0.5)).toFloat()
+        /* Blocktype 1 */
+        for (i in 0..17) IMDCT_WINDOW_LAYER_III[1 * 36 + i] = sin(PI / 36 * (i + 0.5)).toFloat()
+        for (i in 18..23) IMDCT_WINDOW_LAYER_III[1 * 36 + i] = 1.0f
+        for (i in 24..29) IMDCT_WINDOW_LAYER_III[1 * 36 + i] = sin(PI / 12 * (i + 0.5 - 18.0)).toFloat()
+        /* Blocktype 2 */
+        for (i in 0..11) IMDCT_WINDOW_LAYER_III[2 * 36 + i] = sin(PI / 12 * (i + 0.5)).toFloat()
+        /* Blocktype 3 */
+        for (i in 6..11) IMDCT_WINDOW_LAYER_III[3 * 36 + i] = sin(PI / 12 * (i + 0.5 - 6.0)).toFloat()
+        for (i in 12..17) IMDCT_WINDOW_LAYER_III[3 * 36 + i] = 1.0f
+        for (i in 18..35) IMDCT_WINDOW_LAYER_III[3 * 36 + i] = sin(PI / 36 * (i + 0.5)).toFloat()
+
+    }
+    internal val PRE_FRACTOR_LAYER_I: FloatArray = FloatArray(16) { i ->
+        val pow: Double = (1 shl i.toDouble().toInt()).toDouble()
+        (pow / (pow - 1)).toFloat()
+    }
+    internal val NIK_COEFFICIENTS: FloatArray = FloatArray(64 * 32).also { NIK_COEFFICIENTS ->
+        for (i in 0..63) {
+            for (k in 0..31) {
+                var value: Double = 1e9 * cos((16 + i) * (2 * k + 1) * PI / 64)
+                if (value >= 0) {
+                    value = ((value + 0.5)).toDouble()
+                } else {
+                    value = ((value - 0.5)).toDouble()
+                }
+                NIK_COEFFICIENTS[i * 32 + k] = (value * 1e-9).toFloat()
+            }
+        }
+    }
+    internal val SYNTH_WINDOW_TABLE_LAYER_III: FloatArray = FloatArray(64 * 32).also { SYNTH_WINDOW_TABLE_LAYER_III ->
+        for (i in 0..63) {
+            for (j in 0..31) {
+                SYNTH_WINDOW_TABLE_LAYER_III[i * 32 + j] =
+                    cos((16 + i) * (2 * j + 1) * PI / 64.0).toFloat()
+            }
+        }
+    }
     internal val DI_COEFFICIENTS: FloatArray = floatArrayOf(0.000000000f,-0.000015259f,-0.000015259f,-0.000015259f,-0.000015259f,-0.000015259f,-0.000015259f,-0.000030518f,-0.000030518f,-0.000030518f,-0.000030518f,-0.000045776f,-0.000045776f,-0.000061035f,-0.000061035f,-0.000076294f,-0.000076294f,-0.000091553f,-0.000106812f,-0.000106812f,-0.000122070f,-0.000137329f,-0.000152588f,-0.000167847f,-0.000198364f,-0.000213623f,-0.000244141f,-0.000259399f,-0.000289917f,-0.000320435f,-0.000366211f,-0.000396729f,-0.000442505f,-0.000473022f,-0.000534058f,-0.000579834f,-0.000625610f,-0.000686646f,-0.000747681f,-0.000808716f,-0.000885010f,-0.000961304f,-0.001037598f,-0.001113892f,-0.001205444f,-0.001296997f,-0.001388550f,-0.001480103f,-0.001586914f,-0.001693726f,-0.001785278f,-0.001907349f,-0.002014160f,-0.002120972f,-0.002243042f,-0.002349854f,-0.002456665f,-0.002578735f,-0.002685547f,-0.002792358f,-0.002899170f,-0.002990723f,-0.003082275f,-0.003173828f,0.003250122f,0.003326416f,0.003387451f,0.003433228f,0.003463745f,0.003479004f,0.003479004f,0.003463745f,0.003417969f,0.003372192f,0.003280640f,0.003173828f,0.003051758f,0.002883911f,0.002700806f,0.002487183f,0.002227783f,0.001937866f,0.001617432f,0.001266479f,0.000869751f,0.000442505f,-0.000030518f,-0.000549316f,-0.001098633f,-0.001693726f,-0.002334595f,-0.003005981f,-0.003723145f,-0.004486084f,-0.005294800f,-0.006118774f,-0.007003784f,-0.007919312f,-0.008865356f,-0.009841919f,-0.010848999f,-0.011886597f,-0.012939453f,-0.014022827f,-0.015121460f,-0.016235352f,-0.017349243f,-0.018463135f,-0.019577026f,-0.020690918f,-0.021789551f,-0.022857666f,-0.023910522f,-0.024932861f,-0.025909424f,-0.026840210f,-0.027725220f,-0.028533936f,-0.029281616f,-0.029937744f,-0.030532837f,-0.031005859f,-0.031387329f,-0.031661987f,-0.031814575f,-0.031845093f,-0.031738281f,-0.031478882f,0.031082153f,0.030517578f,0.029785156f,0.028884888f,0.027801514f,0.026535034f,0.025085449f,0.023422241f,0.021575928f,0.019531250f,0.017257690f,0.014801025f,0.012115479f,0.009231567f,0.006134033f,0.002822876f,-0.000686646f,-0.004394531f,-0.008316040f,-0.012420654f,-0.016708374f,-0.021179199f,-0.025817871f,-0.030609131f,-0.035552979f,-0.040634155f,-0.045837402f,-0.051132202f,-0.056533813f,-0.061996460f,-0.067520142f,-0.073059082f,-0.078628540f,-0.084182739f,-0.089706421f,-0.095169067f,-0.100540161f,-0.105819702f,-0.110946655f,-0.115921021f,-0.120697021f,-0.125259399f,-0.129562378f,-0.133590698f,-0.137298584f,-0.140670776f,-0.143676758f,-0.146255493f,-0.148422241f,-0.150115967f,-0.151306152f,-0.151962280f,-0.152069092f,-0.151596069f,-0.150497437f,-0.148773193f,-0.146362305f,-0.143264771f,-0.139450073f,-0.134887695f,-0.129577637f,-0.123474121f,-0.116577148f,-0.108856201f,0.100311279f,0.090927124f,0.080688477f,0.069595337f,0.057617187f,0.044784546f,0.031082153f,0.016510010f,0.001068115f,-0.015228271f,-0.032379150f,-0.050354004f,-0.069168091f,-0.088775635f,-0.109161377f,-0.130310059f,-0.152206421f,-0.174789429f,-0.198059082f,-0.221984863f,-0.246505737f,-0.271591187f,-0.297210693f,-0.323318481f,-0.349868774f,-0.376800537f,-0.404083252f,-0.431655884f,-0.459472656f,-0.487472534f,-0.515609741f,-0.543823242f,-0.572036743f,-0.600219727f,-0.628295898f,-0.656219482f,-0.683914185f,-0.711318970f,-0.738372803f,-0.765029907f,-0.791213989f,-0.816864014f,-0.841949463f,-0.866363525f,-0.890090942f,-0.913055420f,-0.935195923f,-0.956481934f,-0.976852417f,-0.996246338f,-1.014617920f,-1.031936646f,-1.048156738f,-1.063217163f,-1.077117920f,-1.089782715f,-1.101211548f,-1.111373901f,-1.120223999f,-1.127746582f,-1.133926392f,-1.138763428f,-1.142211914f,-1.144287109f,1.144989014f,1.144287109f,1.142211914f,1.138763428f,1.133926392f,1.127746582f,1.120223999f,1.111373901f,1.101211548f,1.089782715f,1.077117920f,1.063217163f,1.048156738f,1.031936646f,1.014617920f,0.996246338f,0.976852417f,0.956481934f,0.935195923f,0.913055420f,0.890090942f,0.866363525f,0.841949463f,0.816864014f,0.791213989f,0.765029907f,0.738372803f,0.711318970f,0.683914185f,0.656219482f,0.628295898f,0.600219727f,0.572036743f,0.543823242f,0.515609741f,0.487472534f,0.459472656f,0.431655884f,0.404083252f,0.376800537f,0.349868774f,0.323318481f,0.297210693f,0.271591187f,0.246505737f,0.221984863f,0.198059082f,0.174789429f,0.152206421f,0.130310059f,0.109161377f,0.088775635f,0.069168091f,0.050354004f,0.032379150f,0.015228271f,-0.001068115f,-0.016510010f,-0.031082153f,-0.044784546f,-0.057617187f,-0.069595337f,-0.080688477f,-0.090927124f,0.100311279f,0.108856201f,0.116577148f,0.123474121f,0.129577637f,0.134887695f,0.139450073f,0.143264771f,0.146362305f,0.148773193f,0.150497437f,0.151596069f,0.152069092f,0.151962280f,0.151306152f,0.150115967f,0.148422241f,0.146255493f,0.143676758f,0.140670776f,0.137298584f,0.133590698f,0.129562378f,0.125259399f,0.120697021f,0.115921021f,0.110946655f,0.105819702f,0.100540161f,0.095169067f,0.089706421f,0.084182739f,0.078628540f,0.073059082f,0.067520142f,0.061996460f,0.056533813f,0.051132202f,0.045837402f,0.040634155f,0.035552979f,0.030609131f,0.025817871f,0.021179199f,0.016708374f,0.012420654f,0.008316040f,0.004394531f,0.000686646f,-0.002822876f,-0.006134033f,-0.009231567f,-0.012115479f,-0.014801025f,-0.017257690f,-0.019531250f,-0.021575928f,-0.023422241f,-0.025085449f,-0.026535034f,-0.027801514f,-0.028884888f,-0.029785156f,-0.030517578f,0.031082153f,0.031478882f,0.031738281f,0.031845093f,0.031814575f,0.031661987f,0.031387329f,0.031005859f,0.030532837f,0.029937744f,0.029281616f,0.028533936f,0.027725220f,0.026840210f,0.025909424f,0.024932861f,0.023910522f,0.022857666f,0.021789551f,0.020690918f,0.019577026f,0.018463135f,0.017349243f,0.016235352f,0.015121460f,0.014022827f,0.012939453f,0.011886597f,0.010848999f,0.009841919f,0.008865356f,0.007919312f,0.007003784f,0.006118774f,0.005294800f,0.004486084f,0.003723145f,0.003005981f,0.002334595f,0.001693726f,0.001098633f,0.000549316f,0.000030518f,-0.000442505f,-0.000869751f,-0.001266479f,-0.001617432f,-0.001937866f,-0.002227783f,-0.002487183f,-0.002700806f,-0.002883911f,-0.003051758f,-0.003173828f,-0.003280640f,-0.003372192f,-0.003417969f,-0.003463745f,-0.003479004f,-0.003479004f,-0.003463745f,-0.003433228f,-0.003387451f,-0.003326416f,0.003250122f,0.003173828f,0.003082275f,0.002990723f,0.002899170f,0.002792358f,0.002685547f,0.002578735f,0.002456665f,0.002349854f,0.002243042f,0.002120972f,0.002014160f,0.001907349f,0.001785278f,0.001693726f,0.001586914f,0.001480103f,0.001388550f,0.001296997f,0.001205444f,0.001113892f,0.001037598f,0.000961304f,0.000885010f,0.000808716f,0.000747681f,0.000686646f,0.000625610f,0.000579834f,0.000534058f,0.000473022f,0.000442505f,0.000396729f,0.000366211f,0.000320435f,0.000289917f,0.000259399f,0.000244141f,0.000213623f,0.000198364f,0.000167847f,0.000152588f,0.000137329f,0.000122070f,0.000106812f,0.000106812f,0.000091553f,0.000076294f,0.000076294f,0.000061035f,0.000061035f,0.000045776f,0.000045776f,0.000030518f,0.000030518f,0.000030518f,0.000030518f,0.000015259f,0.000015259f,0.000015259f,0.000015259f,0.000015259f,0.000015259f)
     internal val SHIFT_ENDIANESS: IntArray = intArrayOf(255,254,253,252,251,250,249,248,247,246,245,244,243,242,241,240,239,238,237,236,235,234,233,232,231,230,229,228,227,226,225,224,223,222,221,220,219,218,217,216,215,214,213,212,211,210,209,208,207,206,205,204,203,202,201,200,199,198,197,196,195,194,193,192,191,190,189,188,187,186,185,184,183,182,181,180,179,178,177,176,175,174,173,172,171,170,169,168,167,166,165,164,163,162,161,160,159,158,157,156,155,154,153,152,151,150,149,148,147,146,145,144,143,142,141,140,139,138,137,136,135,134,133,132,131,130,129,128,127,126,125,124,123,122,121,120,119,118,117,116,115,114,113,112,111,110,109,108,107,106,105,104,103,102,101,100,99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0)
     internal val SB_LIMIT: IntArray = intArrayOf(27, 30, 8, 12)
@@ -444,12 +490,17 @@ object JavaMp3Decoder {
     internal val HUFFMAN_TREELEN_LAYER_III: IntArray = intArrayOf(0,7,17,17,0,31,31,71,71,71,127,127,127,511,0,511,511,511,511,511,511,511,511,511,512,512,512,512,512,512,512,512,31,31)
     internal val HUFFMAN_LINBITS_LAYER_III: IntArray = intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 8, 10, 13, 4, 5, 6, 7, 8, 9, 11, 13, 0, 0)
     internal val REQUANTIZE_LONG_PRETAB_LAYER_III: FloatArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f, 1f, 1f, 1f, 2f, 2f, 3f, 3f, 3f, 2f)
-    internal val COS_12_LAYER_III: FloatArray
-    internal val COS_36_LAYER_III: FloatArray
+    internal val COS_12_LAYER_III: FloatArray = FloatArray(6 * 12).also { COS_12_LAYER_III ->
+        for (i in 0..5) for (j in 0..11) COS_12_LAYER_III[i * 12 + j] = cos((PI / (2 * 12)) * ((2.0 * j) + 1 + (12 / 2)) * (2.0 * i + 1)).toFloat()
+    }
+    internal val COS_36_LAYER_III: FloatArray = FloatArray(18 * 36).also { COS_36_LAYER_III ->
+        for (i in 0..17) for (j in 0..35) COS_36_LAYER_III[i * 36 + j] = cos((PI / (2 * 36)) * ((2.0 * j) + 1 + (36 / 2)) * (2.0 * i + 1)).toFloat()
+    }
 
-    @Throws(IOException::class)
-    fun init(`in`: InputStream): SoundData? {
-        val buffer: Buffer = Buffer(`in`)
+    fun init(inp: ByteArray): SoundData? = init(inp.openSync())
+
+    fun init(inp: SyncStream): SoundData? {
+        val buffer: Buffer = Buffer(inp)
         while (buffer.lastByte != -1) {
             val soundData: SoundData = SoundData()
             soundData.buffer = buffer
@@ -471,9 +522,11 @@ object JavaMp3Decoder {
                 // the true frame header, thus skipping the frame altogether. to counter
                 // such cases we'd need to implement another mark()/reset() pair before
                 // the main body of decodeFrame()
-            } catch (e: NegativeArraySizeException) {
-            } catch (e: NullPointerException) {
-            } catch (e: ArrayIndexOutOfBoundsException) {
+            //} catch (e: NegativeArraySizeException) {
+            //} catch (e: NullPointerException) {
+            } catch (e: Throwable) {
+            //} catch (e: ArrayIndexOutOfBoundsException) {
+            } finally {
             }
         }
         return null
@@ -493,19 +546,19 @@ object JavaMp3Decoder {
                     return null
                 }
                 skipped++
-                soundData.buffer.`in`.reset()
+                soundData.buffer.reset()
                 // skip to next byte
-                soundData.buffer.lastByte = soundData.buffer.`in`.read()
+                soundData.buffer.lastByte = soundData.buffer.inp.read()
+                if (soundData.buffer.lastByte == -1) error("EOF")
                 header.set(soundData)
             }
             return header
-        } catch (e: IOException) {
+        } catch (e: Throwable) {
             // read error or EOF
             return null
         }
     }
 
-    @Throws(IOException::class)
     fun decodeFrame(soundData: SoundData): Boolean {
         if (soundData.buffer!!.lastByte == -1) {
             return false
@@ -587,7 +640,7 @@ object JavaMp3Decoder {
             val frameSize: Int =
                 (144 * BITRATE_LAYER_III[header.bitrateIndex]) / SAMPLING_FREQUENCY[header.samplingFrequency] + header.paddingBit
             if (frameSize > 2000) {
-                System.err.println("Frame too large! $frameSize")
+                println("Frame too large! $frameSize")
             }
             samples_III(
                 soundData.buffer,
@@ -608,7 +661,6 @@ object JavaMp3Decoder {
         return true
     }
 
-    @Throws(IOException::class)
     internal fun samples_III(
         buffer: Buffer?,
         stereo: Int,
@@ -621,9 +673,9 @@ object JavaMp3Decoder {
         v: FloatArray,
         soundData: SoundData
     ) {
-        val scfsi: IntArray = IntArray(stereo * 4)
-        val part2_3_length: IntArray = IntArray(stereo * 2)
-        val big_values: IntArray = IntArray(stereo * 2)
+        val scfsi = IntArray(stereo * 4)
+        val part2_3_length = IntArray(stereo * 2)
+        val big_values = IntArray(stereo * 2)
         val global_gain: IntArray = IntArray(stereo * 2)
         val scalefac_compress: IntArray = IntArray(stereo * 2)
         val win_switch_flag: IntArray = IntArray(stereo * 2)
@@ -631,15 +683,15 @@ object JavaMp3Decoder {
         val mixed_block_flag: IntArray = IntArray(stereo * 2)
         val table_select: IntArray = IntArray(stereo * 2 * 3)
         val subblock_gain: IntArray = IntArray(stereo * 2 * 3)
-        val region0_count: IntArray = IntArray(stereo * 2)
-        val region1_count: IntArray = IntArray(stereo * 2)
-        val preflag: IntArray = IntArray(stereo * 2)
-        val scalefac_scale: IntArray = IntArray(stereo * 2)
-        val count1table_select: IntArray = IntArray(stereo * 2)
-        val count1: IntArray = IntArray(stereo * 2)
-        val scalefac_l: IntArray = IntArray(stereo * 2 * 21)
-        val scalefac_s: IntArray = IntArray(stereo * 2 * 12 * 3)
-        val `is`: FloatArray = FloatArray(stereo * 2 * 576)
+        val region0_count = IntArray(stereo * 2)
+        val region1_count = IntArray(stereo * 2)
+        val preflag = IntArray(stereo * 2)
+        val scalefac_scale = IntArray(stereo * 2)
+        val count1table_select = IntArray(stereo * 2)
+        val count1 = IntArray(stereo * 2)
+        val scalefac_l = IntArray(stereo * 2 * 21)
+        val scalefac_s = IntArray(stereo * 2 * 12 * 3)
+        val `is` = FloatArray(stereo * 2 * 576)
         val mainDataBegin: Int = read(buffer, 9)
         read(buffer, if (stereo == 1) 5 else 3)
         for (ch in 0 until stereo) {
@@ -684,7 +736,7 @@ object JavaMp3Decoder {
                 count1table_select[ch * 2 + gr] = read(buffer, 1)
             }
         }
-        System.arraycopy(mainDataReader!!.array, mainDataReader.top - mainDataBegin, mainDataReader.array, 0, mainDataBegin)
+        arraycopy(mainDataReader!!.array, mainDataReader.top - mainDataBegin, mainDataReader.array, 0, mainDataBegin)
         val mainDataSize: Int = frameSize - (if (stereo == 2) 32 else 17) - 4
         readInto(buffer, mainDataReader.array, mainDataBegin, mainDataSize)
         mainDataReader.index = 0
@@ -869,13 +921,10 @@ object JavaMp3Decoder {
                     (block_type[ch * 2 + gr] == 2)
                 ) { /* Short blocks */
 
-                    /* Check if the first two subbands
- * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */
+                    // Check if the first two subbands * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks
                     if (mixed_block_flag[ch * 2 + gr] != 0) { /* 2 longbl. sb  first */
 
-                        /*
-   * First process the 2 long block subbands at the start
-   */
+                        // First process the 2 long block subbands at the start
                         var sfb: Int = 0
                         var next_sfb: Int =
                             SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 0 + sfb + 1]
@@ -1335,6 +1384,10 @@ object JavaMp3Decoder {
         }
     }
 
+    private fun pow(b: Double, e: Double): Double {
+        return b.pow(e)
+    }
+
     internal fun requantize_short_III(
         gr: Int,
         ch: Int,
@@ -1350,11 +1403,11 @@ object JavaMp3Decoder {
         val sf_mult: Float = if (scalefac_scale[ch * 2 + gr] != 0) 1.0f else 0.5f
         val tmp1: Float
         if (sfb < 12) {
-            tmp1 = Math.pow(2.0, -(sf_mult * scalefac_s[(ch * 2 * 12 * 3) + (gr * 12 * 3) + (sfb * 3) + win]).toDouble()).toFloat()
+            tmp1 = pow(2.0, -(sf_mult * scalefac_s[(ch * 2 * 12 * 3) + (gr * 12 * 3) + (sfb * 3) + win]).toDouble()).toFloat()
         } else {
             tmp1 = 1.0f
         }
-        val tmp2: Float = Math.pow(
+        val tmp2: Float = pow(
             2.0, 0.25f * (global_gain[ch * 2 + gr] - 210.0f - (
                 8.0f * (subblock_gain[(ch * 2 * 3) + (gr * 3) + win]))).toDouble()
         ).toFloat()
@@ -1384,11 +1437,11 @@ object JavaMp3Decoder {
         val tmp1: Float
         if (sfb < 21) {
             val pf_x_pt: Float = preflag[ch * 2 + gr] * REQUANTIZE_LONG_PRETAB_LAYER_III[sfb]
-            tmp1 = Math.pow(2.0, -(sf_mult * (scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] + pf_x_pt)).toDouble()).toFloat()
+            tmp1 = pow(2.0, -(sf_mult * (scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] + pf_x_pt)).toDouble()).toFloat()
         } else {
             tmp1 = 1.0f
         }
-        val tmp2: Float = Math.pow(2.0, 0.25f * (global_gain[ch * 2 + gr] - 210).toDouble()).toFloat()
+        val tmp2: Float = pow(2.0, 0.25f * (global_gain[ch * 2 + gr] - 210).toDouble()).toFloat()
         val tmp3: Float
         if (`is`[(ch * 2 * 576) + (gr * 576) + is_pos] < 0.0) {
             tmp3 = -POWTAB_LAYER_III[(-`is`[(ch * 2 * 576) + (gr * 576) + is_pos]).toInt()]
@@ -1498,7 +1551,6 @@ object JavaMp3Decoder {
         }
     }
 
-    @Throws(IOException::class)
     internal fun samples_I(buffer: Buffer?, stereo: Int, bound: Int): FloatArray {
         var bound: Int = bound
         if (bound < 0) {
@@ -1570,7 +1622,6 @@ object JavaMp3Decoder {
         return sampleDecoded
     }
 
-    @Throws(IOException::class)
     internal fun samples_II(buffer: Buffer?, stereo: Int, bound: Int, bitrate: Int, frequency: Int): FloatArray {
         var bound: Int = bound
         var sbIndex: Int = 0
@@ -1799,7 +1850,7 @@ object JavaMp3Decoder {
         var bits: Int = bits
         var number: Int = 0
         while (bits > 0) {
-            val advance: Int = Math.min(bits, 8 - reader!!.current)
+            val advance: Int = min(bits, 8 - reader!!.current)
             bits -= advance
             reader.current += advance
             number = number or ((((reader.array[reader.index].toInt() and 0xFF) ushr (8 - reader.current)) and (0xFF ushr (8 - advance))) shl bits)
@@ -1811,12 +1862,11 @@ object JavaMp3Decoder {
         return number
     }
 
-    @Throws(IOException::class)
     internal fun read(buffer: Buffer?, bits: Int): Int {
         var bits: Int = bits
         var number: Int = 0
         while (bits > 0) {
-            val advance: Int = Math.min(bits, 8 - buffer!!.current)
+            val advance: Int = min(bits, 8 - buffer!!.current)
             bits -= advance
             buffer.current += advance
             if (bits != 0 && buffer.lastByte == -1) {
@@ -1825,13 +1875,12 @@ object JavaMp3Decoder {
             number = number or (((buffer.lastByte ushr (8 - buffer.current)) and (0xFF ushr (8 - advance))) shl bits)
             if (buffer.current == 8) {
                 buffer.current = 0
-                buffer.lastByte = buffer.`in`.read()
+                buffer.lastByte = buffer.inp.read()
             }
         }
         return number
     }
 
-    @Throws(IOException::class)
     internal fun readInto(buffer: Buffer?, array: ByteArray, offset: Int, length: Int) {
         if (buffer!!.current != 0) // TODO remove
         {
@@ -1846,91 +1895,9 @@ object JavaMp3Decoder {
         array[offset] = buffer.lastByte.toByte()
         var read: Int = 1
         while (read < length) {
-            read += buffer.`in`.read(array, offset + read, length - read)
+            read += buffer.inp.read(array, offset + read, length - read)
         }
-        buffer.lastByte = buffer.`in`.read()
-    }
-
-    init {
-        PRE_FRACTOR_LAYER_I = FloatArray(16)
-        for (i in 0..15) {
-            val pow: Double = (1 shl i.toDouble().toInt()).toDouble()
-            PRE_FRACTOR_LAYER_I[i] = (pow / (pow - 1)).toFloat()
-        }
-        NIK_COEFFICIENTS = FloatArray(64 * 32)
-        for (i in 0..63) {
-            for (k in 0..31) {
-                var value: Double = 1e9 * Math.cos((16 + i) * (2 * k + 1) * Math.PI / 64)
-                if (value >= 0) {
-                    value = ((value + 0.5)).toDouble()
-                } else {
-                    value = ((value - 0.5)).toDouble()
-                }
-                NIK_COEFFICIENTS[i * 32 + k] = (value * 1e-9).toFloat()
-            }
-        }
-        POWTAB_LAYER_III = FloatArray(8207)
-        for (i in 0..8206) {
-            POWTAB_LAYER_III[i] = Math.pow(i.toDouble(), 4.0 / 3.0).toFloat()
-        }
-        IS_RATIOS_LAYER_III = FloatArray(6)
-        for (i in 0..5) {
-            IS_RATIOS_LAYER_III[i] = Math.tan((i * Math.PI) / 12.0).toFloat()
-        }
-        run {
-            /* Blocktype 0 */
-            for (i in 0..35) {
-                IMDCT_WINDOW_LAYER_III[0 * 36 + i] =
-                    Math.sin(Math.PI / 36 * (i + 0.5)).toFloat()
-            }
-            /* Blocktype 1 */for (i in 0..17) {
-            IMDCT_WINDOW_LAYER_III[1 * 36 + i] =
-                Math.sin(Math.PI / 36 * (i + 0.5)).toFloat()
-        }
-            for (i in 18..23) {
-                IMDCT_WINDOW_LAYER_III[1 * 36 + i] = 1.0f
-            }
-            for (i in 24..29) {
-                IMDCT_WINDOW_LAYER_III[1 * 36 + i] =
-                    Math.sin(Math.PI / 12 * (i + 0.5 - 18.0)).toFloat()
-            }
-            /* Blocktype 2 */for (i in 0..11) {
-            IMDCT_WINDOW_LAYER_III[2 * 36 + i] =
-                Math.sin(Math.PI / 12 * (i + 0.5)).toFloat()
-        }
-            /* Blocktype 3 */for (i in 6..11) {
-            IMDCT_WINDOW_LAYER_III[3 * 36 + i] =
-                Math.sin(Math.PI / 12 * (i + 0.5 - 6.0)).toFloat()
-        }
-            for (i in 12..17) {
-                IMDCT_WINDOW_LAYER_III[3 * 36 + i] = 1.0f
-            }
-            for (i in 18..35) {
-                IMDCT_WINDOW_LAYER_III[3 * 36 + i] =
-                    Math.sin(Math.PI / 36 * (i + 0.5)).toFloat()
-            }
-        }
-        SYNTH_WINDOW_TABLE_LAYER_III = FloatArray(64 * 32)
-        for (i in 0..63) {
-            for (j in 0..31) {
-                SYNTH_WINDOW_TABLE_LAYER_III[i * 32 + j] =
-                    Math.cos((16 + i) * (2 * j + 1) * Math.PI / 64.0).toFloat()
-            }
-        }
-        COS_12_LAYER_III = FloatArray(6 * 12)
-        for (i in 0..5) {
-            for (j in 0..11) {
-                COS_12_LAYER_III[i * 12 + j] =
-                    Math.cos((Math.PI / (2 * 12)) * ((2.0 * j) + 1 + (12 / 2)) * (2.0 * i + 1)).toFloat()
-            }
-        }
-        COS_36_LAYER_III = FloatArray(18 * 36)
-        for (i in 0..17) {
-            for (j in 0..35) {
-                COS_36_LAYER_III[i * 36 + j] =
-                    Math.cos((Math.PI / (2 * 36)) * ((2.0 * j) + 1 + (36 / 2)) * (2.0 * i + 1)).toFloat()
-            }
-        }
+        buffer.lastByte = buffer.inp.read()
     }
 
     internal class  FrameHeader internal constructor(soundData: SoundData) {
@@ -1945,13 +1912,12 @@ object JavaMp3Decoder {
         var mode: Int = 0
         var modeExtension: Int = 0
 
-        @Throws(IOException::class)
         internal fun set(soundData: SoundData) {
             // previously aborted data reads might have left the Buffer off a byte
             // boundary, so reset back to reading from the beginning of the byte
             soundData.buffer!!.current = 0
             // read 4 byte header with possibility of rollback
-            soundData.buffer.`in`.mark(4)
+            soundData.buffer.mark(4)
             try {
                 sigBytes = read(soundData.buffer, 12)
                 version = read(soundData.buffer, 1)
@@ -1971,9 +1937,8 @@ object JavaMp3Decoder {
             }
         }
 
-        @Throws(IOException::class)
         internal fun unRead(soundData: SoundData) {
-            soundData.buffer!!.`in`.reset()
+            soundData.buffer!!.reset()
             soundData.buffer.lastByte = sigBytes ushr 4
         }
 
@@ -1995,12 +1960,17 @@ object JavaMp3Decoder {
         var current: Int = 0
     }
 
-    internal class  Buffer(val `in`: InputStream) {
+    internal class Buffer(val inp: SyncStream) {
         var current: Int = 0
-        var lastByte: Int = -1
+        var lastByte: Int = inp.read()
 
-        init {
-            lastByte = `in`.read()
+        private var markedPos = 0L
+        fun mark(count: Int) {
+            markedPos = inp.position
+        }
+
+        fun reset() {
+            inp.position = markedPos
         }
     }
 
