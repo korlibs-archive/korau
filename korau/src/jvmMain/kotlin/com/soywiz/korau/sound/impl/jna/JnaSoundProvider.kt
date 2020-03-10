@@ -520,7 +520,7 @@ abstract class BaseOpenALNativeSound(
 class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutineContext: CoroutineContext, val data: AudioData?) : BaseOpenALNativeSound(provider, coroutineContext) {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
-    override fun play(): NativeSoundChannel {
+    override fun play(controller: PlaybackController): NativeSoundChannel {
         //if (openalNativeSoundProvider.device == null || openalNativeSoundProvider.context == null) return DummyNativeSoundChannel(this, data)
         //println("OpenALNativeSoundNoStream.play : $data")
         val data = data ?: return DummyNativeSoundChannel(this)

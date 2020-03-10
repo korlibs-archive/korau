@@ -142,9 +142,9 @@ class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 		AudioData(buffer.sampleRate, data)
 	}
 
-	override fun play(): NativeSoundChannel {
+	override fun play(controller: PlaybackController): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {
-			val channel = if (buffer != null) HtmlSimpleSound.playSound(buffer) else null
+			val channel = if (buffer != null) HtmlSimpleSound.playSound(buffer, controller) else null
 
 			override var volume: Double
 				get() = channel?.gain?.gain?.value ?: 1.0

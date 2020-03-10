@@ -75,7 +75,7 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
     class PooledClip {
         companion object {
             private val pool = Pool({ it.stopped = false }) { PooledClip() }
-            fun play(channel: NativeSoundChannel): PooledClip {
+            fun play(channel: NativeSoundChannel, controller: PlaybackController): PooledClip {
                 //val clip = pool.alloc()
                 val clip = PooledClip()
                 clip.play(channel)
@@ -131,8 +131,11 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
         }
     }
 
-    override fun play(): NativeSoundChannel {
+    override fun play(controller: PlaybackController): NativeSoundChannel {
         return object : NativeSoundChannel(this) {
+
+            var clip: PooledClip? = PooledClip.play(this, controller)
+
             //val len = clip.microsecondLength.toDouble().microseconds
             val len = audioData.totalTime
 
@@ -151,9 +154,6 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
                 clip?.stop()
                 clip = null
             }
-
-            var clip: PooledClip? =
-                PooledClip.play(this)
         }
     }
 }

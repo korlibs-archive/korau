@@ -1,3 +1,4 @@
+/*
 package com.soywiz.korau.format.mp3
 
 import com.soywiz.kds.*
@@ -192,3 +193,4 @@ public open class NativeAudioDecoder(public val runtime: AbstractRuntime, val da
         }
     }
 }
+*/

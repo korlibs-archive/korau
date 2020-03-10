@@ -43,7 +43,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
 class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data: AudioData?) : NativeSound() {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
-    override fun play(): NativeSoundChannel {
+    override fun play(controller: PlaybackController): NativeSoundChannel {
         val data = data ?: return DummyNativeSoundChannel(this)
         val scope = Arena()
         val hWaveOut = scope.alloc<HWAVEOUTVar>()

@@ -79,7 +79,7 @@ object HtmlSimpleSound {
 		return node
 	}
 
-	fun playSound(buffer: AudioBuffer): SimpleSoundChannel? {
+	fun playSound(buffer: AudioBuffer, controller: PlaybackController): SimpleSoundChannel? {
 		if (ctx == null) return null
 
 		var gainNode: GainNode? = null
@@ -90,11 +90,16 @@ object HtmlSimpleSound {
 				gainNode = gain {
 					this.gain.value = 1.0
 					sourceNode = source(buffer) {
-						start(0.0)
+                        //start(0.0)
 					}
 				}
 			}
 		}
+
+        // @TODO: Repeat times
+        if (controller.mustPlay()) {
+            sourceNode?.start(0.0)
+        }
 
 		return SimpleSoundChannel(buffer, sourceNode, gainNode, pannerNode)
 	}

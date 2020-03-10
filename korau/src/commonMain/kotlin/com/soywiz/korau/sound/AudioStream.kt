@@ -11,10 +11,19 @@ open class AudioStream(
     val channels: Int
 ) : Closeable {
     open val finished = false
-    val totalLengthInSamples: Long? = null
+    open val totalLengthInSamples: Long? = null
     val totalLength get() = ((totalLengthInSamples ?: 0L).toDouble() / rate.toDouble()).seconds
+    open var currentPositionInSamples: Long = 0L
+    var currentTime: TimeSpan
+        set(value) = run { currentPositionInSamples = (value.seconds * rate.toDouble()).toLong() }
+        get() = (currentPositionInSamples.toDouble() / rate.toDouble()).seconds
     open suspend fun read(out: AudioSamples, offset: Int, length: Int): Int = 0
     override fun close() = Unit
+
+    open suspend fun clone(): AudioStream {
+        println("Not implemented AudioStream.clone: $this")
+        return this
+    }
 
     companion object {
         fun generator(rate: Int, channels: Int, generateChunk: suspend AudioSamplesDeque.(step: Int) -> Boolean): AudioStream =

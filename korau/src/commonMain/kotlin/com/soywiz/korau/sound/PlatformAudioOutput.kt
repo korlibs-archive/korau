@@ -6,7 +6,7 @@ import com.soywiz.korio.lang.*
 
 open class PlatformAudioOutput(freq: Int) : Disposable {
 	open val availableSamples: Int = 0
-    open var pitch: Double = 0.0
+    open var pitch: Double = 1.0
     open var volume: Double = 1.0
     open var panning: Double = 0.0
 	open suspend fun add(samples: AudioSamples, offset: Int = 0, size: Int = samples.totalSamples) {
