@@ -160,7 +160,7 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
 
 data class SampleBuffer(val timestamp: Long, val data: AudioSamples)
 
-class JvmPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
+class JvmPlatformAudioOutput(freq: Int) : PlatformAudioOutput(freq) {
     companion object {
         var lastId = 0
         val mixer by lazy { AudioSystem.getMixer(null) }
@@ -196,7 +196,7 @@ class JvmPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
                             synchronized(buffers) { totalShorts -= buf.data.size }
                             val bdata = convertFromShortToByte(buf.data.interleaved().data)
 
-                            val msChunk = (((bdata.size / 2) * 1000.0) / freq.toDouble()).toInt()
+                            val msChunk = (((bdata.size / 2) * 1000.0) / frequency.toDouble()).toInt()
 
                             _msElapsed += msChunk
                             val now = System.currentTimeMillis()

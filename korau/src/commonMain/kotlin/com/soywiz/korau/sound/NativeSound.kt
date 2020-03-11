@@ -135,14 +135,21 @@ class DummyNativeSoundChannel(sound: NativeSound, val data: AudioData? = null) :
 	}
 }
 
-abstract class NativeSoundChannel(val sound: NativeSound) {
+interface SoundProps {
+    var volume: Double
+    var pitch: Double
+    var panning: Double
+}
+
+abstract class NativeSoundChannel(val sound: NativeSound) : SoundProps {
 	private val startTime = DateTime.now()
-	open var volume = 1.0
-	open var pitch = 1.0
-	open var panning = 0.0 // -1.0 left, +1.0 right
+	override var volume = 1.0
+	override var pitch = 1.0
+	override var panning = 0.0 // -1.0 left, +1.0 right
 	open val current: TimeSpan get() = DateTime.now() - startTime
 	open val total: TimeSpan get() = sound.length
 	open val playing get() = current < total
+    open fun reset(): Unit = TODO()
 	abstract fun stop(): Unit
 }
 
@@ -158,10 +165,10 @@ suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: Time
 	}
 }
 
-abstract class NativeSound {
-    open var volume: Double = 1.0
-    open var panning: Double = 0.0
-    open var pitch: Double = 1.0
+abstract class NativeSound : SoundProps {
+    override var volume: Double = 1.0
+    override var panning: Double = 0.0
+    override var pitch: Double = 1.0
 	open val length: TimeSpan = 0.seconds
 	abstract suspend fun decode(): AudioData
 	open fun play(controller: PlaybackController): NativeSoundChannel = TODO()

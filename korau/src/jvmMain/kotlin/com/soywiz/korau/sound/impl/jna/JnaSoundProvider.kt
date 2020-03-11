@@ -406,8 +406,16 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
     override fun createAudioStream(freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, freq)
 }
 
-class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val freq: Int) : PlatformAudioOutput(freq) {
+class OpenALPlatformAudioOutput(
+    val provider: JnaOpenALNativeSoundProvider,
+    freq: Int,
+    val sourceProvider: SourceProvider = SourceProvider(0)
+) : PlatformAudioOutput(freq), SoundProps by SoundPropsProvider(sourceProvider) {
     override var availableSamples: Int = 0
+
+    var source: Int
+        get() = sourceProvider.source
+        set(value) = run { sourceProvider.source = value }
 
     //val source
 
@@ -416,34 +424,10 @@ class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val 
     //val buffersPool = Pool(6) { all.alGenBuffer() }
     //val buffers = IntArray(32)
     val buffers = IntArray(6)
-    var source: Int = 0
 
     init {
         start()
     }
-
-    private val temp1 = FloatArray(3)
-    private val temp2 = FloatArray(3)
-    private val temp3 = FloatArray(3)
-
-    override var pitch: Double
-        get() = al.alGetSourcef(source, AL.AL_PITCH).toDouble()
-        set(value) = al.alSourcef(source, AL.AL_PITCH, value.toFloat())
-    override var volume: Double
-        get() = al.alGetSourcef(source, AL.AL_GAIN).toDouble()
-        set(value) = al.alSourcef(source, AL.AL_GAIN, value.toFloat())
-    override var panning: Double
-        get() = run {
-            al.alGetSource3f(source, AL.AL_POSITION, temp1, temp2, temp3)
-            temp1[0].toDouble()
-        }
-        set(value) = run {
-            val pan = value.toFloat()
-            al.alSource3f(source, AL.AL_POSITION, 0f, value.toFloat(), 0f)
-            al.alSourcef(source, AL.AL_ROLLOFF_FACTOR, 0.0f);
-            al.alSourcei(source, AL.AL_SOURCE_RELATIVE, 1);
-            al.alSource3f(source, AL.AL_POSITION, pan, 0f, -sqrt(1.0f - pan * pan));
-        }
 
     override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
         availableSamples += samples.size
@@ -477,7 +461,7 @@ class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val 
                     //println("alSourceUnqueueBuffers: ${tempBuffers[0]}")
                 }
                 //println("samples: $samples - $offset, $size")
-                al.alBufferData(tempBuffers[0], samples.copyOfRange(offset, offset + size), freq)
+                al.alBufferData(tempBuffers[0], samples.copyOfRange(offset, offset + size), frequency)
                 al.alSourceQueueBuffers(source, 1, tempBuffers)
                 checkAlErrors("alSourceQueueBuffers")
 
@@ -533,16 +517,15 @@ class OpenALPlatformAudioOutput(val provider: JnaOpenALNativeSoundProvider, val 
     }
 }
 
-abstract class BaseOpenALNativeSound(
-    val provider: JnaOpenALNativeSoundProvider,
-    val coroutineContext: CoroutineContext
-) : NativeSound() {
-
-}
-
 // https://ffainelli.github.io/openal-example/
-class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutineContext: CoroutineContext, val data: AudioData?) : BaseOpenALNativeSound(provider, coroutineContext) {
+class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val coroutineContext: CoroutineContext, val data: AudioData?, val sourceProvider: SourceProvider = SourceProvider(0)) : NativeSound(), SoundProps by SoundPropsProvider(sourceProvider) {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
+
+    var source: Int
+        get() = sourceProvider.source
+        set(value) = run { sourceProvider.source = value }
+
+    override val length: TimeSpan get() = data?.totalTime ?: 0.seconds
 
     override fun play(controller: PlaybackController): NativeSoundChannel {
         //if (openalNativeSoundProvider.device == null || openalNativeSoundProvider.context == null) return DummyNativeSoundChannel(this, data)
@@ -554,7 +537,7 @@ class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutin
         val buffer = al.alGenBuffer()
         al.alBufferData(buffer, data)
 
-        val source = al.alGenSource()
+        source = al.alGenSource()
         al.alSourcef(source, AL.AL_PITCH, 1f)
         al.alSourcef(source, AL.AL_GAIN, 1f)
         al.alSource3f(source, AL.AL_POSITION, 0f, 0f, 0f)
@@ -563,25 +546,17 @@ class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutin
         al.alSourcei(source, AL.AL_BUFFER, buffer)
         checkAlErrors("alSourcei")
 
-        al.alSourcePlay(source)
+        //al.alSourcePlay(source)
         checkAlErrors("alSourcePlay")
 
         var stopped = false
 
-        val channel = object : NativeSoundChannel(this) {
+        val channel = object : NativeSoundChannel(this), SoundProps by SoundPropsProvider(sourceProvider) {
             val totalSamples get() = data.totalSamples
-            val currentSampleOffset get() = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
-
-            override var volume: Double
-                get() = run { al.alGetSourcef(source, AL.AL_GAIN).toDouble() }
-                set(value) = run { al.alSourcef(source, AL.AL_GAIN, value.toFloat()) }
-            override var pitch: Double
-                get() = run { al.alGetSourcef(source, AL.AL_PITCH).toDouble() }
-                set(value) = run { al.alSourcef(source, AL.AL_PITCH, value.toFloat()) }
-            override var panning: Double = 0.0
+            var currentSampleOffset: Int
+                get() = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
                 set(value) = run {
-                    field = value
-                    al.alSource3f(source, AL.AL_POSITION, panning.toFloat(), 0f, 0f)
+                    al.alSourcei(source, AL.AL_SAMPLE_OFFSET,value)
                 }
 
             override val current: TimeSpan get() = data.timeAtSample(currentSampleOffset)
@@ -593,6 +568,11 @@ class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutin
                     return result
                 }
 
+            override fun reset() {
+                currentSampleOffset = 0
+                al.alSourcePlay(source)
+            }
+
             override fun stop() {
                 if (!stopped) {
                     stopped = true
@@ -603,9 +583,12 @@ class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutin
         }
         launchImmediately(coroutineContext[ContinuationInterceptor] ?: coroutineContext) {
             try {
-                do {
-                    delay(1L)
-                } while (channel.playing)
+                while (controller.mustPlay()) {
+                    channel.reset()
+                    do {
+                        delay(1L)
+                    } while (channel.playing)
+                }
             } catch (e: Throwable) {
                 e.printStackTrace()
             } finally {
@@ -614,6 +597,35 @@ class OpenALNativeSoundNoStream(provider: JnaOpenALNativeSoundProvider, coroutin
         }
         return channel
     }
+}
+
+data class SourceProvider(var source: Int)
+
+class SoundPropsProvider(val sourceProvider: SourceProvider) : SoundProps {
+    val source get() = sourceProvider.source
+
+    private val temp1 = FloatArray(3)
+    private val temp2 = FloatArray(3)
+    private val temp3 = FloatArray(3)
+
+    override var pitch: Double
+        get() = al.alGetSourcef(source, AL.AL_PITCH).toDouble()
+        set(value) = al.alSourcef(source, AL.AL_PITCH, value.toFloat())
+    override var volume: Double
+        get() = al.alGetSourcef(source, AL.AL_GAIN).toDouble()
+        set(value) = al.alSourcef(source, AL.AL_GAIN, value.toFloat())
+    override var panning: Double
+        get() = run {
+            al.alGetSource3f(source, AL.AL_POSITION, temp1, temp2, temp3)
+            temp1[0].toDouble()
+        }
+        set(value) = run {
+            val pan = value.toFloat()
+            al.alSource3f(source, AL.AL_POSITION, 0f, value.toFloat(), 0f)
+            al.alSourcef(source, AL.AL_ROLLOFF_FACTOR, 0.0f);
+            al.alSourcei(source, AL.AL_SOURCE_RELATIVE, 1);
+            al.alSource3f(source, AL.AL_POSITION, pan, 0f, -sqrt(1.0f - pan * pan));
+        }
 }
 
 /*
