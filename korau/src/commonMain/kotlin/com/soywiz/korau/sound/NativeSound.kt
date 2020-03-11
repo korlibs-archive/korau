@@ -141,16 +141,56 @@ interface SoundProps {
     var panning: Double
 }
 
-abstract class NativeSoundChannel(val sound: NativeSound) : SoundProps {
+class NativeSoundChannelGroup(volume: Double = 1.0, pitch: Double = 1.0, panning: Double = 0.0) : NativeSoundChannelBase {
+    private val channels = arrayListOf<NativeSoundChannelBase>()
+    override var volume: Double = 1.0
+        set(value) = run { field = value}.also { all { it.volume = value } }
+    override var pitch: Double = 1.0
+        set(value) = run { field = value}.also { all { it.pitch = value } }
+    override var panning: Double = 0.0
+        set(value) = run { field = value}.also { all { it.panning = value } }
+    init {
+        this.volume = volume
+        this.pitch = pitch
+        this.panning = panning
+    }
+
+    fun add(channel: NativeSoundChannelBase) = run { channels.add(channel) }.also { setProps(channel) }
+    fun remove(channel: NativeSoundChannelBase) = run { channels.remove(channel) }
+
+    private fun setProps(channel: NativeSoundChannelBase) {
+        channel.volume = this.volume
+        channel.pitch = this.pitch
+        channel.panning = this.panning
+    }
+
+    @PublishedApi
+    internal fun prune() = run {  channels.removeAll { !it.playing }  }
+
+    private inline fun all(callback: (NativeSoundChannelBase) -> Unit) = run { for (channel in channels) callback(channel) }.also { prune() }
+    override val playing: Boolean get() = channels.all { it.playing }
+
+    override fun stop(): Unit = all { it.stop() }
+
+}
+
+interface NativeSoundChannelBase : SoundProps {
+    val playing: Boolean
+    fun stop(): Unit
+}
+
+fun <T : NativeSoundChannelBase> T.attachTo(group: NativeSoundChannelGroup): T = this.apply { group.add(this) }
+
+abstract class NativeSoundChannel(val sound: NativeSound) : NativeSoundChannelBase {
 	private val startTime = DateTime.now()
 	override var volume = 1.0
 	override var pitch = 1.0
 	override var panning = 0.0 // -1.0 left, +1.0 right
 	open val current: TimeSpan get() = DateTime.now() - startTime
 	open val total: TimeSpan get() = sound.length
-	open val playing get() = current < total
+	override val playing: Boolean get() = current < total
     open fun reset(): Unit = TODO()
-	abstract fun stop(): Unit
+	abstract override fun stop(): Unit
 }
 
 suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }) {
