@@ -9,8 +9,8 @@ object JnaSoundProviderSample {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-            val data = resourcesVfs["monkey_drama.mp3"].readNativeMusic()
-            //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
+            //val data = resourcesVfs["monkey_drama.mp3"].readNativeMusic()
+            val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
 
             val result = data.playForever()
             result.volume = 1.0
