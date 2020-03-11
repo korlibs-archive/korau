@@ -40,7 +40,7 @@ object NativeMp3DecoderFormat : AudioFormat("mp3") {
     }
 
     override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String, props: AudioEncodingProps) {
-        super.encode(data, out, filename)
+        super.encode(data, out, filename, props)
     }
 
     override fun toString(): String = "NativeMp3DecoderFormat"

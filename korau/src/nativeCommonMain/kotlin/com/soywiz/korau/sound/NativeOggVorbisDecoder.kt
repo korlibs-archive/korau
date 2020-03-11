@@ -98,7 +98,7 @@ object NativeOggVorbisDecoderFormat : AudioFormat("ogg") {
     }
 
     override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String, props: AudioEncodingProps) {
-        super.encode(data, out, filename)
+        super.encode(data, out, filename, props)
     }
 
     override fun toString(): String = "NativeOggVorbisDecoderFormat"
