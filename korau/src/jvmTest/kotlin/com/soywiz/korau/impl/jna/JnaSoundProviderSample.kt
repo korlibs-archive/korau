@@ -29,7 +29,7 @@ object JnaSoundProviderSample {
             }
             com.soywiz.korio.async.delay(1.seconds)
             result.stop()
-            com.soywiz.korio.async.delay(10.seconds)
+            //com.soywiz.korio.async.delay(10.seconds)
             /*
             val decoder = JavaMp3Decoder.init(data.inputStream()) ?: error("Not a MP3 file")
             while (JavaMp3Decoder.decodeFrame(decoder)) {

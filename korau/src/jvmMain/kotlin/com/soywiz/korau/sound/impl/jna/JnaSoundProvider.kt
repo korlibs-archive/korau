@@ -366,8 +366,20 @@ val alc: ALC? by lazy {
 }
 
 class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
-    val device = alc?.alcOpenDevice(null)
-    val context = device?.let { alc?.alcCreateContext(device, null) }
+    val device = alc?.alcOpenDevice(null).also { device ->
+        if (device != null) {
+            Runtime.getRuntime().addShutdownHook(Thread {
+                alc?.alcCloseDevice(device)
+            })
+        }
+    }
+    val context = device?.let { alc?.alcCreateContext(device, null) }.also { context ->
+        if (context != null) {
+            Runtime.getRuntime().addShutdownHook(Thread {
+                alc?.alcDestroyContext(context)
+            })
+        }
+    }
 
     init {
         doInit()
