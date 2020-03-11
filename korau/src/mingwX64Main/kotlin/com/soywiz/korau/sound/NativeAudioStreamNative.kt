@@ -118,6 +118,8 @@ class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data:
                     samplesPin.unpin()
                 }
             }
+        }.also {
+            it.copySoundPropsFrom(params)
         }
         launchImmediately(coroutineContext[ContinuationInterceptor.Key] ?: coroutineContext) {
             try {

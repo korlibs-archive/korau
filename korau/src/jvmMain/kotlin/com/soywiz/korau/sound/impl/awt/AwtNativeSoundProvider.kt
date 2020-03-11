@@ -1,5 +1,6 @@
 package com.soywiz.korau.sound.impl.awt
 
+/*
 import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korau.error.*
@@ -155,6 +156,8 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
                 clip?.stop()
                 clip = null
             }
+        }.also {
+            it.copySoundPropsFrom(params)
         }
     }
 }
@@ -271,3 +274,4 @@ class JvmPlatformAudioOutput(freq: Int) : PlatformAudioOutput(freq) {
 
     }
 }
+*/

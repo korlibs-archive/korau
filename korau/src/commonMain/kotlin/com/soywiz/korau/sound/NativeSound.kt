@@ -31,7 +31,9 @@ open class NativeSoundProvider {
 		override suspend fun decode(): AudioData = AudioData.DUMMY
 		override fun play(params: PlaybackParameters): NativeSoundChannel = object : NativeSoundChannel(this) {
 			override fun stop() = Unit
-		}
+		}.also {
+            it.copySoundPropsFrom(params)
+        }
 	}
 
     open val audioFormats = AudioFormats(WAV)
@@ -68,6 +70,7 @@ open class NativeSoundProvider {
             override suspend fun decode(): AudioData = stream.toData()
             override fun play(params: PlaybackParameters): NativeSoundChannel {
                 val nas = createAudioStream(stream.rate)
+                nas.copySoundPropsFrom(params)
                 var playing = true
                 val job = launchImmediately(coroutineContext) {
                     val stream = stream.clone()
@@ -140,10 +143,22 @@ class DummyNativeSoundChannel(sound: NativeSound, val data: AudioData? = null) :
 	}
 }
 
-interface SoundProps {
-    var volume: Double
-    var pitch: Double
-    var panning: Double
+interface ReadonlySoundProps {
+    val volume: Double
+    val pitch: Double
+    val panning: Double
+}
+
+interface SoundProps : ReadonlySoundProps {
+    override var volume: Double
+    override var pitch: Double
+    override var panning: Double
+
+    fun copySoundPropsFrom(other: ReadonlySoundProps) {
+        this.volume = other.volume
+        this.pitch = other.pitch
+        this.panning = other.panning
+    }
 }
 
 class NativeSoundChannelGroup(volume: Double = 1.0, pitch: Double = 1.0, panning: Double = 0.0) : NativeSoundChannelBase {
@@ -235,8 +250,11 @@ abstract class NativeSound : SoundProps {
 data class PlaybackParameters(
     val times: PlaybackTimes = 1.playbackTimes,
     val startTime: TimeSpan = 0.seconds,
-    val bufferTime: TimeSpan = 0.1.seconds
-) {
+    val bufferTime: TimeSpan = 0.1.seconds,
+    override val volume: Double = 1.0,
+    override val pitch: Double = 1.0,
+    override val panning: Double = 0.0
+) : ReadonlySoundProps {
     companion object {
         val DEFAULT = PlaybackParameters(1.playbackTimes, 0.seconds)
     }

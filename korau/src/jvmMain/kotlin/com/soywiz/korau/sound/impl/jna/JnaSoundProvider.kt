@@ -596,6 +596,8 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
                     al.alDeleteBuffer(buffer)
                 }
             }
+        }.also {
+            it.copySoundPropsFrom(params)
         }
         launchImmediately(coroutineContext[ContinuationInterceptor] ?: coroutineContext) {
             var times = params.times

@@ -6,6 +6,4 @@ import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
 
-actual suspend fun MP3DecodeStream(data: AsyncStream): AudioStream? {
-    return createJavaMp3DecoderStream(data.readAll())
-}
+actual suspend fun MP3DecodeStream(data: AsyncStream): AudioStream? = createJavaMp3DecoderStream(data.readAll())
