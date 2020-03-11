@@ -24,25 +24,30 @@ object JnaSoundProviderSample {
             //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
             val stream = resourcesVfs["monkey_drama.mp3"].readAudioStream(MP3Decoder)
             println(resourcesVfs["monkey_drama.mp3"].readAll().asMemoryVfsFile("temp.mp3").readSoundInfo(MP3Decoder)!!.duration)
-            val data = resourcesVfs["monkey_drama.mp3"].readNativeMusic()
+            val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
+            //val data = resourcesVfs["monkey_drama.mp3"].readNativeSound()
             //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeSound()
 
             //println(data.length)
             //val result = data.playForever().attachTo(group)
             println(data.length)
             //val result = data.play(2.playbackTimes, startTime = 50.2.seconds).attachTo(group)
-            val result = data.play(2.playbackTimes, startTime = 0.seconds).attachTo(group)
+            val result = data.play(10.playbackTimes, startTime = 0.seconds).attachTo(group)
             //result.current = 50.seconds
             println(result.total)
             //group.volume = 0.2
 
             //group.pitch = 1.5
-            group.pitch = 1.0
+            group.volume = 0.4
+            group.pitch = 1.5
             for (n in -10 .. +10) {
                 group.panning = n.toDouble() / 10.0
+                //group.panning = -1.0
+                //result.panning = n.toDouble() / 10.0
                 println(group.panning)
                 com.soywiz.korio.async.delay(0.1.seconds)
             }
+            com.soywiz.korio.async.delay(2.seconds)
             println("Waiting...")
             group.await()
             println("Stop...")

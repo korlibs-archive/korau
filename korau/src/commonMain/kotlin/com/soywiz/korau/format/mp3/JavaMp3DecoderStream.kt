@@ -35,9 +35,7 @@ suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
             set(value) {
                 seekPos = value
                 samplesPos = value
-                //if (value != 0L) error("Only can restart the stream")
-                //data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file")
-                //finished = false
+                finished = false
             }
 
         private fun seek(pos: Long) {

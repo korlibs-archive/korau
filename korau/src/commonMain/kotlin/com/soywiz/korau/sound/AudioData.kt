@@ -17,6 +17,7 @@ class AudioData(
         val DUMMY by lazy { AudioData(44100, AudioSamples(2, 0)) }
     }
 
+    val stereo get() = channels > 1
     val channels get() = samples.channels
     val totalSamples get() = samples.totalSamples
     val totalTime: TimeSpan get() = timeAtSample(totalSamples)
