@@ -502,9 +502,8 @@ object JavaMp3Decoder {
     fun init(inp: SyncStream): SoundData? {
         val buffer = Buffer(inp)
         while (buffer.lastByte != -1) {
-            val soundData = SoundData()
-            soundData.buffer = buffer
-            if (decodeFrame(soundData)) {
+            val soundData = SoundData(buffer)
+            if (decodeFrame(soundData) == DecodeStatus.OK) {
                 // require directly adjacent second frame (actually allow up to two bytes
                 // away because of some quirks with Layer III decoding)
                 val adjacentHeader: FrameHeader? = findNextHeader(soundData, 1)
@@ -524,8 +523,8 @@ object JavaMp3Decoder {
     internal fun findNextHeader(soundData: SoundData, maxBytesSkipped: Int): FrameHeader? {
         // read header
         try {
-            val header: FrameHeader = FrameHeader(soundData)
-            var skipped: Int = 0
+            val header = FrameHeader(soundData)
+            var skipped = 0
             while (!header.isValid) {
                 if (soundData.buffer!!.lastByte == -1 || skipped >= maxBytesSkipped) {
                     return null
@@ -544,13 +543,15 @@ object JavaMp3Decoder {
         }
     }
 
-    fun decodeFrame(soundData: SoundData): Boolean {
-        if (soundData.buffer!!.lastByte == -1) {
-            return false
+    enum class DecodeStatus { OK, ERROR, COMPLETED }
+
+    fun decodeFrame(soundData: SoundData): DecodeStatus {
+        if (soundData.buffer.lastByte == -1) {
+            return DecodeStatus.COMPLETED
         }
         val header: FrameHeader? = findNextHeader(soundData)
         if (header == null) {
-            return false
+            return DecodeStatus.COMPLETED
         }
 
         //if (header.bitrateIndex == 0) {
@@ -566,24 +567,13 @@ object JavaMp3Decoder {
                 soundData.stereo = 1
             }
             if (header.layer == 1 /* layer III */) {
-                if (header.mode == 3 /* single_channel */) {
-                    soundData.mainData = ByteArray(1024)
-                    soundData.store = FloatArray(32 * 18)
-                    soundData.v = FloatArray(1024)
-                } else {
-                    soundData.mainData = ByteArray(2 * 1024)
-                    soundData.store = FloatArray(2 * 32 * 18)
-                    soundData.v = FloatArray(2 * 1024)
-                }
-                soundData.mainDataReader = MainDataReader(soundData.mainData)
+                //soundData.mainData = ByteArray(header.nchannels * 1024)
+                //soundData.store = FloatArray(header.nchannels * 32 * 18)
+                //soundData.v = FloatArray(header.nchannels * 1024)
+                //soundData.mainDataReader = MainDataReader(soundData.mainData)
             } else {
-                if (header.mode == 3 /* single_channel */) {
-                    soundData.synthOffset = intArrayOf(64)
-                    soundData.synthBuffer = FloatArray(1024)
-                } else {
-                    soundData.synthOffset = intArrayOf(64, 64)
-                    soundData.synthBuffer = FloatArray(2 * 1024)
-                }
+                //soundData.synthOffset = IntArray(header.nchannels) { 64 }
+                //soundData.synthBuffer = FloatArray(header.nchannels * 1024)
             }
         }
         val bound: Int =
@@ -601,6 +591,8 @@ object JavaMp3Decoder {
             } else if (header.mode == 1 /* intensity_stereo */) {
                 sampleDecoded = samples_I(soundData.buffer, 2, bound)
             }
+            if (sampleDecoded == null) return DecodeStatus.ERROR
+
             if (header.mode == 3 /* single_channel */) {
                 synth(soundData, sampleDecoded, soundData.synthOffset, soundData.synthBuffer, 1)
             } else {
@@ -643,7 +635,7 @@ object JavaMp3Decoder {
         if (soundData.buffer.current != 0) {
             read(soundData.buffer, 8 - soundData.buffer.current)
         }
-        return true
+        return DecodeStatus.OK
     }
 
     internal fun samples_III(
@@ -1545,7 +1537,7 @@ object JavaMp3Decoder {
         }
     }
 
-    internal fun samples_I(buffer: Buffer?, stereo: Int, bound: Int): FloatArray {
+    internal fun samples_I(buffer: Buffer?, stereo: Int, bound: Int): FloatArray? {
         var bound: Int = bound
         if (bound < 0) {
             bound = 32
@@ -1591,13 +1583,15 @@ object JavaMp3Decoder {
                         fraction += (read and ((1 shl n) - 1)).toFloat() / (1 shl n) + 1f / (1 shl n)
                         val sfc = scalefactorChannel[ch * 32 + sb]
                         //println("sfc: $sfc, n+1: ${n + 1}")
-                        if (n + 1 >= 16) break
+                        if (n + 1 >= PRE_FRACTOR_LAYER_I.size) return null
                         sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] = SCALEFACTORS[sfc] * PRE_FRACTOR_LAYER_I[n + 1] * fraction
                     }
                 }
             }
             for (sb in bound..31) {
-                val n: Int = allocationChannel[sb - bound]
+                val sbb = sb - bound
+                if (sbb < 0 || sbb >= allocationChannel.size) return null
+                val n: Int = allocationChannel[sbb]
                 if (n == 0) {
                     sampleDecoded[(1 * 32 * 12) + (sb * 12) + s] = 0f
                     sampleDecoded[(0 * 32 * 12) + (sb * 12) + s] = sampleDecoded[(1 * 32 * 12) + (sb * 12) + s]
@@ -1609,6 +1603,7 @@ object JavaMp3Decoder {
                     }
                     fraction += (read and ((1 shl n) - 1)).toFloat() / (1 shl n) + 1f / (1 shl n)
                     for (ch in 0..1) {
+                        if (n + 1 >= PRE_FRACTOR_LAYER_I.size) return null
                         sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] =
                             SCALEFACTORS[scalefactorChannel[ch * 32 + sb]] * PRE_FRACTOR_LAYER_I[n + 1] * fraction
                     }
@@ -1905,7 +1900,8 @@ object JavaMp3Decoder {
         var samplingFrequency: Int = 0
         var paddingBit: Int = 0
         var privateBit: Int = 0
-        var mode: Int = 0
+        var mode: Int = 0 // 0=stereo, 1=intensity_stereo, 2=dual_channel, 3=single_channel
+        val nchannels get() = if (mode == 3) 1 else 2
         var modeExtension: Int = 0
 
         internal fun set(soundData: SoundData) {
@@ -1968,20 +1964,42 @@ object JavaMp3Decoder {
         fun reset() {
             inp.position = markedPos
         }
+
+        fun seek(pos: Long) {
+            inp.position = pos
+            markedPos = 0L
+            current = 0
+            lastByte = inp.read()
+        }
     }
 
-    class SoundData() {
-        internal lateinit var buffer: Buffer
+    class SoundData internal constructor(internal val buffer: Buffer) {
         var frequency: Int = -1
         var stereo: Int = -1
         val nchannels get() = if (stereo == 1) 2 else 1
-        internal lateinit var synthOffset: IntArray
-        internal lateinit var synthBuffer: FloatArray
-        internal lateinit var mainData: ByteArray
-        internal lateinit var mainDataReader: MainDataReader
-        internal lateinit var store: FloatArray
-        internal lateinit var v: FloatArray
+        internal val synthOffset: IntArray = intArrayOf(64, 64)
+        internal val synthBuffer: FloatArray = FloatArray(2 * 1024)
+        internal val mainData = ByteArray(2 * 1024)
+        internal val store = FloatArray(2 * 32 * 18)
+        internal val v = FloatArray(2 * 1024)
+        internal val mainDataReader = MainDataReader(mainData)
+        //internal lateinit var mainData: ByteArray
+        //internal lateinit var mainDataReader: MainDataReader
+        //internal lateinit var store: FloatArray
+        //internal lateinit var v: FloatArray
         var samplesBufferInit = false
         lateinit var samplesBuffer: ByteArray
+        fun seek(pos: Long): Unit {
+            //frequency = -1
+            //stereo = -1
+            //mainDataReader.top = 0
+
+            //if (false) {
+            if (true) {
+                mainDataReader.index = 0
+                mainDataReader.current = 0
+                buffer.seek(pos)
+            }
+        }
     }
 }

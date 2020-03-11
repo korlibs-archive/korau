@@ -2,6 +2,7 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
+import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
@@ -27,7 +28,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
         super.init()
     }
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound {
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
         return Win32NativeSoundNoStream(coroutineContext, nativeAudioFormats.decode(data, props))
     }
 
@@ -43,7 +44,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
 class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data: AudioData?) : NativeSound() {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
-    override fun play(controller: PlaybackController): NativeSoundChannel {
+    override fun play(params: PlaybackParameters): NativeSoundChannel {
         val data = data ?: return DummyNativeSoundChannel(this)
         val scope = Arena()
         val hWaveOut = scope.alloc<HWAVEOUTVar>()
@@ -98,7 +99,9 @@ class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data:
                     time.u.sample.toInt()
                 }
 
-            override val current: TimeSpan get() = (currentSamples.toDouble() / data.rate).seconds
+            override var current: TimeSpan
+                get() = (currentSamples.toDouble() / data.rate).seconds
+                set(value) = seekingNotSupported()
             override val total: TimeSpan get() = data.totalTime
             override val playing: Boolean
                 get() = !stopped && super.playing

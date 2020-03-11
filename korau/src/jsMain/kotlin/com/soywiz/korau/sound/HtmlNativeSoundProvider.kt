@@ -2,6 +2,7 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
+import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.internal.*
 import com.soywiz.korio.async.*
@@ -143,7 +144,7 @@ class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 		AudioData(buffer.sampleRate, data)
 	}
 
-	override fun play(controller: PlaybackController): NativeSoundChannel {
+	override fun play(params: PlaybackParameters): NativeSoundChannel {
 		return object : NativeSoundChannel(this) {
 			val channel = if (buffer != null) HtmlSimpleSound.playSound(buffer, controller) else null
 
@@ -156,7 +157,9 @@ class AudioBufferNativeSound(val buffer: AudioBuffer?) : NativeSound() {
 			override var panning: Double
 				get() = channel?.panning ?: 0.0
 				set(value) { channel?.panning = value }
-			override val current: TimeSpan get() = channel?.currentTime?.seconds ?: 0.seconds
+			override var current: TimeSpan
+                get() = channel?.currentTime?.seconds ?: 0.seconds
+                set(value) = seekingNotSupported()
 			override val total: TimeSpan = buffer?.duration?.seconds ?: 0.seconds
 			override val playing: Boolean get() = current < total
 

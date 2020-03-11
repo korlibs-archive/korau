@@ -72,5 +72,9 @@ class AudioSamplesDeque(val channels: Int) {
         return result
     }
 
+    fun clear() {
+        for (c in buffer.indices) buffer[c].clear()
+    }
+
     override fun toString(): String = "AudioSamplesDeque(channels=$channels, availableRead=$availableRead)"
 }

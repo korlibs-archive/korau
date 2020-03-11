@@ -2,6 +2,7 @@
 
 package com.soywiz.korau.format
 
+import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korio.annotations.*
@@ -23,10 +24,21 @@ open class MP3Base : AudioFormat("mp3") {
                 else -> parser.getDurationEstimate()
             }
         }
-		Info(duration.microseconds, parser.info?.channelMode?.channels ?: 2, decodingTime)
+		Info(duration, parser.info?.channelMode?.channels ?: 2, decodingTime)
 	} catch (e: Throwable) {
 		null
 	}
+
+    class SeekingTable(
+        val microseconds: DoubleArrayList,
+        val filePositions: DoubleArrayList
+    ) {
+        fun locate(time: TimeSpan): Long {
+            val searchMicro = time.microseconds
+            val result = microseconds.binarySearch(searchMicro)
+            return filePositions[result.nearIndex].toLong()
+        }
+    }
 
 	class Parser(val data: AsyncStream) {
 		var info: Mp3Info? = null
@@ -36,12 +48,22 @@ open class MP3Base : AudioFormat("mp3") {
 
 		suspend fun getDurationExact() = _getDuration(use_cbr_estimate = false)
 
+        suspend fun getSeekingTable(): SeekingTable {
+            val times = DoubleArrayList()
+            val filePositions = DoubleArrayList()
+            _getDuration(use_cbr_estimate = false, emit = { filePos, totalMicro, info ->
+                times.add(totalMicro)
+                filePositions.add(filePos.toDouble())
+            })
+            return SeekingTable(times, filePositions)
+        }
+
 		//Read entire file, frame by frame... ie: Variable Bit Rate (VBR)
-		private suspend fun _getDuration(use_cbr_estimate: Boolean): Long {
+		private suspend fun _getDuration(use_cbr_estimate: Boolean, emit: ((filePosition: Long, totalMicroseconds: Double, info: Mp3Info) -> Unit)? = null): TimeSpan {
 			data.position = 0
 			val fd = data.duplicate()
 
-			var duration = 0L
+			var durationMicroseconds = 0.0
 			val offset = this.skipID3v2Tag(fd.readStream(100))
 			fd.position = offset
 
@@ -53,14 +75,17 @@ open class MP3Base : AudioFormat("mp3") {
 				if (block2.size < 10) break
 
 				if (block2[0] == 0xFF && ((block2[1] and 0xe0) != 0)) {
+                    val framePos = fd.position
 					info = parseFrameHeader(block2)
+                    emit?.invoke(framePos, durationMicroseconds, info)
                     nframes++
                     //println("FRAME: $nframes")
 					this.info = info
-					if (info.frameSize == 0) return duration
-
+					if (info.frameSize == 0) {
+                        return durationMicroseconds.microseconds
+                    }
 					fd.position += info.frameSize - 10
-					duration += (info.samples * 1_000_000L) / info.samplingRate
+					durationMicroseconds += (info.samples * 1_000_000L) / info.samplingRate
 				} else if (block2.bytes.openSync().readString(3) == "TAG") {
 					fd.position += 128 - 10 //skip over id3v1 tag size
 				} else {
@@ -68,10 +93,10 @@ open class MP3Base : AudioFormat("mp3") {
 				}
 
 				if ((info != null) && use_cbr_estimate) {
-					return estimateDuration(info.bitrate, info.channelMode.channels, offset.toInt())
+					return estimateDuration(info.bitrate, info.channelMode.channels, offset.toInt()).microseconds
 				}
 			}
-			return duration
+			return durationMicroseconds.microseconds
 		}
 
 		private suspend fun estimateDuration(bitrate: Int, channels: Int, offset: Int): Long {

@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound.impl.jna
 
 import com.soywiz.klock.*
+import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
@@ -540,7 +541,7 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
 
     override val length: TimeSpan get() = data?.totalTime ?: 0.seconds
 
-    override fun play(controller: PlaybackController): NativeSoundChannel {
+    override fun play(params: PlaybackParameters): NativeSoundChannel {
         //if (openalNativeSoundProvider.device == null || openalNativeSoundProvider.context == null) return DummyNativeSoundChannel(this, data)
         //println("OpenALNativeSoundNoStream.play : $data")
         val data = data ?: return DummyNativeSoundChannel(this)
@@ -572,7 +573,9 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
                     al.alSourcei(source, AL.AL_SAMPLE_OFFSET,value)
                 }
 
-            override val current: TimeSpan get() = data.timeAtSample(currentSampleOffset)
+            override var current: TimeSpan
+                get() = data.timeAtSample(currentSampleOffset)
+                set(value) = seekingNotSupported()
             override val total: TimeSpan get() = data.totalTime
             override val playing: Boolean
                 get() {
@@ -595,8 +598,10 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
             }
         }
         launchImmediately(coroutineContext[ContinuationInterceptor] ?: coroutineContext) {
+            var times = params.times
             try {
-                while (controller.mustPlay()) {
+                while (times.hasMore) {
+                    times = times.oneLess
                     channel.reset()
                     do {
                         delay(1L)

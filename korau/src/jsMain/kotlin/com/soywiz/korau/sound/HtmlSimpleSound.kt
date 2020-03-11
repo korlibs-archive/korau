@@ -79,7 +79,7 @@ object HtmlSimpleSound {
 		return node
 	}
 
-	fun playSound(buffer: AudioBuffer, controller: PlaybackController): SimpleSoundChannel? {
+	fun playSound(buffer: AudioBuffer, params: PlaybackParameters): SimpleSoundChannel? {
 		if (ctx == null) return null
 
 		var gainNode: GainNode? = null
@@ -97,7 +97,8 @@ object HtmlSimpleSound {
 		}
 
         // @TODO: Repeat times
-        if (controller.mustPlay()) {
+        var times = params.times
+        if (times.hasMore) {
             sourceNode?.start(0.0)
         }
 

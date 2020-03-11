@@ -30,7 +30,9 @@ object JnaSoundProviderSample {
             //println(data.length)
             //val result = data.playForever().attachTo(group)
             println(data.length)
-            val result = data.play(2.playbackTimes).attachTo(group)
+            //val result = data.play(2.playbackTimes, startTime = 50.2.seconds).attachTo(group)
+            val result = data.play(2.playbackTimes, startTime = 0.seconds).attachTo(group)
+            //result.current = 50.seconds
             println(result.total)
             //group.volume = 0.2
 

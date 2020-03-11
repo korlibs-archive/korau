@@ -2,6 +2,7 @@ package com.soywiz.korau.sound.impl.awt
 
 import com.soywiz.kds.*
 import com.soywiz.klock.*
+import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
@@ -73,7 +74,7 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
     class PooledClip {
         companion object {
             private val pool = Pool({ it.stopped = false }) { PooledClip() }
-            fun play(channel: NativeSoundChannel, controller: PlaybackController): PooledClip {
+            fun play(channel: NativeSoundChannel, params: PlaybackParameters): PooledClip {
                 //val clip = pool.alloc()
                 val clip = PooledClip()
                 clip.play(channel)
@@ -129,15 +130,17 @@ class AwtNativeSound(val audioData: AudioData, val data: ByteArray) : NativeSoun
         }
     }
 
-    override fun play(controller: PlaybackController): NativeSoundChannel {
+    override fun play(params: PlaybackParameters): NativeSoundChannel {
         return object : NativeSoundChannel(this) {
 
-            var clip: PooledClip? = PooledClip.play(this, controller)
+            var clip: PooledClip? = PooledClip.play(this, params)
 
             //val len = clip.microsecondLength.toDouble().microseconds
             val len = audioData.totalTime
 
-            override val current: TimeSpan get() = clip?.current ?: 0.milliseconds
+            override var current: TimeSpan
+                get() = clip?.current ?: 0.milliseconds
+                set(value) = seekingNotSupported()
             override val total: TimeSpan get() = len
             //override val playing: Boolean get() = !stopped && current < total
             override val playing: Boolean get() = clip != null

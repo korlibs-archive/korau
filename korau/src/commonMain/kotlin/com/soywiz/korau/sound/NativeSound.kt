@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
+import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
@@ -28,7 +29,7 @@ open class NativeSoundProvider {
 
 	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound = object : NativeSound() {
 		override suspend fun decode(): AudioData = AudioData.DUMMY
-		override fun play(controller: PlaybackController): NativeSoundChannel = object : NativeSoundChannel(this) {
+		override fun play(params: PlaybackParameters): NativeSoundChannel = object : NativeSoundChannel(this) {
 			override fun stop() = Unit
 		}
 	}
@@ -57,7 +58,7 @@ open class NativeSoundProvider {
 		return createSound(WAV.encodeToByteArray(data), streaming)
 	}
 
-    suspend fun createStreamingSound(stream: AudioStream, bufferSeconds: Double = 0.1, closeStream: Boolean = false, onComplete: suspend () -> Unit = {}): NativeSound {
+    suspend fun createStreamingSound(stream: AudioStream, closeStream: Boolean = false, onComplete: suspend () -> Unit = {}): NativeSound {
         //println("STREAM.RATE:" + stream.rate)
         //println("STREAM.CHANNELS:" + stream.channels)
         val coroutineContext = coroutineContext
@@ -65,18 +66,23 @@ open class NativeSoundProvider {
             val nativeSound = this
             override val length: TimeSpan get() = stream.totalLength
             override suspend fun decode(): AudioData = stream.toData()
-            override fun play(controller: PlaybackController): NativeSoundChannel {
+            override fun play(params: PlaybackParameters): NativeSoundChannel {
                 val nas = createAudioStream(stream.rate)
                 var playing = true
                 val job = launchImmediately(coroutineContext) {
+                    val stream = stream.clone()
+                    stream.currentTime = params.startTime
                     playing = true
                     //println("STREAM.START")
+                    var times = params.times
                     try {
                         val temp = AudioSamples(stream.channels, 1024)
                         val nchannels = 2
-                        val minBuf = (stream.rate * nchannels * bufferSeconds).toInt()
+                        val minBuf = (stream.rate * nchannels * params.bufferTime.seconds).toInt()
                         nas.start()
-                        while (controller.mustPlay()) {
+                        while (times.hasMore) {
+                            times = times.oneLess
+
                             while (!stream.finished) {
                                 //println("STREAM")
                                 val read = stream.read(temp, 0, temp.totalSamples)
@@ -106,7 +112,9 @@ open class NativeSoundProvider {
                     override var volume: Double by nas::volume.redirected()
                     override var pitch: Double by nas::pitch.redirected()
                     override var panning: Double by nas::panning.redirected()
-                    override val current: TimeSpan get() = super.current
+                    override var current: TimeSpan
+                        get() = stream.currentTime
+                        set(value) = run { stream.currentTime = value }
                     override val total: TimeSpan get() = stream.totalLength
                     override val playing: Boolean get() = playing
                     override fun stop() = close()
@@ -115,16 +123,16 @@ open class NativeSoundProvider {
         }
     }
 
-    suspend fun playAndWait(stream: AudioStream, bufferSeconds: Double = 0.1) {
-        createStreamingSound(stream, bufferSeconds).playAndWait()
-	}
+    suspend fun playAndWait(stream: AudioStream, params: PlaybackParameters = PlaybackParameters.DEFAULT) = createStreamingSound(stream).playAndWait(params)
 }
 
 class DummyNativeSoundProvider : NativeSoundProvider()
 
 class DummyNativeSoundChannel(sound: NativeSound, val data: AudioData? = null) : NativeSoundChannel(sound) {
 	private var timeStart = DateTime.now()
-	override val current: TimeSpan get() = DateTime.now() - timeStart
+	override var current: TimeSpan
+        get() = DateTime.now() - timeStart
+        set(value) = Unit
 	override val total: TimeSpan get() = data?.totalTime ?: 0.seconds
 
 	override fun stop() {
@@ -191,7 +199,10 @@ abstract class NativeSoundChannel(val sound: NativeSound) : NativeSoundChannelBa
 	override var volume = 1.0
 	override var pitch = 1.0
 	override var panning = 0.0 // -1.0 left, +1.0 right
-	open val current: TimeSpan get() = DateTime.now() - startTime
+    // @TODO: Rename to position
+	open var current: TimeSpan
+        get() = DateTime.now() - startTime
+        set(value) = seekingNotSupported()
 	open val total: TimeSpan get() = sound.length
 	override val playing: Boolean get() = current < total
     override fun reset(): Unit = TODO()
@@ -216,14 +227,19 @@ abstract class NativeSound : SoundProps {
     override var pitch: Double = 1.0
 	open val length: TimeSpan = 0.seconds
 	abstract suspend fun decode(): AudioData
-	open fun play(controller: PlaybackController): NativeSoundChannel = TODO()
-    fun play(times: PlaybackTimes): NativeSoundChannel = play(times.controller())
-    fun playForever(): NativeSoundChannel = play(infinitePlaybackTimes)
-    open fun play(): NativeSoundChannel = play(1.playbackTimes)
+	open fun play(params: PlaybackParameters = PlaybackParameters.DEFAULT): NativeSoundChannel = TODO()
+    fun play(times: PlaybackTimes, startTime: TimeSpan = 0.seconds): NativeSoundChannel = play(PlaybackParameters(times, startTime))
+    fun playForever(startTime: TimeSpan = 0.seconds): NativeSoundChannel = play(infinitePlaybackTimes, startTime)
 }
 
-interface PlaybackController {
-    fun mustPlay(): Boolean
+data class PlaybackParameters(
+    val times: PlaybackTimes = 1.playbackTimes,
+    val startTime: TimeSpan = 0.seconds,
+    val bufferTime: TimeSpan = 0.1.seconds
+) {
+    companion object {
+        val DEFAULT = PlaybackParameters(1.playbackTimes, 0.seconds)
+    }
 }
 
 val infinitePlaybackTimes get() = PlaybackTimes.INFINITE
@@ -237,27 +253,16 @@ inline class PlaybackTimes(val count: Int) {
     }
     val hasMore get() = this != ZERO
     val oneLess get() = if (this == INFINITE) INFINITE else PlaybackTimes(count - 1)
-    fun controller(): PlaybackController {
-        var count = this
-        return object : PlaybackController {
-            override fun mustPlay(): Boolean = count.hasMore.also {
-                count = count.oneLess
-            }
-        }
-    }
 }
 
 suspend fun NativeSound.toData(): AudioData = decode()
 suspend fun NativeSound.toStream(): AudioStream = decode().toStream()
 
-suspend fun NativeSound.playAndWait(controller: PlaybackController, progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
-    play(controller).await(progress)
+suspend fun NativeSound.playAndWait(params: PlaybackParameters, progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
+    play(params).await(progress)
 
-suspend fun NativeSound.playAndWait(times: PlaybackTimes, progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
-    play(times).await(progress)
-
-suspend fun NativeSound.playAndWait(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
-	play().await(progress)
+suspend fun NativeSound.playAndWait(times: PlaybackTimes = 1.playbackTimes, startTime: TimeSpan = 0.seconds, progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
+    play(times, startTime).await(progress)
 
 suspend fun VfsFile.readNativeMusic(props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = readNativeSound(streaming = true, props = props)
 suspend fun VfsFile.readNativeSound(streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = nativeSoundProvider.createSound(this, streaming, props)
