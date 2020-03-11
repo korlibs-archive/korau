@@ -26,7 +26,7 @@ open class NativeSoundProvider {
 
 	protected open fun init(): Unit = Unit
 
-	open suspend fun createSound(data: ByteArray, streaming: Boolean = false): NativeSound = object : NativeSound() {
+	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound = object : NativeSound() {
 		override suspend fun decode(): AudioData = AudioData.DUMMY
 		override fun play(controller: PlaybackController): NativeSoundChannel = object : NativeSoundChannel(this) {
 			override fun stop() = Unit
@@ -35,22 +35,19 @@ open class NativeSoundProvider {
 
     open val audioFormats = AudioFormats(WAV)
 
-    open suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean = false): NativeSound {
+    open suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound {
         return if (streaming) {
             val stream = vfs.file(path).open()
-            createStreamingSound(audioFormats.decodeStream(stream) ?: error("Can't open sound for streaming")) {
+            createStreamingSound(audioFormats.decodeStream(stream, props) ?: error("Can't open sound for streaming")) {
                 stream.close()
             }
         } else {
-            createSound(vfs.file(path).read(), streaming)
+            createSound(vfs.file(path).read(), streaming, props)
         }
     }
 
-	suspend fun createSound(file: FinalVfsFile, streaming: Boolean = false): NativeSound =
-		createSound(file.vfs, file.path, streaming)
-
-	suspend fun createSound(file: VfsFile, streaming: Boolean = false): NativeSound =
-		createSound(file.getUnderlyingUnscapedFile(), streaming)
+	suspend fun createSound(file: FinalVfsFile, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound = createSound(file.vfs, file.path, streaming, props)
+	suspend fun createSound(file: VfsFile, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound = createSound(file.getUnderlyingUnscapedFile(), streaming, props)
 
 	open suspend fun createSound(
 		data: AudioData,
@@ -60,9 +57,9 @@ open class NativeSoundProvider {
 		return createSound(WAV.encodeToByteArray(data), streaming)
 	}
 
-    open suspend fun createStreamingSound(stream: AudioStream, bufferSeconds: Double = 0.1, closeStream: Boolean = false, onComplete: suspend () -> Unit = {}): NativeSound {
-        println("STREAM.RATE:" + stream.rate)
-        println("STREAM.CHANNELS:" + stream.channels)
+    suspend fun createStreamingSound(stream: AudioStream, bufferSeconds: Double = 0.1, closeStream: Boolean = false, onComplete: suspend () -> Unit = {}): NativeSound {
+        //println("STREAM.RATE:" + stream.rate)
+        //println("STREAM.CHANNELS:" + stream.channels)
         val coroutineContext = coroutineContext
         return object : NativeSound() {
             val nativeSound = this
@@ -85,7 +82,7 @@ open class NativeSoundProvider {
                                 val read = stream.read(temp, 0, temp.totalSamples)
                                 nas.add(temp, 0, read)
                                 while (nas.availableSamples in minBuf..minBuf * 2) {
-                                    delay(4.milliseconds) // 100ms of buffering, and 1s as much
+                                    delay(2.milliseconds) // 100ms of buffering, and 1s as much
                                     //println("STREAM.WAIT: ${nas.availableSamples}")
                                 }
                             }
@@ -262,12 +259,12 @@ suspend fun NativeSound.playAndWait(times: PlaybackTimes, progress: NativeSoundC
 suspend fun NativeSound.playAndWait(progress: NativeSoundChannel.(current: TimeSpan, total: TimeSpan) -> Unit = { current, total -> }): Unit =
 	play().await(progress)
 
-suspend fun VfsFile.readNativeMusic() = readNativeSound(streaming = true)
-suspend fun VfsFile.readNativeSound(streaming: Boolean = false) = nativeSoundProvider.createSound(this, streaming)
+suspend fun VfsFile.readNativeMusic(props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = readNativeSound(streaming = true, props = props)
+suspend fun VfsFile.readNativeSound(streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = nativeSoundProvider.createSound(this, streaming, props)
 
-suspend fun ByteArray.readNativeSound(streaming: Boolean = false) = nativeSoundProvider.createSound(this, streaming)
-suspend fun ByteArray.readNativeMusic() = readNativeSound(streaming = true)
+suspend fun ByteArray.readNativeSound(streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = nativeSoundProvider.createSound(this, streaming, props)
+suspend fun ByteArray.readNativeMusic(props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = readNativeSound(streaming = true, props = props)
 
 @Deprecated("", ReplaceWith("readNativeSound(streaming)"))
-suspend fun VfsFile.readNativeSoundOptimized(streaming: Boolean = false) = readNativeSound(streaming)
+suspend fun VfsFile.readNativeSoundOptimized(streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = readNativeSound(streaming, props)
 

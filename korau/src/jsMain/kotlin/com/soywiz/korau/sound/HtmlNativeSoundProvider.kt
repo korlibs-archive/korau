@@ -2,6 +2,7 @@ package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
 import com.soywiz.kmem.*
+import com.soywiz.korau.format.*
 import com.soywiz.korau.internal.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
@@ -15,7 +16,7 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 
 	override fun createAudioStream(freq: Int): PlatformAudioOutput = JsPlatformAudioOutput(freq)
 
-	override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
+	override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
 		return AudioBufferNativeSound(HtmlSimpleSound.loadSound(data))
 		/*
 		return if (streaming) {
@@ -30,7 +31,7 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 		*/
 	}
 
-	override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound = when (vfs) {
+	override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean, props: AudioDecodingProps): NativeSound = when (vfs) {
 		is LocalVfs, is UrlVfs -> {
 			val rpath = when (vfs) {
 				is LocalVfs -> path

@@ -68,13 +68,12 @@ suspend fun AudioStream.toData(maxSamples: Int = Int.MAX_VALUE): AudioData {
     return AudioData(rate, AudioSamples(channels, maxOutSamples).apply { out.read(this) })
 }
 
-
 suspend fun AudioStream.playAndWait(bufferSeconds: Double = 0.1) = nativeSoundProvider.playAndWait(this, bufferSeconds)
 suspend fun AudioStream.playAndWait(times: PlaybackTimes = 1.playbackTimes, bufferSeconds: Double = 0.1) = nativeSoundProvider.createStreamingSound(this, bufferSeconds).playAndWait(times)
 
-suspend fun VfsFile.readAudioStream(formats: AudioFormats = defaultAudioFormats) = formats.decodeStream(this.open())
+suspend fun VfsFile.readAudioStream(formats: AudioFormat = defaultAudioFormats, props: AudioDecodingProps = AudioDecodingProps.DEFAULT) = formats.decodeStream(this.open(), props)
 
-suspend fun VfsFile.writeAudio(data: AudioData, formats: AudioFormats = defaultAudioFormats) =
+suspend fun VfsFile.writeAudio(data: AudioData, formats: AudioFormat = defaultAudioFormats, props: AudioEncodingProps = AudioEncodingProps.DEFAULT) =
     this.openUse(VfsOpenMode.CREATE_OR_TRUNCATE) {
-        formats.encode(data, this, this@writeAudio.baseName)
+        formats.encode(data, this, this@writeAudio.baseName, props)
     }

@@ -12,7 +12,7 @@ open class OGG : OggBase() {
 }
 
 open class OggBase : AudioFormat("ogg") {
-    override suspend fun tryReadInfo(data: AsyncStream): Info? = try {
+    override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = try {
         parse(data)
     } catch (e: Throwable) {
         //e.printStackTrace()

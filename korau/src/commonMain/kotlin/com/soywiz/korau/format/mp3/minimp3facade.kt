@@ -1,6 +1,5 @@
 package com.soywiz.korau.format.mp3
 
-import com.soywiz.kds.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
@@ -8,18 +7,8 @@ import com.soywiz.korio.stream.*
 open class MP3Decoder() : AudioFormat("mp3") {
     companion object : MP3Decoder()
 
-    override suspend fun tryReadInfo(data: AsyncStream): Info? {
-        return MP3.tryReadInfo(data)
-    }
-
-    //private val programPool = Pool(1) { MiniMp3(1 * 1024 * 1024) }
-
-    override suspend fun decodeStream(data: AsyncStream): AudioStream? = MP3DecodeStream(data)
-
-    override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
-        super.encode(data, out, filename)
-    }
-
+    override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = MP3.tryReadInfo(data, props)
+    override suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps): AudioStream? = MP3DecodeStream(data)
     override fun toString(): String = "NativeMp3DecoderFormat"
 }
 

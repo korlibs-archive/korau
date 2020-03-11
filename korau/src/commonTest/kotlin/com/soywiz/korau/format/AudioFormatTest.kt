@@ -31,7 +31,11 @@ class AudioFormatTest {
 	fun mp3() = suspendTest {
 		assertEquals(
 			"Info(duration=546.625ms, channels=1)",
-			resourcesVfs["mp31.mp3"].readSoundInfo(formats).toString()
+			resourcesVfs["mp31.mp3"].readSoundInfo(formats, AudioDecodingProps(exactTimings = false)).toString()
 		)
+        assertEquals(
+            "Info(duration=574.684ms, channels=1)",
+            resourcesVfs["mp31.mp3"].readSoundInfo(formats, AudioDecodingProps(exactTimings = true)).toString()
+        )
 	}
 }

@@ -15,24 +15,43 @@ open class AudioFormat(vararg exts: String) {
 
 	data class Info(
 		var duration: TimeSpan = 0.seconds,
-		var channels: Int = 2
+		var channels: Int = 2,
+        var decodingTime: TimeSpan? = null
 	) : Extra by Extra.Mixin() {
 		override fun toString(): String = "Info(duration=${duration.milliseconds.niceStr}ms, channels=$channels)"
 	}
 
-	open suspend fun tryReadInfo(data: AsyncStream): Info? = null
-	open suspend fun decodeStream(data: AsyncStream): AudioStream? = null
-	suspend fun decode(data: AsyncStream): AudioData? = decodeStream(data)?.toData()
-	suspend fun decode(data: ByteArray): AudioData? = decodeStream(data.openAsync())?.toData()
-	open suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String): Unit = unsupported()
+	open suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): Info? = null
+	open suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): AudioStream? = null
+	suspend fun decode(data: AsyncStream, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): AudioData? = decodeStream(data, props)?.toData()
+	suspend fun decode(data: ByteArray, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): AudioData? = decodeStream(data.openAsync(), props)?.toData()
+	open suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String, props: AudioEncodingProps = AudioEncodingProps.DEFAULT): Unit = unsupported()
 
 	suspend fun encodeToByteArray(
 		data: AudioData,
 		filename: String = "out.wav",
-		format: AudioFormat = this
-	): ByteArray = MemorySyncStreamToByteArray { format.encode(data, this.toAsync(), filename) }
+		format: AudioFormat = this,
+        props: AudioEncodingProps = AudioEncodingProps.DEFAULT
+	): ByteArray = MemorySyncStreamToByteArray { format.encode(data, this.toAsync(), filename, props) }
 
 	override fun toString(): String = "AudioFormat(${extensions.sorted()})"
+}
+
+open class AudioDecodingProps(
+    val exactTimings: Boolean? = null
+) {
+    companion object {
+        val DEFAULT = AudioDecodingProps()
+    }
+}
+
+open class AudioEncodingProps(
+    val quality: Double = 0.84,
+    val filename: String? = null
+) {
+    companion object {
+        val DEFAULT = AudioEncodingProps()
+    }
 }
 
 open class InvalidAudioFormatException(message: String) : RuntimeException(message)
@@ -53,11 +72,11 @@ class AudioFormats : AudioFormat() {
 	fun register(vararg formats: AudioFormat): AudioFormats = this.apply { this.formats += formats }
 	fun register(formats: Iterable<AudioFormat>): AudioFormats = this.apply { this.formats += formats }
 
-	override suspend fun tryReadInfo(data: AsyncStream): Info? {
+	override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? {
 		//println("formats:$formats")
 		for (format in formats) {
 			try {
-				return format.tryReadInfo(data.duplicate()) ?: continue
+				return format.tryReadInfo(data.duplicate(), props) ?: continue
 			} catch (e: Throwable) {
 				e.printStackTrace()
 			}
@@ -65,12 +84,12 @@ class AudioFormats : AudioFormat() {
 		return null
 	}
 
-	override suspend fun decodeStream(data: AsyncStream): AudioStream? {
+	override suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps): AudioStream? {
 		//println(formats)
 		for (format in formats) {
 			try {
-				if (format.tryReadInfo(data.duplicate()) == null) continue
-				return format.decodeStream(data.duplicate()) ?: continue
+				if (format.tryReadInfo(data.duplicate(), props) == null) continue
+				return format.decodeStream(data.duplicate(), props) ?: continue
 			} catch (e: Throwable) {
 				e.printStackTrace()
 			}
@@ -78,7 +97,7 @@ class AudioFormats : AudioFormat() {
 		return null
 	}
 
-	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
+	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String, props: AudioEncodingProps) {
 		val ext = PathInfo(filename).extensionLC
 		val format = formats.firstOrNull { ext in it.extensions }
 				?: throw UnsupportedOperationException("Don't know how to generate file for extension '$ext'")
@@ -89,8 +108,8 @@ class AudioFormats : AudioFormat() {
     operator fun plus(other: Iterable<AudioFormat>): AudioFormats = AudioFormats(formats + other)
 }
 
-suspend fun VfsFile.readSoundInfo(formats: AudioFormats = defaultAudioFormats) =
-	this.openUse { formats.tryReadInfo(this) }
+suspend fun VfsFile.readSoundInfo(formats: AudioFormat = defaultAudioFormats, props: AudioDecodingProps = AudioDecodingProps.DEFAULT) =
+	this.openUse { formats.tryReadInfo(this, props) }
 
 fun standardAudioFormats(): AudioFormats = AudioFormats(WAV, OGG, MP3)
 

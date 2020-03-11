@@ -14,11 +14,16 @@ open class MP3 : MP3Base() {
 }
 
 open class MP3Base : AudioFormat("mp3") {
-	override suspend fun tryReadInfo(data: AsyncStream): Info? = try {
-		val parser = Parser(data)
-		val duration = parser.getDurationEstimate()
-		//val duration = parser.getDurationExact()
-		Info(duration.microseconds, parser.info?.channelMode?.channels ?: 2)
+	override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = try {
+        val parser = Parser(data)
+        val (duration, decodingTime) = measureTimeWithResult {
+            when (props.exactTimings) {
+                null -> parser.getDurationExact() // Try to guess what's better based on VBR?
+                true -> parser.getDurationExact()
+                else -> parser.getDurationEstimate()
+            }
+        }
+		Info(duration.microseconds, parser.info?.channelMode?.channels ?: 2, decodingTime)
 	} catch (e: Throwable) {
 		null
 	}
@@ -42,12 +47,15 @@ open class MP3Base : AudioFormat("mp3") {
 
 			var info: Mp3Info? = null
 
+            var nframes = 0
 			while (!fd.eof()) {
 				val block2 = UByteArrayInt(fd.readBytesUpTo(10))
 				if (block2.size < 10) break
 
 				if (block2[0] == 0xFF && ((block2[1] and 0xe0) != 0)) {
 					info = parseFrameHeader(block2)
+                    nframes++
+                    //println("FRAME: $nframes")
 					this.info = info
 					if (info.frameSize == 0) return duration
 

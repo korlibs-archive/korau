@@ -17,14 +17,14 @@ open class WAV : AudioFormat("wav") {
 	data class Chunk(val type: String, val data: AsyncStream)
 	data class ProcessedChunk(val type: String, val data: AsyncStream, val extra: Any)
 
-	override suspend fun tryReadInfo(data: AsyncStream): Info? = try {
+	override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = try {
 		parse(data) { }
 	} catch (e: Throwable) {
 		//e.printStackTrace()
 		null
 	}
 
-	override suspend fun decodeStream(data: AsyncStream): AudioStream? {
+	override suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps): AudioStream? {
 		var fmt = Fmt()
 		var buffer = MemorySyncStream().toAsync()
 		parse(data) {
@@ -69,7 +69,7 @@ open class WAV : AudioFormat("wav") {
 		}
 	}
 
-	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String) {
+	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String, props: AudioEncodingProps) {
 		// HEADER
 		out.writeString("RIFF")
 		out.write32LE(0x24 + data.samples.size * 2) // length

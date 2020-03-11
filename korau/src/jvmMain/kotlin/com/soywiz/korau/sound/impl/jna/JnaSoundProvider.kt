@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound.impl.jna
 
 import com.soywiz.klock.*
+import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.util.*
@@ -407,11 +408,11 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
     //val myNativeAudioFormats = nativeAudioFormats
     override val audioFormats = nativeAudioFormats
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
         return if (streaming) {
-            super.createSound(data, streaming)
+            super.createSound(data, streaming, props)
         } else {
-            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data))
+            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data, props))
         }
     }
 

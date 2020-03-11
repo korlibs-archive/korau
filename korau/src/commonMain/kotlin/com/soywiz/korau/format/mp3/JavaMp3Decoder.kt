@@ -553,9 +553,9 @@ object JavaMp3Decoder {
             return false
         }
 
-//      if (header.bitrateIndex == 0) {
-//        System.err.println("MP3 decoder warning: files with free bitrate not supported");
-//      }
+        //if (header.bitrateIndex == 0) {
+        //  System.err.println("MP3 decoder warning: files with free bitrate not supported");
+        //}
         if (soundData.frequency == -1) {
             soundData.frequency = SAMPLING_FREQUENCY[header.samplingFrequency]
         }
@@ -781,7 +781,8 @@ object JavaMp3Decoder {
                         }
                     }
 
-                    /* Scale factor bands 6-10 */if ((scfsi[ch * 4 + 1] == 0) || (gr == 0)) {
+                    /* Scale factor bands 6-10 */
+                    if ((scfsi[ch * 4 + 1] == 0) || (gr == 0)) {
                         for (sfb in 6..10) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen1)
                         }
@@ -792,7 +793,8 @@ object JavaMp3Decoder {
                         }
                     }
 
-                    /* Scale factor bands 11-15 */if ((scfsi[ch * 4 + 2] == 0) || (gr == 0)) {
+                    /* Scale factor bands 11-15 */
+                    if ((scfsi[ch * 4 + 2] == 0) || (gr == 0)) {
                         for (sfb in 11..15) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen2)
                         }
@@ -803,7 +805,8 @@ object JavaMp3Decoder {
                         }
                     }
 
-                    /* Scale factor bands 16-20 */if ((scfsi[ch * 4 + 3] == 0) || (gr == 0)) {
+                    /* Scale factor bands 16-20 */
+                    if ((scfsi[ch * 4 + 3] == 0) || (gr == 0)) {
                         for (sfb in 16..20) {
                             scalefac_l[(ch * 2 * 21) + (gr * 21) + sfb] = read(mainDataReader, slen2)
                         }
@@ -874,14 +877,17 @@ object JavaMp3Decoder {
                         is_pos++
                     }
 
-                    /* Check that we didn't read past the end of this section */if (mainDataReader.index * 8 + mainDataReader.current > (bit_pos_end + 1)) {
+                    /* Check that we didn't read past the end of this section */
+                    if (mainDataReader.index * 8 + mainDataReader.current > (bit_pos_end + 1)) {
                         /* Remove last words read */
                         is_pos -= 4
                     }
 
-                    /* Setup count1 which is the index of the first sample in the rzero reg. */count1[ch * 2 + gr] = is_pos
+                    /* Setup count1 which is the index of the first sample in the rzero reg. */
+                    count1[ch * 2 + gr] = is_pos
 
-                    /* Zero out the last part if necessary */while ( /* is_pos comes from last for-loop */is_pos < 576) {
+                    /* Zero out the last part if necessary */
+                    while ( /* is_pos comes from last for-loop */is_pos < 576) {
                         `is`[(ch * 2 * 576) + (gr * 576) + is_pos] = 0.0f
                         is_pos++
                     }
@@ -922,9 +928,8 @@ object JavaMp3Decoder {
                             requantize_long_III(gr, ch, scalefac_scale, preflag, global_gain, scalefac_l, `is`, i, sfb)
                         }
 
-                        /*
-   * And next the remaining, non-zero, bands which uses short blocks
-   */sfb = 3
+                        /** And next the remaining, non-zero, bands which uses short blocks*/
+                        sfb = 3
                         next_sfb =
                             SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
                         var win_len: Int =
@@ -933,7 +938,9 @@ object JavaMp3Decoder {
                         var i: Int = 36
                         while (i < count1[ch * 2 + gr] /* i++ done below! */) {
 
-                            /* Check if we're into the next scalefac band */if (i == next_sfb) {    /* Yes */
+                            /* Check if we're into the next scalefac band */
+                            if (i == next_sfb) {
+                                /* Yes */
                                 sfb++
                                 next_sfb =
                                     SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb + 1] * 3
@@ -1056,7 +1063,8 @@ object JavaMp3Decoder {
                                         SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb]
                             } /* end if (next_sfb) */
 
-                            /* Do the actual reordering */for (win in 0..2) {
+                            /* Do the actual reordering */
+                            for (win in 0..2) {
                                 for (j in 0 until win_len) {
                                     re[j * 3 + win] = `is`[(ch * 2 * 576) + (gr * 576) + i]
                                     i++
@@ -1064,9 +1072,9 @@ object JavaMp3Decoder {
                             } /* end for (win... */
                         }
 
-                        /* Copy reordered data of the last band back to the original vector */for (j in 0 until 3 * win_len) {
-                            `is`[(ch * 2 * 576) + (gr * 576) + (3 * (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + 12])) + j] =
-                                re[j]
+                        /* Copy reordered data of the last band back to the original vector */
+                        for (j in 0 until 3 * win_len) {
+                            `is`[(ch * 2 * 576) + (gr * 576) + (3 * (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + 12])) + j] = re[j]
                         }
                     }
                     break
@@ -1080,7 +1088,8 @@ object JavaMp3Decoder {
                 /* Do Middle/Side ("normal") stereo processing */
                 if ((modeExtension and 0x2) != 0) {
                     var max_pos: Int
-                    /* Determine how many frequency lines to transform */if (count1[0 * 2 + gr] > count1[1 * 2 + gr]) {
+                    /* Determine how many frequency lines to transform */
+                    if (count1[0 * 2 + gr] > count1[1 * 2 + gr]) {
                         max_pos = count1[0 * 2 + gr]
                     } else {
                         max_pos = count1[1 * 2 + gr]
@@ -1252,12 +1261,14 @@ object JavaMp3Decoder {
                 val u: FloatArray = FloatArray(512)
                 val s: FloatArray = FloatArray(32)
 
-                /* Loop through the 18 samples in each of the 32 subbands */for (ss in 0..17) {
+                /* Loop through the 18 samples in each of the 32 subbands */
+                for (ss in 0..17) {
                     for (i in 1023 downTo 64)  /* Shift up the V vector */ {
                         v[ch * 1024 + i] = v[ch * 1024 + i - 64]
                     }
 
-                    /* Copy the next 32 time samples to a temp vector */for (i in 0..31) {
+                    /* Copy the next 32 time samples to a temp vector */
+                    for (i in 0..31) {
                         s[i] = `is`[(ch * 2 * 576) + (gr * 576) + (i * 18) + ss]
                     }
                     for (i in 0..63) { /* Matrix multiply input with n_win[][] matrix */
@@ -1268,16 +1279,16 @@ object JavaMp3Decoder {
                         v[ch * 1024 + i] = sum
                     } /* end for(i... */
 
-                    /* Build the U vector */for (i in 0..7) {
+                    /* Build the U vector */
+                    for (i in 0..7) {
                         for (j in 0..31) {
                             u[i * 64 + j] = v[(ch * 1024) + (i * 128) + j]
                             u[(i * 64) + j + 32] = v[(ch * 1024) + (i * 128) + j + 96]
                         }
                     } /* end for (i... */
 
-                    /* Window by u_vec[i] with g_synth_dtbl[i] */for (i in 0..511) {
-                        u[i] *= DI_COEFFICIENTS[i]
-                    }
+                    /* Window by u_vec[i] with g_synth_dtbl[i] */
+                    for (i in 0..511) u[i] *= DI_COEFFICIENTS[i]
 
                     /* Calculate 32 samples and store them in the outdata vector */for (i in 0..31) {
                         var sum: Float = 0.0f
@@ -1436,12 +1447,12 @@ object JavaMp3Decoder {
 
     internal fun huffman_III(mainDataReader: MainDataReader?, table_num: Int, array: IntArray) {
         /* Table entries are 16 bits each:
-* Bit(s)
-* 15     hit/miss (1/0)
-* 14-13  codeword size (1-4 bits)
-* 7-0    codeword (bits 4-7=x, 0-3=y) if hit
-* 12-0   start offset of next table if miss
-*/
+        * Bit(s)
+        * 15     hit/miss (1/0)
+        * 14-13  codeword size (1-4 bits)
+        * 7-0    codeword (bits 4-7=x, 0-3=y) if hit
+        * 12-0   start offset of next table if miss
+        */
         var point: Int = 0
         var currpos: Int
 

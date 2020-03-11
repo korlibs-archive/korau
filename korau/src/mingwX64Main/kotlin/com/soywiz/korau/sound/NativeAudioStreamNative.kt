@@ -27,12 +27,12 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
         super.init()
     }
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
-        return Win32NativeSoundNoStream(coroutineContext, nativeAudioFormats.decode(data))
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound {
+        return Win32NativeSoundNoStream(coroutineContext, nativeAudioFormats.decode(data, props))
     }
 
-    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound {
-        return super.createSound(vfs, path, streaming)
+    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean, props: AudioDecodingProps): NativeSound {
+        return super.createSound(vfs, path, streaming, props)
     }
 
     override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
