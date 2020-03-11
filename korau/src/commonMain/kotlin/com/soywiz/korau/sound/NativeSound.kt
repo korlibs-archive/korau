@@ -158,6 +158,12 @@ class NativeSoundChannelGroup(volume: Double = 1.0, pitch: Double = 1.0, panning
     fun add(channel: NativeSoundChannelBase) = run { channels.add(channel) }.also { setProps(channel) }
     fun remove(channel: NativeSoundChannelBase) = run { channels.remove(channel) }
 
+    suspend fun await() {
+        while (channels.all { it.playing }) {
+            delay(5.milliseconds)
+        }
+    }
+
     private fun setProps(channel: NativeSoundChannelBase) {
         channel.volume = this.volume
         channel.pitch = this.pitch
@@ -170,12 +176,14 @@ class NativeSoundChannelGroup(volume: Double = 1.0, pitch: Double = 1.0, panning
     private inline fun all(callback: (NativeSoundChannelBase) -> Unit) = run { for (channel in channels) callback(channel) }.also { prune() }
     override val playing: Boolean get() = channels.all { it.playing }
 
+    override fun reset(): Unit = all { it.reset() }
     override fun stop(): Unit = all { it.stop() }
 
 }
 
 interface NativeSoundChannelBase : SoundProps {
     val playing: Boolean
+    fun reset(): Unit
     fun stop(): Unit
 }
 
@@ -189,7 +197,7 @@ abstract class NativeSoundChannel(val sound: NativeSound) : NativeSoundChannelBa
 	open val current: TimeSpan get() = DateTime.now() - startTime
 	open val total: TimeSpan get() = sound.length
 	override val playing: Boolean get() = current < total
-    open fun reset(): Unit = TODO()
+    override fun reset(): Unit = TODO()
 	abstract override fun stop(): Unit
 }
 

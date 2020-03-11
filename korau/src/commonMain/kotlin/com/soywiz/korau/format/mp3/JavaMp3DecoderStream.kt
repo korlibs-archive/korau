@@ -11,8 +11,8 @@ suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream {
 
 // @TODO: Use AsyncStream and read frame chunks
 suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
-    val info = MP3.tryReadInfo(idata.openAsync()) ?: error("Not an mp3 file")
-    var data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file")
+    val info = MP3.tryReadInfo(idata.openAsync()) ?: error("Not an mp3 file [1]")
+    var data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file [2]")
     val samples = ShortArray(data.samplesBuffer.size / 2)
     val deque = AudioSamplesDeque(data.nchannels)
     var samplesPos = 0L

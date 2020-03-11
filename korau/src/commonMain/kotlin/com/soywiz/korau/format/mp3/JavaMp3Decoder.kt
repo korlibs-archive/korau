@@ -500,33 +500,18 @@ object JavaMp3Decoder {
     fun init(inp: ByteArray): SoundData? = init(inp.openSync())
 
     fun init(inp: SyncStream): SoundData? {
-        val buffer: Buffer = Buffer(inp)
+        val buffer = Buffer(inp)
         while (buffer.lastByte != -1) {
-            val soundData: SoundData = SoundData()
+            val soundData = SoundData()
             soundData.buffer = buffer
-            try {
-                if (decodeFrame(soundData)) {
-                    // require directly adjacent second frame (actually allow up to two bytes
-                    // away because of some quirks with Layer III decoding)
-                    val adjacentHeader: FrameHeader? = findNextHeader(soundData, 1)
-                    if (adjacentHeader != null) {
-                        // found valid adjacent header: unwind inputstream to before the second header
-                        adjacentHeader.unRead(soundData)
-                        return soundData
-                    }
+            if (decodeFrame(soundData)) {
+                // require directly adjacent second frame (actually allow up to two bytes
+                // away because of some quirks with Layer III decoding)
+                val adjacentHeader: FrameHeader? = findNextHeader(soundData, 1)
+                if (adjacentHeader != null) {
+                    adjacentHeader.unRead(soundData)
+                    return soundData
                 }
-                // exception during decoding: just try again from wherever the last
-                // decoder read blew up (on the next header read attempt the FrameHeader
-                // class will reset the pointer to the beginning of the byte)
-                // TODO it's possible that the failed frame decoding actually read past
-                // the true frame header, thus skipping the frame altogether. to counter
-                // such cases we'd need to implement another mark()/reset() pair before
-                // the main body of decodeFrame()
-            //} catch (e: NegativeArraySizeException) {
-            //} catch (e: NullPointerException) {
-            } catch (e: Throwable) {
-            //} catch (e: ArrayIndexOutOfBoundsException) {
-            } finally {
             }
         }
         return null
@@ -1038,8 +1023,8 @@ object JavaMp3Decoder {
                         var next_sfb: Int
                         var win_len: Int
 
-                        /* Check if the first two subbands
- * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */if (mixed_block_flag[ch * 2 + gr] != 0) { /* 2 longbl. sb  first */
+                        /* Check if the first two subbands* (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */
+                        if (mixed_block_flag[ch * 2 + gr] != 0) { /* 2 longbl. sb  first */
                             sfb = 3
                             i = 36
                         }
@@ -1089,7 +1074,8 @@ object JavaMp3Decoder {
             }
             // stereo ==============================================
 
-            /* Do nothing if joint stereo is not enabled */if ((mode == 1) && (modeExtension != 0)) {
+            /* Do nothing if joint stereo is not enabled */
+            if ((mode == 1) && (modeExtension != 0)) {
 
                 /* Do Middle/Side ("normal") stereo processing */
                 if ((modeExtension and 0x2) != 0) {
@@ -1110,26 +1096,24 @@ object JavaMp3Decoder {
                     } /* end for (i... */
                 } /* end if (ms_stereo... */
 
-                /* Do intensity stereo processing */if ((modeExtension and 0x1) != 0) {
+                /* Do intensity stereo processing */
+                if ((modeExtension and 0x1) != 0) {
 
                     /* The first band that is intensity stereo encoded is the first band
- * scale factor band on or above the count1 frequency line.
- * N.B.: Intensity stereo coding is only done for the higher subbands,
- * but the logic is still included to process lower subbands.
- */
+                     * scale factor band on or above the count1 frequency line.
+                     * N.B.: Intensity stereo coding is only done for the higher subbands,
+                     * but the logic is still included to process lower subbands.
+                     */
 
                     /* Determine type of block to process */
                     if ((win_switch_flag[0 * 2 + gr] == 1) &&
                         (block_type[0 * 2 + gr] == 2)
                     ) { /* Short blocks */
 
-                        /* Check if the first two subbands
-   * (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */
+                        /* Check if the first two subbands* (=2*18 samples = 8 long or 3 short sfb's) uses long blocks */
                         if (mixed_block_flag[0 * 2 + gr] != 0) { /* 2 longbl. sb  first */
 
-                            /*
-     * First process the 8 sfb's at the start
-     */
+                            /** First process the 8 sfb's at the start*/
                             for (sfb in 0..7) {
 
                                 /* Is this scale factor band above count1 for the right channel? */
@@ -1139,9 +1123,8 @@ object JavaMp3Decoder {
                                 }
                             } /* end if (sfb... */
 
-                            /*
-     * And next the remaining bands which uses short blocks
-     */for (sfb in 3..11) {
+                            /** And next the remaining bands which uses short blocks*/
+                            for (sfb in 3..11) {
 
                                 /* Is this scale factor band above count1 for the right channel? */
                                 if (SCALEFACTOR_BAND_INDICES_LAYER_III[(samplingFrequency * (23 + 14)) + 23 + sfb] * 3 >= count1[1 * 2 + gr]
@@ -1556,10 +1539,10 @@ object JavaMp3Decoder {
         if (bound < 0) {
             bound = 32
         }
-        val allocation: IntArray = IntArray(32 - bound)
-        val allocationChannel: IntArray = IntArray(stereo * bound)
-        val scalefactorChannel: IntArray = IntArray(stereo * 32)
-        val sampleDecoded: FloatArray = FloatArray(stereo * 32 * 12)
+        val allocation = IntArray(32 - bound)
+        val allocationChannel = IntArray(stereo * bound)
+        val scalefactorChannel = IntArray(stereo * 32)
+        val sampleDecoded = FloatArray(stereo * 32 * 12)
         for (sb in 0 until bound) {
             for (ch in 0 until stereo) {
                 allocationChannel[ch * bound + sb] = read(buffer, 4)
@@ -1595,8 +1578,10 @@ object JavaMp3Decoder {
                             fraction = -1f
                         }
                         fraction += (read and ((1 shl n) - 1)).toFloat() / (1 shl n) + 1f / (1 shl n)
-                        sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] =
-                            SCALEFACTORS[scalefactorChannel[ch * 32 + sb]] * PRE_FRACTOR_LAYER_I[n + 1] * fraction
+                        val sfc = scalefactorChannel[ch * 32 + sb]
+                        //println("sfc: $sfc, n+1: ${n + 1}")
+                        if (n + 1 >= 16) break
+                        sampleDecoded[(ch * 32 * 12) + (sb * 12) + s] = SCALEFACTORS[sfc] * PRE_FRACTOR_LAYER_I[n + 1] * fraction
                     }
                 }
             }

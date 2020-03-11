@@ -15,7 +15,8 @@ object JnaSoundProviderSample {
             val info = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readSoundInfo()
             println(info)
             //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
-            val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
+            //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
+            val data = resourcesVfs["monkey_drama.mp3"].readNativeMusic()
             //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeSound()
 
             //println(data.length)
@@ -28,7 +29,8 @@ object JnaSoundProviderSample {
                 println(group.panning)
                 com.soywiz.korio.async.delay(0.1.seconds)
             }
-            com.soywiz.korio.async.delay(1.seconds)
+            group.await()
+            //com.soywiz.korio.async.delay(1.seconds)
             group.stop()
             //com.soywiz.korio.async.delay(10.seconds)
             /*
