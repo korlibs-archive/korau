@@ -32,25 +32,32 @@ open class WAV : AudioFormat("wav") {
 			when (extra) {
 				is Fmt -> fmt = extra
 			}
-			if (it.type == "data") {
-				buffer = it.data
-			}
+			if (it.type == "data") buffer = it.data
 		}
 
-		return WavAudioStream(fmt, buffer, data, props)
+		return WavAudioStream(fmt, buffer, buffer.getLength(), data, props)
 	}
 
-    class WavAudioStream(val fmt: Fmt, val buffer: AsyncStream, val data: AsyncStream, val props: AudioDecodingProps) : AudioStream(fmt.samplesPerSec, fmt.channels) {
+    class WavAudioStream(val fmt: Fmt, val buffer: AsyncStream, val bufferLength: Long, val data: AsyncStream, val props: AudioDecodingProps) : AudioStream(fmt.samplesPerSec, fmt.channels) {
         val bytesPerSample: Int = fmt.bytesPerSample
         override var finished: Boolean = false
 
+        override val totalLengthInSamples: Long? get() = bufferLength / bytesPerSample
+        override var currentPositionInSamples: Long
+            get() = buffer.position / bytesPerSample
+            set(value) = run {
+                finished = false
+                buffer.position = value * bytesPerSample
+            }
+
         override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
+            //println("fmt: $fmt")
             val bytes = buffer.readBytesUpTo(length * bytesPerSample * channels)
             finished = buffer.eof()
             val availableSamples = bytes.size / bytesPerSample / channels
             for (channel in 0 until channels) {
                 when (bytesPerSample) {
-                    1 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS8(it) shl 8).toShort() }
+                    1 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { ((bytes.readU8(it) - 128) * 255).toShort() }
                     2 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS16LE(it).toShort()) }
                     3 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS24LE(it) ushr 8).toShort() }
                     else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
