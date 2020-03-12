@@ -37,29 +37,32 @@ open class WAV : AudioFormat("wav") {
 			}
 		}
 
-		val bytesPerSample: Int = fmt.bitsPerSample / 8
-
-		return object : AudioStream(fmt.samplesPerSec, fmt.channels) {
-			override var finished: Boolean = false
-
-			override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
-				val bytes = buffer.readBytesUpTo(length * bytesPerSample * channels)
-				finished = buffer.eof()
-				val availableSamples = bytes.size / bytesPerSample / channels
-				for (channel in 0 until channels) {
-					when (bytesPerSample) {
-						1 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS8(it) shl 8).toShort() }
-						2 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS16LE(it).toShort()) }
-						3 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS24LE(it) ushr 8).toShort() }
-						else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
-					}
-				}
-				return availableSamples
-			}
-		}
+		return WavAudioStream(fmt, buffer, data, props)
 	}
 
-	private inline fun readBlock(channel: Int, channels: Int, availableSamples: Int, bytesPerSample: Int, out: AudioSamples, offset: Int, read: (index: Int) -> Short) {
+    class WavAudioStream(val fmt: Fmt, val buffer: AsyncStream, val data: AsyncStream, val props: AudioDecodingProps) : AudioStream(fmt.samplesPerSec, fmt.channels) {
+        val bytesPerSample: Int = fmt.bytesPerSample
+        override var finished: Boolean = false
+
+        override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
+            val bytes = buffer.readBytesUpTo(length * bytesPerSample * channels)
+            finished = buffer.eof()
+            val availableSamples = bytes.size / bytesPerSample / channels
+            for (channel in 0 until channels) {
+                when (bytesPerSample) {
+                    1 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS8(it) shl 8).toShort() }
+                    2 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS16LE(it).toShort()) }
+                    3 -> readBlock(channel, channels, availableSamples, bytesPerSample, out, offset) { (bytes.readS24LE(it) ushr 8).toShort() }
+                    else -> invalidOp("Unsupported bytesPerSample=$bytesPerSample")
+                }
+            }
+            return availableSamples
+        }
+
+        override suspend fun clone(): AudioStream = WAV().decodeStream(data.duplicate(), props)!!
+    }
+
+	internal inline fun readBlock(channel: Int, channels: Int, availableSamples: Int, bytesPerSample: Int, out: AudioSamples, offset: Int, read: (index: Int) -> Short) {
 		val increment = channels * bytesPerSample
 		var index = channel * bytesPerSample
 		val outc = out[channel]
@@ -98,7 +101,9 @@ open class WAV : AudioFormat("wav") {
 		var avgBytesPerSec: Long = 0L, // == SampleRate * NumChannels * BitsPerSample/8
 		var blockAlign: Int = 0, // == NumChannels * BitsPerSample/8 The number of bytes for one sample including all channels. I wonder what happens when this number isn't an integer?
 		var bitsPerSample: Int = 0      // 8 bits = 8, 16 bits = 16, etc.
-	)
+	) {
+        val bytesPerSample get() = bitsPerSample / 8
+    }
 
 	suspend fun parse(data: AsyncStream, handle: (ProcessedChunk) -> Unit): Info {
 		val fmt = Fmt()

@@ -6,7 +6,7 @@ import com.soywiz.korio.file.*
 import com.soywiz.korio.lang.*
 import kotlin.math.*
 
-open class AudioStream(
+abstract class AudioStream(
     val rate: Int,
     val channels: Int
 ) : Closeable {
@@ -20,32 +20,33 @@ open class AudioStream(
     open suspend fun read(out: AudioSamples, offset: Int, length: Int): Int = 0
     override fun close() = Unit
 
-    open suspend fun clone(): AudioStream {
-        println("Not implemented AudioStream.clone: $this")
-        return this
-    }
+    abstract suspend fun clone(): AudioStream
 
     companion object {
         fun generator(rate: Int, channels: Int, generateChunk: suspend AudioSamplesDeque.(step: Int) -> Boolean): AudioStream =
-            object : AudioStream(rate, channels) {
-                val deque = AudioSamplesDeque(channels)
-                val availableRead get() = deque.availableRead
-                override var finished: Boolean = false
-                private var step: Int = 0
+            GeneratorAudioStream(rate, channels, generateChunk)
+    }
 
-                override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
-                    if (finished && availableRead <= 0) return -1
-                    while (availableRead <= 0) {
-                        if (!generateChunk(deque, step++)) {
-                            finished = true
-                            break
-                        }
-                    }
-                    val read = min(length, availableRead)
-                    deque.read(out, offset, read)
-                    return read
+    internal class GeneratorAudioStream(rate: Int, channels: Int, val generateChunk: suspend AudioSamplesDeque.(step: Int) -> Boolean) : AudioStream(rate, channels) {
+        val deque = AudioSamplesDeque(channels)
+        val availableRead get() = deque.availableRead
+        override var finished: Boolean = false
+        private var step: Int = 0
+
+        override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
+            if (finished && availableRead <= 0) return -1
+            while (availableRead <= 0) {
+                if (!generateChunk(deque, step++)) {
+                    finished = true
+                    break
                 }
             }
+            val read = min(length, availableRead)
+            deque.read(out, offset, read)
+            return read
+        }
+
+        override suspend fun clone(): AudioStream = GeneratorAudioStream(rate, channels, generateChunk)
     }
 }
 

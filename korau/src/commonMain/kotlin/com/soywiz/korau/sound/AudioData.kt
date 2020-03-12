@@ -62,21 +62,25 @@ fun AudioData.withRate(rate: Int) = AudioData(rate, samples)
 //    TODO()
 //}
 
-fun AudioData.toStream(): AudioStream = object : AudioStream(rate, channels) {
+fun AudioData.toStream(): AudioStream = AudioDataStream(this)
+
+class AudioDataStream(val data: AudioData) : AudioStream(data.rate, data.channels) {
     var cursor = 0
     override var finished: Boolean = false
 
     override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
-        val available = samples.totalSamples - cursor
+        val available = data.samples.totalSamples - cursor
         val toread = min(available, length)
         if (toread > 0) {
             for (n in 0 until channels) {
-                arraycopy(samples[n], cursor, out[n], offset, toread)
+                arraycopy(data.samples[n], cursor, out[n], offset, toread)
             }
         }
         if (toread <= 0) finished = true
         return toread
     }
+
+    override suspend fun clone(): AudioStream = AudioDataStream(data)
 }
 
 

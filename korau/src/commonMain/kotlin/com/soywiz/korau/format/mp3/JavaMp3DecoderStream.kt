@@ -20,13 +20,12 @@ suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream {
 // @TODO: Use AsyncStream and read frame chunks
 suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
     val sdata = idata.openAsync()
-    val info = MP3.tryReadInfo(sdata) ?: error("Not an mp3 file [1]")
     var data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file [2]")
     val samples = ShortArray(data.samplesBuffer.size / 2)
     val deque = AudioSamplesDeque(data.nchannels)
     var samplesPos = 0L
     var seekPos = -1L
-    var mp3SeekingTable: MP3Base.SeekingTable? = null
+    val mp3SeekingTable = MP3Base.Parser(sdata).getSeekingTable(44100)
 
     fun decodeSamples() {
         for (n in samples.indices) samples[n] = data.samplesBuffer.readU16LE(n * 2).toShort()
@@ -35,7 +34,7 @@ suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
     return object : AudioStream(data.frequency, data.nchannels) {
         override var finished: Boolean = false
 
-        override val totalLengthInSamples: Long? = (info.duration.seconds * data.frequency).toLong()
+        override val totalLengthInSamples: Long? = mp3SeekingTable.lengthSamples
 
         override var currentPositionInSamples: Long
             get() = samplesPos
@@ -64,8 +63,7 @@ suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
                 if (seekPos == 0L) {
                     seek(0L)
                 } else {
-                    if (mp3SeekingTable == null) mp3SeekingTable = MP3Base.Parser(sdata).getSeekingTable(rate)
-                    seek(mp3SeekingTable!!.locateSample(seekPos))
+                    seek(mp3SeekingTable.locateSample(seekPos))
                 }
                 seekPos = -1L
             }
