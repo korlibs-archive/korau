@@ -31,12 +31,20 @@ open class MP3Base : AudioFormat("mp3") {
 
     class SeekingTable(
         val microseconds: DoubleArrayList,
-        val filePositions: DoubleArrayList
+        val filePositions: DoubleArrayList,
+        val rate: Int = 44100
     ) {
+        val lengthTime: TimeSpan get() = microseconds[microseconds.size - 1].microseconds
+        val lengthSamples: Long get() = (lengthTime.seconds * rate).toLong()
+
         fun locate(time: TimeSpan): Long {
             val searchMicro = time.microseconds
             val result = microseconds.binarySearch(searchMicro)
             return filePositions[result.nearIndex].toLong()
+        }
+
+        fun locateSample(sample: Long): Long {
+            return locate((sample.toDouble() / rate).seconds)
         }
     }
 
@@ -48,14 +56,14 @@ open class MP3Base : AudioFormat("mp3") {
 
 		suspend fun getDurationExact() = _getDuration(use_cbr_estimate = false)
 
-        suspend fun getSeekingTable(): SeekingTable {
+        suspend fun getSeekingTable(rate: Int = 44100): SeekingTable {
             val times = DoubleArrayList()
             val filePositions = DoubleArrayList()
             _getDuration(use_cbr_estimate = false, emit = { filePos, totalMicro, info ->
                 times.add(totalMicro)
                 filePositions.add(filePos.toDouble())
             })
-            return SeekingTable(times, filePositions)
+            return SeekingTable(times, filePositions, rate)
         }
 
 		//Read entire file, frame by frame... ie: Variable Bit Rate (VBR)

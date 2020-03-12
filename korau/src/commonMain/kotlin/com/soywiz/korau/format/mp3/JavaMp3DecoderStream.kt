@@ -1,13 +1,12 @@
 package com.soywiz.korau.format.mp3
 
-import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
 
-open class JavaMP3Decoder() : AudioFormat("mp3") {
-    companion object : JavaMP3Decoder()
+open class PureJavaMp3DecoderAudioFormat() : AudioFormat("mp3") {
+    companion object : PureJavaMp3DecoderAudioFormat()
 
     override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = MP3.tryReadInfo(data, props)
     override suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps): AudioStream? = createJavaMp3DecoderStream(data)
@@ -65,12 +64,8 @@ suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
                 if (seekPos == 0L) {
                     seek(0L)
                 } else {
-                    if (mp3SeekingTable == null) {
-                        mp3SeekingTable = MP3Base.Parser(sdata).getSeekingTable()
-                    }
-                    val seekTime = (seekPos.toDouble() / rate).seconds
-                    val filePos = mp3SeekingTable!!.locate(seekTime)
-                    seek(filePos)
+                    if (mp3SeekingTable == null) mp3SeekingTable = MP3Base.Parser(sdata).getSeekingTable(rate)
+                    seek(mp3SeekingTable!!.locateSample(seekPos))
                 }
                 seekPos = -1L
             }

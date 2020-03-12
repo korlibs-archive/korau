@@ -75,6 +75,18 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
         }
     }
 
+    open suspend fun totalSamples(): Long? {
+        return null
+    }
+
+    open suspend fun seekSamples(sample: Long) {
+    }
+
+    open fun clone(): NativeAudioDecoder {
+        println("NativeAudioDecoder.clone not implemented")
+        return this
+    }
+
     suspend fun createAudioStream(): AudioStream? {
         decodeFrame()
 
@@ -82,8 +94,32 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
             return null
         }
 
+        val totalSamples = totalSamples()
+
         return object : AudioStream(hz, nchannels) {
+            var readSamples = 0L
+            var seekPosition = -1L
+
+            override val finished: Boolean get() = closed
+            override val totalLengthInSamples: Long? get() = totalSamples
+            override var currentPositionInSamples: Long
+                get() = readSamples
+                set(value) {
+                    readSamples = value
+                    seekPosition = value
+                    closed = false
+                    dataBuffer.clear()
+                    samplesBuffers.clear()
+                }
+
+            override suspend fun clone(): AudioStream = this@NativeAudioDecoder.clone().createAudioStream()!!
+
             override suspend fun read(out: AudioSamples, offset: Int, length: Int): Int {
+                if (seekPosition >= 0L) {
+                    seekSamples(seekPosition)
+                    seekPosition = -1L
+                }
+
                 if (closed) return -1
 
                 if (samplesBuffers.availableRead == 0) {
@@ -93,6 +129,7 @@ open class NativeAudioDecoder(val data: AsyncStream, val maxSamples: Int, val ma
                 if (result <= 0) {
                     close()
                 }
+                readSamples += result
                 //println("   AudioStream.read -> result=$result")
                 return result
             }

@@ -42,11 +42,18 @@ class AudioSamplesDeque(val channels: Int) {
         for (n in 0 until len) write(channel, SampleConvert.floatToShort(data[offset + n]))
     }
 
-    // @TODO: Important to optimize!
     fun writeInterleaved(data: ShortArray, offset: Int, len: Int = data.size - offset, channels: Int = this.channels) {
-        for (n in 0 until len) {
-            val channel = n % channels
-            write(channel, data[offset + n])
+        when (channels) {
+            1 -> {
+                buffer[0].write(data, offset, len)
+            }
+            2 -> {
+                for (n in 0 until len / 2) write(0, data[n * 2 + 0])
+                for (n in 0 until len / 2) write(1, data[n * 2 + 1])
+            }
+            else -> {
+                for (c in 0 until channels) for (n in 0 until len / channels) write(c, data[n * channels + c])
+            }
         }
     }
 

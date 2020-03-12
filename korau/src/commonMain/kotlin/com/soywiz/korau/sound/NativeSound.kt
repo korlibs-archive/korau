@@ -99,6 +99,7 @@ open class NativeSoundProvider {
                         }
                     } catch (e: CancellationException) {
                         nas.stop()
+                        nas.dispose()
                     } finally {
                         //println("STREAM.STOP")
                         if (closeStream) {
