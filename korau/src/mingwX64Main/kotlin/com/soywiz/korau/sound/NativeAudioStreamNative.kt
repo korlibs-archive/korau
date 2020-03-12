@@ -1,46 +1,90 @@
 package com.soywiz.korau.sound
 
-import com.soywiz.klock.*
-import com.soywiz.kmem.*
-import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.file.*
 import kotlinx.cinterop.*
-import kotlin.coroutines.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import platform.windows.*
-
-val nativeAudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
+import kotlin.coroutines.*
 
 actual val nativeSoundProvider: NativeSoundProvider = NativeNativeSoundProvider
 
 object NativeNativeSoundProvider : NativeSoundProvider() {
-    override fun initOnce() {
-        super.initOnce()
-    }
+    override val audioFormats: AudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
 
     override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
-        return super.createAudioStream(coroutineContext, freq)
-    }
+        var channel: Channel<ShortArray>? = null
+        var job: Job? = null
+        val nchannels = 2
 
-    override fun init() {
-        super.init()
-    }
+        return object : PlatformAudioOutput(coroutineContext, freq) {
+            override val availableSamples: Int get() = TODO()
+            override var pitch: Double = 1.0
+            override var volume: Double = 1.0
+            override var panning: Double = 0.0
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
-        return Win32NativeSoundNoStream(coroutineContext, nativeAudioFormats.decode(data, props))
-    }
+            override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
+                channel?.send(samples.interleaved().data)
+            }
 
-    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean, props: AudioDecodingProps): NativeSound {
-        return super.createSound(vfs, path, streaming, props)
-    }
+            override fun start() {
+                job?.cancel()
+                channel?.close()
+                channel = Channel<ShortArray>(Channel.UNLIMITED)
+                job = launchImmediately(Dispatchers.Unconfined) {
+                    memScoped {
+                        val samplesInterleaved = AudioSamplesInterleaved(2, 4096)
+                        val scope = Arena()
+                        val hWaveOut = scope.alloc<HWAVEOUTVar>()
+                        samplesInterleaved.data.usePinned { samplesPin ->
+                            val hdr = scope.alloc<WAVEHDR>().apply {
+                                this.lpData = samplesPin.addressOf(0).reinterpret()
+                                this.dwBufferLength = (samplesInterleaved.data.size * 2).convert()
+                                this.dwFlags = 0.convert()
 
-    override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
-        return super.createSound(data, formats, streaming)
+                                //this.dwBytesRecorded = 0.convert()
+                                //this.dwUser = 0.convert()
+                                //this.dwLoops = 0.convert()
+                            }
+                            val format = alloc<WAVEFORMATEX>().apply {
+                                this.cbSize = WAVEFORMATEX.size.convert()
+                                this.wFormatTag = WAVE_FORMAT_PCM.convert()
+                                this.nSamplesPerSec = freq.convert()
+                                this.nChannels = nchannels.convert()
+                                this.nBlockAlign = (nchannels * 2).convert()
+                                this.wBitsPerSample = 16.convert()
+                            }
+                            val res = waveOutOpen(hWaveOut.ptr, WAVE_MAPPER, format.ptr, 0.convert(), 0.convert(), CALLBACK_NULL)
+                            //println(res)
+                            //println(resPrepare)
+                            val deque = AudioSamplesDeque(nchannels)
+                            while (true) {
+                                while (deque.availableRead < 16 * 1024) {
+                                    val chunk = channel!!.receiveOrNull() ?: break
+                                    deque.write(AudioSamplesInterleaved(nchannels, chunk.size / 2, chunk))
+                                }
+                                deque.read(samplesInterleaved)
+                                val resPrepare = waveOutPrepareHeader(hWaveOut.value, hdr.ptr, WAVEHDR.size.convert())
+                                val resOut = waveOutWrite(hWaveOut.value, hdr.ptr, WAVEHDR.size.convert())
+                            }
+                            //println(resOut)
+                        }
+                    }
+                }
+            }
+
+            override fun stop() {
+                job?.cancel()
+                channel?.close()
+                channel = null
+                job = null
+            }
+        }
     }
 }
 
+/*
 class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data: AudioData?) : NativeSound() {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
@@ -134,3 +178,4 @@ class Win32NativeSoundNoStream(val coroutineContext: CoroutineContext, val data:
         return channel
     }
 }
+*/
