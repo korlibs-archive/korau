@@ -8,7 +8,6 @@ import android.os.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.format.mp3.*
 import com.soywiz.korio.android.*
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { AndroidNativeSoundProvider() }
@@ -69,7 +68,7 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
                         val temp = AudioSamplesInterleaved(2, 4096)
                         while (running) {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                //at.playbackParams.speed = props.pitch.toFloat()
+                                at.playbackParams.speed = props.pitch.toFloat()
                                 //at.playbackParams.pitch = props.pitch.toFloat()
                             }
                             at.setVolume(props.volume.toFloat())
