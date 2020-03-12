@@ -1,4 +1,4 @@
 package com.soywiz.korau.error
 
-class SeekingNotSupported : Exception()
-fun seekingNotSupported(): Nothing = throw SeekingNotSupported()
+class SeekingNotSupported(message: String = "seekingNotSupported") : Exception(message)
+fun seekingNotSupported(message: String = "seekingNotSupported"): Nothing = throw SeekingNotSupported(message)

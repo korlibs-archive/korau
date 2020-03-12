@@ -570,7 +570,8 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
             var currentSampleOffset: Int
                 get() = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
                 set(value) = run {
-                    al.alSourcei(source, AL.AL_SAMPLE_OFFSET,value)
+                    al.alSourcei(source, AL.AL_SAMPLE_OFFSET, value)
+                    al.alSourcePlay(source)
                 }
 
             override var current: TimeSpan
@@ -583,11 +584,6 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
                     checkAlErrors("alGetSourceState")
                     return result
                 }
-
-            override fun reset() {
-                currentSampleOffset = 0
-                al.alSourcePlay(source)
-            }
 
             override fun stop() {
                 if (!stopped) {

@@ -1,5 +1,7 @@
 package com.soywiz.korau.sound
 
+import com.soywiz.klock.*
+import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korio.lang.*
 import kotlinx.coroutines.*
@@ -33,24 +35,88 @@ object HtmlSimpleSound {
 
 	class SimpleSoundChannel(
 		val buffer: AudioBuffer,
-		val node: AudioBufferSourceNode?,
-		val gain: GainNode?,
-		val panner: PannerNode?
+		val ctx: BaseAudioContext,
+        val params: PlaybackParameters,
+        val coroutineContext: CoroutineContext
 	) {
-		val startTime = ctx?.currentTime ?: 0.0
-		val currentTime get() = ctx?.currentTime ?: 0.0
+        var gainNode: GainNode? = null
+        var pannerNode: PannerNode? = null
+        var sourceNode: AudioBufferSourceNode? = null
+
+        fun createNode(startTime: TimeSpan) {
+            ctx.destination.apply {
+                pannerNode = panner {
+                    gainNode = gain {
+                        this.gain.value = 1.0
+                        sourceNode = source(buffer) {
+                            //start(0.0)
+                        }
+                    }
+                }
+            }
+            sourceNode?.start(0.0, startTime.seconds)
+        }
+
+        var startedAt = DateTime.now()
+        var times = params.times
+
+        fun createJobAt(startTime: TimeSpan): Job {
+            startedAt = DateTime.now()
+            var startTime = startTime
+            return CoroutineScope(coroutineContext).launchImmediately {
+                try {
+                    while (times.hasMore) {
+                        //println("TIMES: $times, startTime=$startTime, buffer.duration.seconds=${buffer.duration.seconds}")
+                        startedAt = DateTime.now()
+                        createNode(startTime)
+                        startTime = 0.seconds
+                        val deferred = CompletableDeferred<Unit>()
+                        sourceNode?.onended = {
+                            deferred.complete(Unit)
+                        }
+                        times = times.oneLess
+                        if (!times.hasMore) break
+                        deferred.await()
+                    }
+                } finally {
+                    sourceNode?.stop()
+                    gainNode = null
+                    pannerNode = null
+                    sourceNode = null
+                    running = false
+                }
+            }
+        }
+
+        var job = createJobAt(params.startTime)
+
+		var currentTime: TimeSpan
+            get() = DateTime.now() - startedAt
+            set(value) = run {
+                job.cancel()
+                job = createJobAt(value)
+            }
+        var volume: Double = 1.0
+            set(value) = run {
+                field = value
+                gainNode?.gain?.value = value
+            }
+        var pitch: Double = 1.0
+            set(value) = run {
+                field = value
+            }
         var panning: Double = 0.0
             set(value) = run {
-                panner?.setPosition(panning, 0.0, 0.0)
+                pannerNode?.setPosition(panning, 0.0, 0.0)
                 field = value
             }
 
 		private var running = true
-		val playing get() = running && currentTime < buffer.duration
+		//val playing get() = running && currentTime < buffer.duration
+        val playing get() = running
 
 		fun stop() {
-			running = false
-			node?.stop()
+            job.cancel()
 		}
 	}
 
@@ -79,31 +145,8 @@ object HtmlSimpleSound {
 		return node
 	}
 
-	fun playSound(buffer: AudioBuffer, params: PlaybackParameters): SimpleSoundChannel? {
-		if (ctx == null) return null
-
-		var gainNode: GainNode? = null
-		var pannerNode: PannerNode? = null
-		var sourceNode: AudioBufferSourceNode? = null
-		ctx.destination.apply {
-			pannerNode = panner {
-				gainNode = gain {
-					this.gain.value = 1.0
-					sourceNode = source(buffer) {
-                        //start(0.0)
-					}
-				}
-			}
-		}
-
-        // @TODO: Repeat times
-        var times = params.times
-        if (times.hasMore) {
-            sourceNode?.start(0.0)
-        }
-
-		return SimpleSoundChannel(buffer, sourceNode, gainNode, pannerNode)
-	}
+	fun playSound(buffer: AudioBuffer, params: PlaybackParameters, coroutineContext: CoroutineContext): SimpleSoundChannel? =
+        ctx?.let { SimpleSoundChannel(buffer, it, params,coroutineContext) }
 
 	fun stopSound(channel: AudioBufferSourceNode?) {
 		channel?.disconnect(0)

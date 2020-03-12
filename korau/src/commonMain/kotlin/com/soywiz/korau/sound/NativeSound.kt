@@ -211,17 +211,17 @@ interface NativeSoundChannelBase : SoundProps {
 fun <T : NativeSoundChannelBase> T.attachTo(group: NativeSoundChannelGroup): T = this.apply { group.add(this) }
 
 abstract class NativeSoundChannel(val sound: NativeSound) : NativeSoundChannelBase {
-	private val startTime = DateTime.now()
+	private var startTime = DateTime.now()
 	override var volume = 1.0
 	override var pitch = 1.0
 	override var panning = 0.0 // -1.0 left, +1.0 right
     // @TODO: Rename to position
 	open var current: TimeSpan
         get() = DateTime.now() - startTime
-        set(value) = seekingNotSupported()
+        set(value) = run { startTime = DateTime.now() - value }
 	open val total: TimeSpan get() = sound.length
 	override val playing: Boolean get() = current < total
-    override fun reset(): Unit = TODO()
+    final override fun reset(): Unit = run { current = 0.seconds }
 	abstract override fun stop(): Unit
 }
 
@@ -272,6 +272,7 @@ inline class PlaybackTimes(val count: Int) {
     }
     val hasMore get() = this != ZERO
     val oneLess get() = if (this == INFINITE) INFINITE else PlaybackTimes(count - 1)
+    override fun toString(): String = if (count >= 0) "$count times" else "Infinite times"
 }
 
 suspend fun NativeSound.toData(): AudioData = decode()
