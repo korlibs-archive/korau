@@ -1,11 +1,11 @@
 package com.soywiz.korau.sound
 
+import com.soywiz.kds.*
+import com.soywiz.kmem.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.format.mp3.*
-import com.soywiz.korio.async.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import platform.windows.*
 import kotlin.coroutines.*
 
@@ -15,79 +15,85 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
     //override val audioFormats: AudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
     override val audioFormats: AudioFormats = AudioFormats(WAV, JavaMP3Decoder, NativeOggVorbisDecoderFormat)
 
+    class WinAudioChunk(samples: AudioSamples) {
+        val samplesInterleaved = samples.interleaved()
+        val samplesPin = samplesInterleaved.data.pin()
+        val scope = Arena()
+        val hdr = scope.alloc<WAVEHDR>().apply {
+            this.lpData = samplesPin.addressOf(0).reinterpret()
+            this.dwBufferLength = (samplesInterleaved.data.size * 2).convert()
+            this.dwFlags = 0.convert()
+        }
+
+        val completed: Boolean get() = (hdr.dwFlags.toInt() and WHDR_DONE.toInt()) != 0
+
+        fun dispose() {
+            samplesPin.unpin()
+            scope.clear()
+        }
+    }
+
     override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
-        var channel: Channel<ShortArray>? = null
-        var job: Job? = null
         val nchannels = 2
 
-        println("[0]")
-
         return object : PlatformAudioOutput(coroutineContext, freq) {
-            override val availableSamples: Int get() = TODO()
+            val scope = Arena()
+            var hWaveOut: CPointerVarOf<CPointer<HWAVEOUT__>>? = null
+
+            private var emitedSamples: Long = 0
+            private val currentSamples: Long get() {
+                if (hWaveOut == null) return 0
+                return memScoped {
+                    val time = alloc<MMTIME>()
+                    time.wType = TIME_BYTES.convert()
+                    waveOutGetPosition(hWaveOut!!.value, time.ptr, MMTIME.size.convert())
+                    time.u.cb.toLong() / 2 / nchannels
+                }
+            }
+
+            override val availableSamples: Int get() = (currentSamples - emitedSamples).toInt()
+
             override var pitch: Double = 1.0
             override var volume: Double = 1.0
+                set(value) = run { field = value }.also { hWaveOut?.let { waveOutSetVolume(it.value, (value.clamp01() * 0xFFFF).toInt().convert()) } }
             override var panning: Double = 0.0
 
+            private val chunksDeque = Deque<WinAudioChunk>()
+
+            private fun cleanup() {
+                while (chunksDeque.isNotEmpty() && chunksDeque.first.completed) {
+                    chunksDeque.removeFirst().dispose()
+                }
+            }
+
             override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
-                println("[0add]")
-                channel?.offer(samples.interleaved().data)
+                cleanup()
+                while (chunksDeque.size > 10) delay(1L)
+                val chunk = WinAudioChunk(samples)
+                chunksDeque.add(chunk)
+                val resPrepare = waveOutPrepareHeader(hWaveOut!!.value, chunk.hdr.ptr, WAVEHDR.size.convert())
+                val resOut = waveOutWrite(hWaveOut!!.value, chunk.hdr.ptr, WAVEHDR.size.convert())
+                emitedSamples += samples.size
             }
 
             override fun start() {
-                job?.cancel()
-                channel?.close()
-                channel = Channel<ShortArray>(Channel.UNLIMITED)
-                println("[1]")
-                job = launchImmediately(Dispatchers.Unconfined) {
-                    memScoped {
-                        println("[2]")
-                        val samplesInterleaved = AudioSamplesInterleaved(2, 4096)
-                        val scope = Arena()
-                        val hWaveOut = scope.alloc<HWAVEOUTVar>()
-                        samplesInterleaved.data.usePinned { samplesPin ->
-                            val hdr = scope.alloc<WAVEHDR>().apply {
-                                this.lpData = samplesPin.addressOf(0).reinterpret()
-                                this.dwBufferLength = (samplesInterleaved.data.size * 2).convert()
-                                this.dwFlags = 0.convert()
-
-                                //this.dwBytesRecorded = 0.convert()
-                                //this.dwUser = 0.convert()
-                                //this.dwLoops = 0.convert()
-                            }
-                            val format = alloc<WAVEFORMATEX>().apply {
-                                this.cbSize = WAVEFORMATEX.size.convert()
-                                this.wFormatTag = WAVE_FORMAT_PCM.convert()
-                                this.nSamplesPerSec = freq.convert()
-                                this.nChannels = nchannels.convert()
-                                this.nBlockAlign = (nchannels * 2).convert()
-                                this.wBitsPerSample = 16.convert()
-                            }
-                            val res = waveOutOpen(hWaveOut.ptr, WAVE_MAPPER, format.ptr, 0.convert(), 0.convert(), CALLBACK_NULL)
-                            //println(res)
-                            //println(resPrepare)
-                            val deque = AudioSamplesDeque(nchannels)
-                            while (true) {
-                                println("[2b]")
-                                while (deque.availableRead < 16 * 1024) {
-                                    val chunk = channel!!.receiveOrNull() ?: break
-                                    deque.write(AudioSamplesInterleaved(nchannels, chunk.size / 2, chunk))
-                                }
-                                deque.read(samplesInterleaved)
-                                val resPrepare = waveOutPrepareHeader(hWaveOut.value, hdr.ptr, WAVEHDR.size.convert())
-                                val resOut = waveOutWrite(hWaveOut.value, hdr.ptr, WAVEHDR.size.convert())
-                            }
-                            //println(resOut)
-                        }
-                    }
+                val format = scope.alloc<WAVEFORMATEX>().apply {
+                    this.cbSize = WAVEFORMATEX.size.convert()
+                    this.wFormatTag = WAVE_FORMAT_PCM.convert()
+                    this.nSamplesPerSec = freq.convert()
+                    this.nChannels = nchannels.convert()
+                    this.nBlockAlign = (nchannels * 2).convert()
+                    this.wBitsPerSample = 16.convert()
                 }
-                println("[3]")
+                hWaveOut = scope.alloc<HWAVEOUTVar>()
+                val res = waveOutOpen(hWaveOut!!.ptr, WAVE_MAPPER, format.ptr, 0.convert(), 0.convert(), CALLBACK_NULL)
             }
 
             override fun stop() {
-                job?.cancel()
-                channel?.close()
-                channel = null
-                job = null
+                hWaveOut?.let { waveOutReset(it.value) }
+                hWaveOut?.let { waveOutClose(it.value) }
+                cleanup()
+                scope.clear()
             }
         }
     }
