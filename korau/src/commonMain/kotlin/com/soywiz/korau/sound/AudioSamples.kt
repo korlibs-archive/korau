@@ -6,9 +6,10 @@ import com.soywiz.korau.internal.*
 interface IAudioSamples {
     val channels: Int
     val totalSamples: Int
+    @Deprecated("", ReplaceWith("totalSamples"))
     val size get() = totalSamples
-    fun isEmpty() = size == 0
-    fun isNotEmpty() = size != 0
+    fun isEmpty() = totalSamples == 0
+    fun isNotEmpty() = totalSamples != 0
     operator fun get(channel: Int, sample: Int): Short
     operator fun set(channel: Int, sample: Int, value: Short): Unit
     fun getFloat(channel: Int, sample: Int): Float = SampleConvert.shortToFloat(this[channel, sample])
@@ -71,6 +72,29 @@ fun IAudioSamples.interleaved(out: AudioSamplesInterleaved = AudioSamplesInterle
             m += channels
         }
     }
+    return out
+}
+
+fun AudioSamplesInterleaved.applyProps(speed: Double, panning: Double, volume: Double): AudioSamplesInterleaved {
+    if (speed == 1.0 && panning == 0.0 && volume == 1.0) return this
+    val speedf = speed.toFloat()
+    val ispeedf = (1.0 / speed).toFloat()
+    val out = AudioSamplesInterleaved(channels, (totalSamples * ispeedf).toInt())
+
+    val rratio = ((((panning + 1.0) / 2.0).clamp01()) * volume).toFloat()
+    val lratio = ((1.0 - rratio) * volume).toFloat()
+
+    if (channels == 2) {
+        for (n in 0 until out.totalSamples) {
+            out[0, n] = (this[0, (n * speedf).toInt()] * lratio).toShort()
+            out[1, n] = (this[1, (n * speedf).toInt()] * rratio).toShort()
+        }
+    } else {
+        for (n in out.data.indices) {
+            out.data[n] = (this.data[(n * speedf).toInt()] * lratio).toShort()
+        }
+    }
+
     return out
 }
 

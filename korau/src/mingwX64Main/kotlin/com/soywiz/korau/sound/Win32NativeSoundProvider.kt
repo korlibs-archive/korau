@@ -9,14 +9,14 @@ import kotlinx.coroutines.*
 import platform.windows.*
 import kotlin.coroutines.*
 
-actual val nativeSoundProvider: NativeSoundProvider = NativeNativeSoundProvider
+actual val nativeSoundProvider: NativeSoundProvider = Win32NativeSoundProvider
 
-object NativeNativeSoundProvider : NativeSoundProvider() {
+object Win32NativeSoundProvider : NativeSoundProvider() {
     //override val audioFormats: AudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
     override val audioFormats: AudioFormats = AudioFormats(WAV, JavaMP3Decoder, NativeOggVorbisDecoderFormat)
 
-    class WinAudioChunk(samples: AudioSamples) {
-        val samplesInterleaved = samples.interleaved()
+    class WinAudioChunk(samples: AudioSamples, val speed: Double, val panning: Double) {
+        val samplesInterleaved = samples.interleaved().applyProps(speed, panning, 1.0)
         val samplesPin = samplesInterleaved.data.pin()
         val scope = Arena()
         val hdr = scope.alloc<WAVEHDR>().apply {
@@ -26,6 +26,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
         }
 
         val completed: Boolean get() = (hdr.dwFlags.toInt() and WHDR_DONE.toInt()) != 0
+        val totalSamples get() = samplesInterleaved.size
 
         fun dispose() {
             samplesPin.unpin()
@@ -51,7 +52,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
                 }
             }
 
-            override val availableSamples: Int get() = (currentSamples - emitedSamples).toInt()
+            override val availableSamples: Int get() = (emitedSamples - currentSamples).toInt()
 
             override var pitch: Double = 1.0
             override var volume: Double = 1.0
@@ -67,13 +68,20 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
             }
 
             override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
+                //println("add.[1] $currentSamples/$emitedSamples -- $availableSamples")
                 cleanup()
-                while (chunksDeque.size > 10) delay(1L)
-                val chunk = WinAudioChunk(samples)
+                //println("add.[2]")
+                while (chunksDeque.size > 10) {
+                    cleanup()
+                    delay(1L)
+                }
+                //println("add.[3]")
+                val chunk = WinAudioChunk(samples, pitch, panning)
                 chunksDeque.add(chunk)
                 val resPrepare = waveOutPrepareHeader(hWaveOut!!.value, chunk.hdr.ptr, WAVEHDR.size.convert())
                 val resOut = waveOutWrite(hWaveOut!!.value, chunk.hdr.ptr, WAVEHDR.size.convert())
-                emitedSamples += samples.size
+                //println("add.[4]")
+                emitedSamples += chunk.totalSamples
             }
 
             override fun start() {

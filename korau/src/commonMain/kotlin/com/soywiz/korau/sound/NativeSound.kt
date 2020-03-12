@@ -33,11 +33,14 @@ open class NativeSoundProvider {
 	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound =
         createStreamingSound(audioFormats.decodeStreamOrError(data.openAsync(), props), closeStream = true)
 
-    open val audioFormats = AudioFormats(WAV)
+    open val audioFormats: AudioFormats = AudioFormats(WAV)
 
     open suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound {
         return if (streaming) {
-            val stream = vfs.file(path).open()
+            //val stream = vfs.file(path).open()
+            //createStreamingSound(audioFormats.decodeStreamOrError(stream, props)) {
+            val vfsFile = vfs.file(path)
+            val stream: AsyncStream = if (props.readInMemory) vfsFile.readAll().openAsync() else vfsFile.open()
             createStreamingSound(audioFormats.decodeStreamOrError(stream, props)) {
                 stream.close()
             }
