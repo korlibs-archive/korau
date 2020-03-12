@@ -5,6 +5,7 @@ import com.soywiz.korau.error.*
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.*
+import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -27,21 +28,15 @@ open class NativeSoundProvider {
 
 	protected open fun init(): Unit = Unit
 
-	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound = object : NativeSound() {
-		override suspend fun decode(): AudioData = AudioData.DUMMY
-		override fun play(params: PlaybackParameters): NativeSoundChannel = object : NativeSoundChannel(this) {
-			override fun stop() = Unit
-		}.also {
-            it.copySoundPropsFrom(params)
-        }
-	}
+	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound =
+        createStreamingSound(audioFormats.decodeStreamOrError(data.openAsync(), props), closeStream = true)
 
     open val audioFormats = AudioFormats(WAV)
 
     open suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound {
         return if (streaming) {
             val stream = vfs.file(path).open()
-            createStreamingSound(audioFormats.decodeStream(stream, props) ?: error("Can't open sound for streaming")) {
+            createStreamingSound(audioFormats.decodeStreamOrError(stream, props)) {
                 stream.close()
             }
         } else {

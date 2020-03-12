@@ -15,7 +15,7 @@ open class PlatformAudioOutput(val frequency: Int) : Disposable, SoundProps {
 	suspend fun add(data: AudioData) = add(data.samples, 0, data.totalSamples)
 	open fun start() = Unit
 	open fun stop() = Unit
-    override fun dispose() = Unit
+    override fun dispose() = stop()
 }
 
 

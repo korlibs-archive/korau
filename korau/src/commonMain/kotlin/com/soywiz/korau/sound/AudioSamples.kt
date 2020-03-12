@@ -29,6 +29,7 @@ internal fun AudioSamples.resample(scale: Double, totalSamples: Int = (this.tota
 }
 
 class AudioSamples(override val channels: Int, override val totalSamples: Int) : IAudioSamples {
+    val interleaved by lazy { interleaved() }
     val data = Array(channels) { ShortArray(totalSamples) }
 
     operator fun get(channel: Int): ShortArray = data[channel]
@@ -43,6 +44,7 @@ class AudioSamples(override val channels: Int, override val totalSamples: Int) :
 }
 
 class AudioSamplesInterleaved(override val channels: Int, override val totalSamples: Int) : IAudioSamples {
+    val separared by lazy { separated() }
     val data = ShortArray(totalSamples * channels)
 
     private fun index(channel: Int, sample: Int) = (sample * channels) + channel
