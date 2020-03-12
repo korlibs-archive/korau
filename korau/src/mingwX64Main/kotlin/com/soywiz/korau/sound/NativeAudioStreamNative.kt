@@ -20,8 +20,8 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
         super.initOnce()
     }
 
-    override fun createAudioStream(freq: Int): PlatformAudioOutput {
-        return super.createAudioStream(freq)
+    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
+        return super.createAudioStream(coroutineContext, freq)
     }
 
     override fun init() {

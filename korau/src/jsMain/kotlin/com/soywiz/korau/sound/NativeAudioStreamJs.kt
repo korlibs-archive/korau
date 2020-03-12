@@ -12,7 +12,7 @@ import kotlin.coroutines.*
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundProvider() }
 
-class JsPlatformAudioOutput(val freq: Int) : PlatformAudioOutput(freq) {
+class JsPlatformAudioOutput(coroutineContext: CoroutineContext, val freq: Int) : PlatformAudioOutput(coroutineContext, freq) {
 	val id = lastId++
 
 	init {

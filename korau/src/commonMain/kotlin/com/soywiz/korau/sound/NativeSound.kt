@@ -24,7 +24,9 @@ open class NativeSoundProvider {
 		}
 	}
 
-	open fun createAudioStream(freq: Int = 44100): PlatformAudioOutput = PlatformAudioOutput(freq)
+	open fun createAudioStream(coroutineContext: CoroutineContext, freq: Int = 44100): PlatformAudioOutput = PlatformAudioOutput(coroutineContext, freq)
+
+    suspend fun createAudioStream(freq: Int = 44100): PlatformAudioOutput = PlatformAudioOutput(coroutineContext, freq)
 
 	protected open fun init(): Unit = Unit
 
@@ -64,7 +66,7 @@ open class NativeSoundProvider {
             override val length: TimeSpan get() = stream.totalLength
             override suspend fun decode(): AudioData = stream.toData()
             override fun play(params: PlaybackParameters): NativeSoundChannel {
-                val nas = createAudioStream(stream.rate)
+                val nas: PlatformAudioOutput = createAudioStream(coroutineContext, stream.rate)
                 nas.copySoundPropsFrom(params)
                 var playing = true
                 val job = launchImmediately(coroutineContext) {

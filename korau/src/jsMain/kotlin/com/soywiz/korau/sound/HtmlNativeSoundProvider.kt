@@ -15,7 +15,7 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 	override fun initOnce() {
 	}
 
-	override fun createAudioStream(freq: Int): PlatformAudioOutput = JsPlatformAudioOutput(freq)
+	override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput = JsPlatformAudioOutput(coroutineContext, freq)
 
 	override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
 		return AudioBufferNativeSound(HtmlSimpleSound.loadSound(data))

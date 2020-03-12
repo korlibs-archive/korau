@@ -32,7 +32,7 @@ object AwtNativeSoundProvider : NativeSoundProvider() {
         line.close()
     }
 
-    override fun createAudioStream(freq: Int): PlatformAudioOutput = JvmPlatformAudioOutput(freq)
+    override suspend fun createAudioStream(freq: Int): PlatformAudioOutput = JvmPlatformAudioOutput(freq)
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
         val audioData = try {

@@ -417,14 +417,15 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
         }
     }
 
-    override fun createAudioStream(freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, freq)
+    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, coroutineContext, freq)
 }
 
 class OpenALPlatformAudioOutput(
     val provider: JnaOpenALNativeSoundProvider,
+    coroutineContext: CoroutineContext,
     freq: Int,
     val sourceProvider: SourceProvider = SourceProvider(0)
-) : PlatformAudioOutput(freq) {
+) : PlatformAudioOutput(coroutineContext, freq) {
     val sourceProv = JnaSoundPropsProvider(sourceProvider)
     override var availableSamples: Int = 0
 

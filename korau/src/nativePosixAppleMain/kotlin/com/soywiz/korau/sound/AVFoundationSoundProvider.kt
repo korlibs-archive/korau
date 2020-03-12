@@ -24,7 +24,7 @@ class AvFoundationNativeSoundProvider : NativeSoundProvider() {
         return AVFoundationNativeSoundNoStream(CoroutineScope(coroutineContext), nativeAudioFormats.decode(data))
     }
 
-    override fun createAudioStream(freq: Int): PlatformAudioOutput {
+    override suspend fun createAudioStream(freq: Int): PlatformAudioOutput {
         return super.createAudioStream(freq)
     }
 }

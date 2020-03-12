@@ -1,25 +1,38 @@
 package com.soywiz.korau.sound
 
 import android.annotation.*
+import android.content.*
 import android.media.*
+import android.media.AudioFormat
 import android.os.*
+import com.soywiz.korau.format.*
+import com.soywiz.korau.format.mp3.*
+import com.soywiz.korio.android.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 actual val nativeSoundProvider: NativeSoundProvider by lazy { AndroidNativeSoundProvider() }
 
 class AndroidNativeSoundProvider : NativeSoundProvider() {
 	override val target: String = "android"
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    override fun createAudioStream(freq: Int): PlatformAudioOutput {
-        open class MyThread(val block: MyThread.() -> Unit) : Thread() {
-            var running = true
-            override fun run() = block()
-        }
+    override val audioFormats: AudioFormats = AudioFormats(MP3Decoder) + defaultAudioFormats
+
+    open class MyThread(val block: MyThread.() -> Unit) : Thread() {
+        var running = true
+        override fun run() = block()
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
+        val ctx = coroutineContext[AndroidCoroutineContext.Key]!!.context
+        //val ctx = runBlocking(coroutineContext) { androidContext() }
+        val audioManager = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val deque = AudioSamplesDeque(2)
         var thread: MyThread? = null
 
-		return object : PlatformAudioOutput(44100) {
+		return object : PlatformAudioOutput(coroutineContext, freq) {
             override val availableSamples: Int get() = deque.availableRead
 
             override var pitch: Double = 1.0
@@ -34,34 +47,44 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
                 val props: SoundProps = this
                 thread?.running = false
                 thread = MyThread {
-                    val mp = MediaPlayer()
+                    //val mp = MediaPlayer()
+                    val at = AudioTrack(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_GAME)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build(),
+                        AudioFormat.Builder()
+                            .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
+                            //.setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                            .setSampleRate(freq)
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .build(),
+                        2 * 2 * 4096,
+                        AudioTrack.MODE_STREAM,
+                        audioManager.generateAudioSessionId()
+                        //mp.audioSessionId
+                    )
+                    at.play()
                     try {
-                        val at = AudioTrack(
-                            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build(),
-                            AudioFormat.Builder().setChannelMask(AudioFormat.CHANNEL_IN_STEREO).setSampleRate(freq).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                                .build(),
-                            AudioTrack.MODE_STREAM,
-                            2 * 2 * 1024,
-                            mp.audioSessionId
-                        )
-                        try {
-                            val temp = AudioSamplesInterleaved(2, 1024)
-                            while (running) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    at.playbackParams.speed = props.pitch.toFloat()
-                                    //at.playbackParams.pitch = props.pitch.toFloat()
-                                }
-                                at.setVolume(props.volume.toFloat())
-                                val readCount = deque.read(temp)
-                                at.write(temp.data, 0, readCount)
+                        val temp = AudioSamplesInterleaved(2, 4096)
+                        while (running) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                //at.playbackParams.speed = props.pitch.toFloat()
+                                //at.playbackParams.pitch = props.pitch.toFloat()
                             }
-                        } finally {
-                            at.stop()
+                            at.setVolume(props.volume.toFloat())
+                            val readCount = deque.read(temp)
+
+                            //println("AUDIO CHUNK: $readCount : ${temp.data.toList()}")
+                            at.write(temp.data, 0, readCount * 2)
                         }
                     } finally {
-
-                        mp.stop()
+                        at.stop()
+                        at.release()
+                        //mp.stop()
+                        //mp.release()
                     }
+
                 }.also { it.start() }
             }
             override fun stop() = run { thread?.running = false }
