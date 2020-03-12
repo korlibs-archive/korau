@@ -1,6 +1,7 @@
 package com.soywiz.korau.sound
 
 import com.soywiz.korau.format.*
+import com.soywiz.korau.format.mp3.*
 import com.soywiz.korio.async.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -11,12 +12,15 @@ import kotlin.coroutines.*
 actual val nativeSoundProvider: NativeSoundProvider = NativeNativeSoundProvider
 
 object NativeNativeSoundProvider : NativeSoundProvider() {
-    override val audioFormats: AudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
+    //override val audioFormats: AudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
+    override val audioFormats: AudioFormats = AudioFormats(WAV, JavaMP3Decoder, NativeOggVorbisDecoderFormat)
 
     override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
         var channel: Channel<ShortArray>? = null
         var job: Job? = null
         val nchannels = 2
+
+        println("[0]")
 
         return object : PlatformAudioOutput(coroutineContext, freq) {
             override val availableSamples: Int get() = TODO()
@@ -25,15 +29,18 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
             override var panning: Double = 0.0
 
             override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
-                channel?.send(samples.interleaved().data)
+                println("[0add]")
+                channel?.offer(samples.interleaved().data)
             }
 
             override fun start() {
                 job?.cancel()
                 channel?.close()
                 channel = Channel<ShortArray>(Channel.UNLIMITED)
+                println("[1]")
                 job = launchImmediately(Dispatchers.Unconfined) {
                     memScoped {
+                        println("[2]")
                         val samplesInterleaved = AudioSamplesInterleaved(2, 4096)
                         val scope = Arena()
                         val hWaveOut = scope.alloc<HWAVEOUTVar>()
@@ -60,6 +67,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
                             //println(resPrepare)
                             val deque = AudioSamplesDeque(nchannels)
                             while (true) {
+                                println("[2b]")
                                 while (deque.availableRead < 16 * 1024) {
                                     val chunk = channel!!.receiveOrNull() ?: break
                                     deque.write(AudioSamplesInterleaved(nchannels, chunk.size / 2, chunk))
@@ -72,6 +80,7 @@ object NativeNativeSoundProvider : NativeSoundProvider() {
                         }
                     }
                 }
+                println("[3]")
             }
 
             override fun stop() {

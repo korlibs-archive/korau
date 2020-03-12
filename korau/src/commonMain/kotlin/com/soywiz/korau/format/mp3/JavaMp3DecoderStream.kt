@@ -6,6 +6,14 @@ import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
 
+open class JavaMP3Decoder() : AudioFormat("mp3") {
+    companion object : JavaMP3Decoder()
+
+    override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = MP3.tryReadInfo(data, props)
+    override suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps): AudioStream? = createJavaMp3DecoderStream(data)
+    override fun toString(): String = "NativeMp3DecoderFormat"
+}
+
 suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream {
     return createJavaMp3DecoderStream(s.readAll())
 }
