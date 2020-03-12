@@ -24,7 +24,11 @@ object JnaSoundProviderSample {
             //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
             val stream = resourcesVfs["monkey_drama.mp3"].readAudioStream(MP3Decoder)
             println(resourcesVfs["monkey_drama.mp3"].readAll().asMemoryVfsFile("temp.mp3").readSoundInfo(MP3Decoder)!!.duration)
-            val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
+            //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeMusic()
+            //val data = resourcesVfs["click.wav"].readNativeMusic()
+            //val data = resourcesVfs["click.wav"].readMusic()
+            val data = resourcesVfs["click.wav"].readSound()
+            //val data = resourcesVfs["click.mp3"].readMusic()
             //val data = resourcesVfs["monkey_drama.mp3"].readNativeSound()
             //val data = resourcesVfs["mp31_joint_stereo_vbr.mp3"].readNativeSound()
 

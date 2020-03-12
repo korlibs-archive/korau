@@ -547,21 +547,14 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
     override val length: TimeSpan get() = data?.totalTime ?: 0.seconds
 
     override fun play(params: PlaybackParameters): NativeSoundChannel {
-        //if (openalNativeSoundProvider.device == null || openalNativeSoundProvider.context == null) return DummyNativeSoundChannel(this, data)
-        //println("OpenALNativeSoundNoStream.play : $data")
         val data = data ?: return DummyNativeSoundChannel(this)
-
         provider.makeCurrent()
-
         val buffer = al.alGenBuffer()
         al.alBufferData(buffer, data, panning, volume)
 
         source = alGenSource()
         al.alSourcei(source, AL.AL_BUFFER, buffer)
         checkAlErrors("alSourcei")
-
-        //al.alSourcePlay(source)
-        checkAlErrors("alSourcePlay")
 
         var stopped = false
 
@@ -571,7 +564,6 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
                 get() = al.alGetSourcei(source, AL.AL_SAMPLE_OFFSET)
                 set(value) = run {
                     al.alSourcei(source, AL.AL_SAMPLE_OFFSET, value)
-                    al.alSourcePlay(source)
                 }
 
             override var current: TimeSpan
@@ -597,13 +589,16 @@ class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val 
         }
         launchImmediately(coroutineContext[ContinuationInterceptor] ?: coroutineContext) {
             var times = params.times
+            var startTime = params.startTime
             try {
                 while (times.hasMore) {
                     times = times.oneLess
                     channel.reset()
-                    do {
-                        delay(1L)
-                    } while (channel.playing)
+                    al.alSourcef(source, AL.AL_SEC_OFFSET, startTime.seconds.toFloat())
+                    al.alSourcePlay(source)
+                    //checkAlErrors("alSourcePlay")
+                    startTime = 0.seconds
+                    while (channel.playing) delay(1L)
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()

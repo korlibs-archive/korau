@@ -26,6 +26,7 @@ open class MP3Base : AudioFormat("mp3") {
         }
 		Info(duration, parser.info?.channelMode?.channels ?: 2, decodingTime)
 	} catch (e: Throwable) {
+        //e.printStackTrace()
 		null
 	}
 
@@ -116,7 +117,7 @@ open class MP3Base : AudioFormat("mp3") {
 		private suspend fun skipID3v2Tag(block: AsyncStream): Long {
 			val b = block.duplicate()
 
-			if (b.readString(3) == "ID3") {
+			if (b.readString(3, Charsets.LATIN1) == "ID3") {
 				val id3v2_major_version = b.readU8()
 				val id3v2_minor_version = b.readU8()
 				val id3v2_flags = b.readU8()
