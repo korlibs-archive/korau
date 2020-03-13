@@ -37,6 +37,7 @@ class AvFoundationNativeSoundProvider : NativeSoundProvider() {
     )
     init {
         engine.connect(mainMixer, to = output, format = outputFormat)
+        engine.startAndReturnError(null)
     }
 
     override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.PureJavaMp3DecoderAudioFormat, NativeOggVorbisDecoderFormat)

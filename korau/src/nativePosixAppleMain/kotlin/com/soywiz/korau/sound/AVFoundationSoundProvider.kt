@@ -9,61 +9,77 @@ import com.soywiz.korio.file.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.AVFoundation.*
+import platform.CoreAudioTypes.*
 import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 import kotlin.math.*
 
 actual val nativeSoundProvider: NativeSoundProvider get() = avFoundationNativeSoundProvider
+val engine by lazy {
+    appleInitAudio()
+    AVAudioEngine()
+}
 val avFoundationNativeSoundProvider: AvFoundationNativeSoundProvider by lazy { AvFoundationNativeSoundProvider() }
 
 expect fun appleInitAudio()
 
 class AvFoundationNativeSoundProvider : NativeSoundProvider() {
-    init {
-        appleInitAudio()
-    }
-
-    val engine = AVAudioEngine()
+    val engine = com.soywiz.korau.sound.engine
     val mainMixer = engine.mainMixerNode
     val output = engine.outputNode
     val outputFormat = output.inputFormatForBus(0.convert())
     val sampleRate = outputFormat.sampleRate.toFloat()
-    val inputFormat = AVAudioFormat(commonFormat = outputFormat.commonFormat,
-        sampleRate = outputFormat.sampleRate,
-        channels = 2.convert(),
-        interleaved = outputFormat.isInterleaved()
-    )
     init {
         engine.connect(mainMixer, to = output, format = outputFormat)
+        memScoped {
+            val error = alloc<ObjCObjectVar<NSError?>>().ptr
+            val result = engine.startAndReturnError(error)
+            println("engine.start: $result, $error")
+        }
     }
 
     override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.PureJavaMp3DecoderAudioFormat, NativeOggVorbisDecoderFormat)
 
     //override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound = AVFoundationNativeSoundNoStream(CoroutineScope(coroutineContext), audioFormats.decode(data))
 
+    internal val audioOutputs = mutableSetOf<AVFoundationPlatformAudioOutput>()
     override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
         return AVFoundationPlatformAudioOutput(this, coroutineContext, freq)
     }
 }
 
 class AVFoundationPlatformAudioOutput(val provider: AvFoundationNativeSoundProvider, coroutineContext: CoroutineContext, freq: Int) : PlatformAudioOutput(coroutineContext, freq) {
+    init {
+        provider.audioOutputs += this
+    }
+    val inputFormat = AVAudioFormat(
+        commonFormat = AVAudioPCMFormatFloat32,
+        sampleRate = freq.toDouble(),
+        channels = 2.convert(),
+        interleaved = false
+    )
     val nchannels = 2
     val deque = AudioSamplesDeque(nchannels)
-    val srcNode = AVAudioSourceNode(AVAudioFormat(freq.toDouble(), channels = nchannels.convert())) { _, _, frameCount, audioBufferList ->
+
+    val gen: (CPointer<BooleanVar>?, CPointer<AudioTimeStamp>?, AVAudioFrameCount, CPointer<AudioBufferList>?) -> platform.darwin.OSStatus = { _, _, frameCount, audioBufferList ->
+        println("AVFoundationPlatformAudioOutput.gen")
         val channels = audioBufferList!!.pointed.mBuffers
         val nchannels = audioBufferList!!.pointed.mNumberBuffers
         val available = min(deque.availableRead, frameCount.toInt())
         for (c in 0 until nchannels.toInt()) {
-            val channelData = channels[c].mData!!.reinterpret<ShortVar>()
+            val channelData = channels[c].mData!!.reinterpret<FloatVar>()
             for (n in 0 until available) {
-                channelData[n] = deque.read(c)
+                channelData[n] = deque.readFloat(c)
             }
         }
         noErr.convert()
     }
 
+    val srcNode: AVAudioSourceNode = AVAudioSourceNode(gen)
+
     init {
+        println("AVFoundationPlatformAudioOutput")
     }
 
     var totalSamples = 0L
@@ -81,19 +97,26 @@ class AVFoundationPlatformAudioOutput(val provider: AvFoundationNativeSoundProvi
     override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
         deque.write(samples, offset, size)
         totalSamples += samples.totalSamples
+        println("AVFoundationPlatformAudioOutput.add")
     }
 
+
     override fun start() {
+        println("AVFoundationPlatformAudioOutput.start")
         provider.engine.attachNode(srcNode)
-        provider.engine.connect(srcNode, to = provider.mainMixer, format = provider.inputFormat)
+        provider.engine.connect(srcNode, to = provider.mainMixer, format = inputFormat)
+        //platform.CoreFoundation.CFRunLoopRun()
     }
 
     override fun stop() {
+        println("AVFoundationPlatformAudioOutput.stop")
+        provider.audioOutputs -= this
         provider.engine.detachNode(srcNode)
         provider.engine.disconnectNodeInput(srcNode)
     }
 
     override fun dispose() {
+        println("AVFoundationPlatformAudioOutput.dispose")
         stop()
     }
 }
