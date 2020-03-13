@@ -1,3 +1,4 @@
+/*
 package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
@@ -131,3 +132,4 @@ private fun alDeleteBuffer(buffer: ALuint): Unit =
 private fun alGenSource(): ALuint = memScoped { alloc<ALuintVar>().apply { alGenSources(1, this.ptr) }.value }
 private fun alDeleteSource(buffer: ALuint): Unit =
     run { memScoped { alloc<ALuintVar>().apply { this.value = buffer }.apply { alDeleteSources(1, this.ptr) } } }
+*/
