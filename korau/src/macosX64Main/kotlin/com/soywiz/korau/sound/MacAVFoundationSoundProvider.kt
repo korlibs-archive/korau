@@ -1,3 +1,4 @@
+/*
 package com.soywiz.korau.sound
 
 import com.soywiz.klock.*
@@ -163,4 +164,5 @@ class AVFoundationNativeSoundNoStream(val coroutineScope: CoroutineScope, val da
 
     }
 }
+*/
 */

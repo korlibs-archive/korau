@@ -9,8 +9,6 @@ import kotlinx.coroutines.*
 import platform.OpenAL.*
 import kotlin.coroutines.*
 
-val nativeAudioFormats = AudioFormats(WAV, NativeMp3DecoderFormat, NativeOggVorbisDecoderFormat)
-
 class OpenALNativeSoundProvider : NativeSoundProvider() {
     val device = alcOpenDevice(null)
     //val device: CPointer<ALCdevice>? = null
@@ -26,16 +24,10 @@ class OpenALNativeSoundProvider : NativeSoundProvider() {
         }
     } }
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean): NativeSound {
+    override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.PureJavaMp3DecoderAudioFormat, NativeOggVorbisDecoderFormat)
+
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
         return OpenALNativeSoundNoStream(CoroutineScope(coroutineContext), nativeAudioFormats.decode(data))
-    }
-
-    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean): NativeSound {
-        return super.createSound(vfs, path, streaming)
-    }
-
-    override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean): NativeSound {
-        return super.createSound(data, formats, streaming)
     }
 }
 

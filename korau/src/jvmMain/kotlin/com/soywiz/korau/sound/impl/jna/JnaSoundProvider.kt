@@ -378,7 +378,7 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
     val context = device?.let { alc?.alcCreateContext(device, null) }.also { context ->
         if (context != null) {
             Runtime.getRuntime().addShutdownHook(Thread {
-                alc?.alcDestroyContext(context)
+                //alc?.alcDestroyContext(context) // Crashes on mac!
             })
         }
     }
