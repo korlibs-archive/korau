@@ -5,6 +5,7 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korio.stream.*
 import kotlin.test.*
 
+/*
 class NativeOggVorbisDecoderFormatTest {
     @Test
     fun test() = suspendTest {
@@ -21,3 +22,4 @@ class NativeOggVorbisDecoderFormatTest {
         assertEquals(500, audioData.totalTime.millisecondsInt)
     }
 }
+ */

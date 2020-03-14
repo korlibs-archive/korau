@@ -5,5 +5,5 @@ import platform.AVFoundation.*
 import platform.CoreAudioTypes.*
 import platform.Foundation.*
 
-actual fun appleInitAudio() {
+fun appleInitAudio() {
 }

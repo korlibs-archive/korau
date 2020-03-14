@@ -6,7 +6,10 @@ import com.soywiz.korio.async.*
 import com.soywiz.korio.lang.*
 import kotlin.coroutines.*
 
-open class PlatformAudioOutput(val coroutineContext: CoroutineContext, val frequency: Int) : Disposable, SoundProps {
+open class PlatformAudioOutput(
+    val coroutineContext: CoroutineContext,
+    val frequency: Int
+) : Disposable, SoundProps {
 	open val availableSamples: Int = 0
     override var pitch: Double = 1.0
     override var volume: Double = 1.0

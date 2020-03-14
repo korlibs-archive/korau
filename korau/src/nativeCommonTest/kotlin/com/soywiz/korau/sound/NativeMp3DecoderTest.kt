@@ -3,7 +3,7 @@ package com.soywiz.korau.sound
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import kotlin.test.*
-
+/*
 class NativeMp3DecoderTest {
     @Test
     fun test() = suspendTest {
@@ -20,3 +20,4 @@ class NativeMp3DecoderTest {
         //localCurrentDirVfs["demo.out.raw"].write(MemorySyncStreamToByteArray { writeShortArrayLE(audioData.samples) })
     }
 }
+*/
