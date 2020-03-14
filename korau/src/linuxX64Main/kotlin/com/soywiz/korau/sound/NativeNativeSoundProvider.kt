@@ -1,12 +1,10 @@
 package com.soywiz.korau.sound
 
-/*
 import com.soywiz.klock.*
 import com.soywiz.kmem.clamp01
 import com.soywiz.kmem.startAddressOf
 import com.soywiz.korau.format.*
 import com.soywiz.korio.async.*
-import com.soywiz.korio.file.*
 import com.soywiz.korio.util.redirected
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -36,7 +34,7 @@ class OpenALNativeSoundProvider : NativeSoundProvider() {
         alcMakeContextCurrent(context)
     }
 
-    override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.PureJavaMp3DecoderAudioFormat, NativeOggVorbisDecoderFormat)
+    override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.MP3Decoder, NativeOggVorbisDecoderFormat)
 
     override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
         return if (streaming) {
@@ -368,4 +366,3 @@ fun checkAlErrors(name: String) {
     //val error = al.alGetError()
     //if (error != AL.AL_NO_ERROR) error("OpenAL error ${error.shex} '$name'")
 }
-*/

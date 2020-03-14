@@ -5,20 +5,18 @@ import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
 
-open class PureJavaMp3DecoderAudioFormat() : AudioFormat("mp3") {
-    companion object : PureJavaMp3DecoderAudioFormat()
+open class MP3Decoder() : AudioFormat("mp3") {
+    companion object : MP3Decoder()
 
     override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = MP3.tryReadInfo(data, props)
     override suspend fun decodeStream(data: AsyncStream, props: AudioDecodingProps): AudioStream? = createJavaMp3DecoderStream(data)
     override fun toString(): String = "NativeMp3DecoderFormat"
 }
 
-suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream {
-    return createJavaMp3DecoderStream(s.readAll())
-}
+private suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream = createJavaMp3DecoderStream(s.readAll())
 
 // @TODO: Use AsyncStream and read frame chunks
-suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
+private suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
     val sdata = idata.openAsync()
     var data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file [2]")
     val samples = ShortArray(data.samplesBuffer.size / 2)

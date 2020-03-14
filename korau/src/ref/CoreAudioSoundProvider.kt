@@ -17,7 +17,7 @@ class CoreAudioNativeSoundProvider : NativeSoundProvider() {
         appleInitAudio()
     }
 
-    override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.PureJavaMp3DecoderAudioFormat, NativeOggVorbisDecoderFormat)
+    override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.MP3Decoder, NativeOggVorbisDecoderFormat)
 
     //override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound = AVFoundationNativeSoundNoStream(CoroutineScope(coroutineContext), audioFormats.decode(data))
 
