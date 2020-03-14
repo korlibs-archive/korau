@@ -11,3 +11,4 @@
 *.iml
 *.hprof
 
+/korau/hs_err_pid5051.log
