@@ -18,4 +18,4 @@ in addition to ensure the continuity of the project, you will get exclusive cont
 </p>
 <!-- /SUPPORT -->
 
-[All KOR libraries](https://github.com/soywiz/kor)
+[All KOR libraries](https://github.com/korlibs/)
