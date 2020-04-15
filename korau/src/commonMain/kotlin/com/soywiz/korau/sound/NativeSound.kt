@@ -26,7 +26,7 @@ open class NativeSoundProvider {
 
 	open fun createAudioStream(coroutineContext: CoroutineContext, freq: Int = 44100): PlatformAudioOutput = PlatformAudioOutput(coroutineContext, freq)
 
-    suspend fun createAudioStream(freq: Int = 44100): PlatformAudioOutput = PlatformAudioOutput(coroutineContext, freq)
+    suspend fun createAudioStream(freq: Int = 44100): PlatformAudioOutput = createAudioStream(coroutineContext, freq)
 
 	protected open fun init(): Unit = Unit
 

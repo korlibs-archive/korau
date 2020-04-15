@@ -63,7 +63,8 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
         }
     }
 
-    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, coroutineContext, freq)
+    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput =
+        OpenALPlatformAudioOutput(this, coroutineContext, freq)
 }
 
 class OpenALPlatformAudioOutput(
@@ -96,7 +97,8 @@ class OpenALPlatformAudioOutput(
     }
 
     override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
-        availableSamples += samples.size
+        //println("OpenALPlatformAudioOutput.add")
+        availableSamples += samples.totalSamples
         try {
             provider.makeCurrent()
             val tempBuffers = IntArray(1)
