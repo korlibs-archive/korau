@@ -55,15 +55,16 @@ class JnaOpenALNativeSoundProvider : NativeSoundProvider() {
     //val myNativeAudioFormats = nativeAudioFormats
     override val audioFormats = nativeAudioFormats
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps, name: String): NativeSound {
         return if (streaming) {
-            super.createSound(data, streaming, props)
+            super.createSound(data, streaming, props, name)
         } else {
-            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data, props))
+            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data, props), name = name)
         }
     }
 
-    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput = OpenALPlatformAudioOutput(this, coroutineContext, freq)
+    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput =
+        OpenALPlatformAudioOutput(this, coroutineContext, freq)
 }
 
 class OpenALPlatformAudioOutput(
@@ -96,7 +97,8 @@ class OpenALPlatformAudioOutput(
     }
 
     override suspend fun add(samples: AudioSamples, offset: Int, size: Int) {
-        availableSamples += samples.size
+        //println("OpenALPlatformAudioOutput.add")
+        availableSamples += samples.totalSamples
         try {
             provider.makeCurrent()
             val tempBuffers = IntArray(1)
@@ -184,7 +186,11 @@ class OpenALPlatformAudioOutput(
 }
 
 // https://ffainelli.github.io/openal-example/
-class OpenALNativeSoundNoStream(val provider: JnaOpenALNativeSoundProvider, val coroutineContext: CoroutineContext, val data: AudioData?, val sourceProvider: SourceProvider = SourceProvider(0)) : NativeSound(), SoundProps by JnaSoundPropsProvider(sourceProvider) {
+class OpenALNativeSoundNoStream(
+    val provider: JnaOpenALNativeSoundProvider, val coroutineContext: CoroutineContext,
+    val data: AudioData?, val sourceProvider: SourceProvider = SourceProvider(0),
+    override val name: String = "Unknown"
+) : NativeSound(), SoundProps by JnaSoundPropsProvider(sourceProvider) {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 
     var source: Int

@@ -36,11 +36,11 @@ class OpenALNativeSoundProvider : NativeSoundProvider() {
 
     override val audioFormats: AudioFormats = AudioFormats(WAV, com.soywiz.korau.format.mp3.MP3Decoder, NativeOggVorbisDecoderFormat)
 
-    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound {
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps, name: String): NativeSound {
         return if (streaming) {
-            super.createSound(data, streaming, props)
+            super.createSound(data, streaming, props, name)
         } else {
-            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data, props))
+            OpenALNativeSoundNoStream(this, coroutineContext, audioFormats.decode(data, props), name = name)
         }
     }
 
@@ -174,7 +174,8 @@ class OpenALNativeSoundNoStream(
     val provider: OpenALNativeSoundProvider,
     val coroutineContext: CoroutineContext,
     val data: AudioData?,
-    val sourceProvider: SourceProvider = SourceProvider(0.convert())
+    val sourceProvider: SourceProvider = SourceProvider(0.convert()),
+    override val name: String = "Unknown"
 ) : NativeSound(), SoundProps by JnaSoundPropsProvider(sourceProvider) {
     override suspend fun decode(): AudioData = data ?: AudioData.DUMMY
 

@@ -17,8 +17,8 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 
 	override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput = JsPlatformAudioOutput(coroutineContext, freq)
 
-	override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps): NativeSound =
-        AudioBufferNativeSound(HtmlSimpleSound.loadSound(data), coroutineContext)
+	override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps, name: String): NativeSound =
+        AudioBufferNativeSound(HtmlSimpleSound.loadSound(data), coroutineContext, name)
 
 	override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean, props: AudioDecodingProps): NativeSound = when (vfs) {
 		is LocalVfs, is UrlVfs -> {
@@ -35,7 +35,11 @@ class HtmlNativeSoundProvider : NativeSoundProvider() {
 	}
 }
 
-class AudioBufferNativeSound(val buffer: AudioBuffer?, val coroutineContext: CoroutineContext) : NativeSound() {
+class AudioBufferNativeSound(
+    val buffer: AudioBuffer?,
+    val coroutineContext: CoroutineContext,
+    override val name: String = "unknown"
+) : NativeSound() {
 	override val length: TimeSpan = ((buffer?.duration) ?: 0.0).seconds
 
 	override suspend fun decode(): AudioData = if (buffer == null) {

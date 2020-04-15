@@ -100,7 +100,9 @@ class AudioFormats : AudioFormat() {
 		return null
 	}
 
-    suspend fun decodeStreamOrError(data: AsyncStream, props: AudioDecodingProps): AudioStream = decodeStream(data, props) ?: error("Can't decode audio stream")
+    suspend fun decodeStreamOrError(data: AsyncStream, props: AudioDecodingProps): AudioStream =
+        decodeStream(data, props)
+            ?: error("Can't decode audio stream [$formats]")
 
 	override suspend fun encode(data: AudioData, out: AsyncOutputStream, filename: String, props: AudioEncodingProps) {
 		val ext = PathInfo(filename).extensionLC

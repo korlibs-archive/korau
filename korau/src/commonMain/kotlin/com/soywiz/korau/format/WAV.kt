@@ -20,6 +20,7 @@ open class WAV : AudioFormat("wav") {
 	override suspend fun tryReadInfo(data: AsyncStream, props: AudioDecodingProps): Info? = try {
 		parse(data) { }
 	} catch (e: Throwable) {
+        //println("DATA: data.size=${data.size()}")
 		//e.printStackTrace()
 		null
 	}
@@ -150,6 +151,7 @@ open class WAV : AudioFormat("wav") {
 		//println("riff.data.size(): ${data.size()}")
 		val s2 = data.duplicate()
 		//val s2 = data.readAll().openAsync()
+        if (s2.getAvailable() < 12) error("Not enough data for a RIFF file")
 		val magic = s2.readString(4)
 		val length = s2.readS32LE()
 		val magic2 = s2.readString(4)
@@ -157,8 +159,10 @@ open class WAV : AudioFormat("wav") {
 		if (magic2 != "WAVE") invalidAudioFormat("Not a RIFF + WAVE file")
 		val s = s2.readStream(length - 4)
 		while (!s.eof()) {
+            if (s.getAvailable() < 8L) break
 			val type = s.readString(4)
 			val size = s.readS32LE()
+            if (s.getAvailable() < size) break
 			val d = s.readStream(size)
 			handler(Chunk(type, d))
 		}
