@@ -19,6 +19,14 @@ class AudioFormatTest {
 		)
 	}
 
+    @kotlin.test.Test
+    fun wavCorrupted() = suspendTest {
+        assertEquals(
+            "Info(duration=3842.902ms, channels=1)",
+            resourcesVfs["boom.wav"].readSoundInfo(formats).toString()
+        )
+    }
+
 	@kotlin.test.Test
 	fun ogg() = suspendTest {
 		assertEquals(
