@@ -30,8 +30,8 @@ open class NativeSoundProvider {
 
 	protected open fun init(): Unit = Unit
 
-	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT): NativeSound =
-        createStreamingSound(audioFormats.decodeStreamOrError(data.openAsync(), props), closeStream = true)
+	open suspend fun createSound(data: ByteArray, streaming: Boolean = false, props: AudioDecodingProps = AudioDecodingProps.DEFAULT, name: String = "Unknown"): NativeSound =
+        createStreamingSound(audioFormats.decodeStreamOrError(data.openAsync(), props), closeStream = true, name = name)
 
     open val audioFormats: AudioFormats = AudioFormats(WAV)
 
@@ -41,11 +41,11 @@ open class NativeSoundProvider {
             //createStreamingSound(audioFormats.decodeStreamOrError(stream, props)) {
             val vfsFile = vfs.file(path)
             val stream: AsyncStream = if (props.readInMemory) vfsFile.readAll().openAsync() else vfsFile.open()
-            createStreamingSound(audioFormats.decodeStreamOrError(stream, props)) {
+            createStreamingSound(audioFormats.decodeStreamOrError(stream, props), name = vfsFile.baseName) {
                 stream.close()
             }
         } else {
-            createSound(vfs.file(path).read(), streaming, props)
+            createSound(vfs.file(path).read(), streaming, props, name = vfs[path].baseName)
         }
     }
 
@@ -55,16 +55,18 @@ open class NativeSoundProvider {
 	open suspend fun createSound(
 		data: AudioData,
 		formats: AudioFormats = defaultAudioFormats,
-		streaming: Boolean = false
+		streaming: Boolean = false,
+        name: String = "Unknown"
 	): NativeSound {
-		return createSound(WAV.encodeToByteArray(data), streaming)
+		return createSound(WAV.encodeToByteArray(data), streaming, name = name)
 	}
 
-    suspend fun createStreamingSound(stream: AudioStream, closeStream: Boolean = false, onComplete: suspend () -> Unit = {}): NativeSound {
+    suspend fun createStreamingSound(stream: AudioStream, closeStream: Boolean = false, name: String = "Unknown", onComplete: suspend () -> Unit = {}): NativeSound {
         //println("STREAM.RATE:" + stream.rate)
         //println("STREAM.CHANNELS:" + stream.channels)
         val coroutineContext = coroutineContext
         return object : NativeSound() {
+            override val name: String = name
             val nativeSound = this
             override val length: TimeSpan get() = stream.totalLength
             override suspend fun decode(): AudioData = stream.toData()
@@ -238,6 +240,7 @@ suspend fun NativeSoundChannel.await(progress: NativeSoundChannel.(current: Time
 }
 
 abstract class NativeSound : SoundProps {
+    open val name: String = "UnknownNativeSound"
     override var volume: Double = 1.0
     override var panning: Double = 0.0
     override var pitch: Double = 1.0
@@ -246,6 +249,7 @@ abstract class NativeSound : SoundProps {
 	open fun play(params: PlaybackParameters = PlaybackParameters.DEFAULT): NativeSoundChannel = TODO()
     fun play(times: PlaybackTimes, startTime: TimeSpan = 0.seconds): NativeSoundChannel = play(PlaybackParameters(times, startTime))
     fun playForever(startTime: TimeSpan = 0.seconds): NativeSoundChannel = play(infinitePlaybackTimes, startTime)
+    override fun toString(): String = "NativeSound('$name')"
 }
 
 data class PlaybackParameters(
