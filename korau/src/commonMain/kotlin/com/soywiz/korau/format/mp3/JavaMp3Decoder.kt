@@ -499,7 +499,28 @@ object JavaMp3Decoder {
 
     fun init(inp: ByteArray): SoundData? = init(inp.openSync())
 
+    fun SyncStream.readSyncSafeS28(): Int {
+        val v0 = readU8()
+        val v1 = readU8()
+        val v2 = readU8()
+        val v3 = readU8()
+        return (v3 and 0x7F) or ((v2 and 0x7F) shl 7) or ((v1 and 0x7F) shl 14) or ((v0 and 0x7F) shl 21)
+    }
+
     fun init(inp: SyncStream): SoundData? {
+        val oldPos = inp.position
+        // Skips ID3v2
+        if (inp.readStringz(3, Charsets.LATIN1) == "ID3") {
+            val major = inp.readU8()
+            val revision = inp.readU8()
+            val flags = inp.readU8()
+            val size = inp.readSyncSafeS28()
+            inp.position += size
+            //println("SIZE: $size")
+        } else {
+            inp.position = oldPos
+        }
+
         val buffer = Buffer(inp)
         while (buffer.lastByte != -1) {
             val soundData = SoundData(buffer)

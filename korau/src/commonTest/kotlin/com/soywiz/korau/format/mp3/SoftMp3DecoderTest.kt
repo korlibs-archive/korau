@@ -7,13 +7,18 @@ import com.soywiz.korio.file.std.*
 import kotlin.test.*
 
 class SoftMp3DecoderTest {
+    val formats = AudioFormats(MP3Decoder)
+
     @Test
     //@Ignore
     fun testMiniMp3() = suspendTest {
         //for (n in 0 until 100) {
-        val formats = AudioFormats(MP3Decoder)
         for (n in 0 until 10) {
             val output = resourcesVfs["mp31.mp3"].readAudioData(formats)
         }
     }
+
+    @Test fun mp3_1() = suspendTest { resourcesVfs["circle_ok.mp3"].readAudioData(formats) }
+    @Test fun mp3_2() = suspendTest { resourcesVfs["line_missed.mp3"].readAudioData(formats) }
+    @Test fun mp3_3() = suspendTest { resourcesVfs["line_ok.mp3"].readAudioData(formats) }
 }
