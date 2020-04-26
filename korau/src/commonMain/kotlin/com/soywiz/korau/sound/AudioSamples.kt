@@ -98,6 +98,23 @@ fun AudioSamplesInterleaved.applyProps(speed: Double, panning: Double, volume: D
     return out
 }
 
+fun AudioSamplesInterleaved.ensureTwoChannels(): AudioSamplesInterleaved {
+    return when (channels) {
+        2 -> this
+        else -> {
+            AudioSamplesInterleaved(2, this.totalSamples).also { out ->
+                val inp = this@ensureTwoChannels
+                var m = 0
+                for (n in 0 until out.totalSamples) {
+                    val v = inp.data[n]
+                    out.data[m++] = v
+                    out.data[m++] = v
+                }
+            }
+        }
+    }
+}
+
 fun IAudioSamples.separated(out: AudioSamples = AudioSamples(channels, totalSamples)): AudioSamples {
     for (n in 0 until totalSamples) for (c in 0 until channels) out[c, n] = this[c, n]
     return out

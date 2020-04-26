@@ -17,7 +17,7 @@ object Win32NativeSoundProvider : NativeSoundProvider() {
     override val audioFormats: AudioFormats = AudioFormats(WAV, MP3Decoder, NativeOggVorbisDecoderFormat)
 
     class WinAudioChunk(samples: AudioSamples, val speed: Double, val panning: Double) {
-        val samplesInterleaved = samples.interleaved().applyProps(speed, panning, 1.0)
+        val samplesInterleaved = samples.interleaved().applyProps(speed, panning, 1.0).ensureTwoChannels()
         val samplesPin = samplesInterleaved.data.pin()
         val scope = Arena()
         val hdr = scope.alloc<WAVEHDR>().apply {
