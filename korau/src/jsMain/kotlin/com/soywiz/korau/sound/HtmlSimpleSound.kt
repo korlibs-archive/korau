@@ -22,7 +22,9 @@ object HtmlSimpleSound {
 			jsTypeOf(window.asDynamic().AudioContext) != "undefined" -> AudioContext()
 			jsTypeOf(window.asDynamic().webkitAudioContext) != "undefined" -> webkitAudioContext()
 			else -> null
-		}
+		}.also {
+            (window.asDynamic()).globalAudioContext = it
+        }
 	} catch (e: Throwable) {
 		console.error(e)
 		null
@@ -63,6 +65,7 @@ object HtmlSimpleSound {
         fun createJobAt(startTime: TimeSpan): Job {
             startedAt = DateTime.now()
             var startTime = startTime
+            ctx?.resume()
             return CoroutineScope(coroutineContext).launchImmediately {
                 try {
                     while (times.hasMore) {
@@ -71,19 +74,28 @@ object HtmlSimpleSound {
                         createNode(startTime)
                         startTime = 0.seconds
                         val deferred = CompletableDeferred<Unit>()
-                        sourceNode?.onended = {
-                            deferred.complete(Unit)
+                        //println("sourceNode: $sourceNode, ctx?.state=${ctx?.state}, buffer.duration=${buffer.duration}")
+                        if (sourceNode == null || ctx?.state != "running") {
+                            window.setTimeout({ deferred.complete(Unit) }, (buffer.duration * 1000).toInt())
+                        } else {
+                            sourceNode?.onended = {
+                                deferred.complete(Unit)
+                            }
                         }
                         times = times.oneLess
-                        if (!times.hasMore) break
+                        //println("awaiting sound")
                         deferred.await()
+                        //println("sound awaited")
+                        if (!times.hasMore) break
                     }
                 } finally {
+                    //println("sound completed")
+
+                    running = false
                     sourceNode?.stop()
                     gainNode = null
                     pannerNode = null
                     sourceNode = null
-                    running = false
                 }
             }
         }
@@ -113,7 +125,9 @@ object HtmlSimpleSound {
 
 		private var running = true
 		//val playing get() = running && currentTime < buffer.duration
-        val playing get() = running
+        val playing get() = running.also {
+            //println("playing: $running")
+        }
 
 		fun stop() {
             job.cancel()
@@ -145,8 +159,13 @@ object HtmlSimpleSound {
 		return node
 	}
 
-	fun playSound(buffer: AudioBuffer, params: PlaybackParameters, coroutineContext: CoroutineContext): SimpleSoundChannel? =
-        ctx?.let { SimpleSoundChannel(buffer, it, params,coroutineContext) }
+	fun playSound(buffer: AudioBuffer, params: PlaybackParameters, coroutineContext: CoroutineContext): SimpleSoundChannel? {
+        //println("playSound[1]")
+        return ctx?.let {
+            //println("playSound[2]")
+            SimpleSoundChannel(buffer, it, params, coroutineContext)
+        }
+    }
 
 	fun stopSound(channel: AudioBufferSourceNode?) {
 		channel?.disconnect(0)
@@ -209,7 +228,10 @@ object HtmlSimpleSound {
 		lateinit var unlock: (e: Event) -> Unit
 		unlock = {
 			if (ctx != null) {
-				val source = ctx.createBufferSource()
+                // If already created the audio context, we try to resume it
+                (window.asDynamic()).globalAudioContext.unsafeCast<BaseAudioContext?>()?.resume()
+
+                val source = ctx.createBufferSource()
 
 				source.buffer = _scratchBuffer
 				source.connect(ctx.destination)
@@ -276,8 +298,11 @@ open external class BaseAudioContext {
 	var currentTime: Double
 	//var listener: AudioListener
 	var sampleRate: Double
-	var state: String
+	var state: String // suspended, running, closed
 	val destination: AudioDestinationNode
+
+    fun resume()
+    fun suspend()
 }
 
 external class AudioContext : BaseAudioContext
