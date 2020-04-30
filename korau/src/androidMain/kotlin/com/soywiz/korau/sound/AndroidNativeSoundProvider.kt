@@ -24,7 +24,7 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
-        val ctx = coroutineContext[AndroidCoroutineContext.Key]!!.context
+        val ctx = coroutineContext[AndroidCoroutineContext.Key]?.context ?: error("Can't find the Android Context on the CoroutineContext. Must call withAndroidContext first")
         //val ctx = runBlocking(coroutineContext) { androidContext() }
         val audioManager = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
