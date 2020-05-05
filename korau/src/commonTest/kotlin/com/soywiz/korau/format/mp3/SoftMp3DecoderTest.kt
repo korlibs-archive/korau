@@ -11,14 +11,14 @@ class SoftMp3DecoderTest {
 
     @Test
     //@Ignore
-    fun testMiniMp3() = suspendTest {
+    fun testMiniMp3() = suspendTestNoBrowser {
         //for (n in 0 until 100) {
         for (n in 0 until 10) {
             val output = resourcesVfs["mp31.mp3"].readAudioData(formats)
         }
     }
 
-    @Test fun mp3_1() = suspendTest { resourcesVfs["circle_ok.mp3"].readAudioData(formats) }
-    @Test fun mp3_2() = suspendTest { resourcesVfs["line_missed.mp3"].readAudioData(formats) }
-    @Test fun mp3_3() = suspendTest { resourcesVfs["line_ok.mp3"].readAudioData(formats) }
+    @Test fun mp3_1() = suspendTestNoBrowser { resourcesVfs["circle_ok.mp3"].readAudioData(formats) }
+    @Test fun mp3_2() = suspendTestNoBrowser { resourcesVfs["line_missed.mp3"].readAudioData(formats) }
+    @Test fun mp3_3() = suspendTestNoBrowser { resourcesVfs["line_ok.mp3"].readAudioData(formats) }
 }

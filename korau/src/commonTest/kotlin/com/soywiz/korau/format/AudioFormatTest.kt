@@ -8,7 +8,7 @@ class AudioFormatTest {
 	val formats = standardAudioFormats()
 
 	@kotlin.test.Test
-	fun wav() = suspendTest {
+	fun wav() = suspendTestNoBrowser {
 		assertEquals(
 			"Info(duration=500ms, channels=1)",
 			resourcesVfs["wav1.wav"].readSoundInfo(formats).toString()
@@ -20,7 +20,7 @@ class AudioFormatTest {
 	}
 
     @kotlin.test.Test
-    fun wavCorrupted() = suspendTest {
+    fun wavCorrupted() = suspendTestNoBrowser {
         assertEquals(
             "Info(duration=3842.902ms, channels=1)",
             resourcesVfs["boom.wav"].readSoundInfo(formats).toString()
@@ -28,7 +28,7 @@ class AudioFormatTest {
     }
 
 	@kotlin.test.Test
-	fun ogg() = suspendTest {
+	fun ogg() = suspendTestNoBrowser {
 		assertEquals(
 			"Info(duration=500ms, channels=1)",
 			resourcesVfs["ogg1.ogg"].readSoundInfo(formats).toString()
@@ -36,7 +36,7 @@ class AudioFormatTest {
 	}
 
 	@kotlin.test.Test
-	fun mp3() = suspendTest {
+	fun mp3() = suspendTestNoBrowser {
 		assertEquals(
 			"Info(duration=546.625ms, channels=1)",
 			resourcesVfs["mp31.mp3"].readSoundInfo(formats, AudioDecodingProps(exactTimings = false)).toString()
