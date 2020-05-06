@@ -11,7 +11,7 @@ class DecodeTest {
     val formats = AudioFormats(WAV)
 
     @kotlin.test.Test
-    fun wav() = suspendTest {
+    fun wav() = suspendTestNoBrowser {
         val wavContents = resourcesVfs["wav1.wav"].read()
         assertEquals(44144, wavContents.size, "wavContents.size")
         assertEquals(0x901751CE.toInt(), wavContents.checksum(CRC32), "wavContents.crc32")
@@ -26,7 +26,7 @@ class DecodeTest {
     }
 
     @kotlin.test.Test
-    fun wav24() = suspendTest {
+    fun wav24() = suspendTestNoBrowser {
         val wavContents = resourcesVfs["wav24.wav"].read()
         val wavData = formats.decode(wavContents.openAsync())!!
 
@@ -38,7 +38,7 @@ class DecodeTest {
     }
 
     @kotlin.test.Test
-    fun wav8bit() = suspendTest {
+    fun wav8bit() = suspendTestNoBrowser {
         val wavContents = resourcesVfs["wav8bit.wav"].read()
         val wavData = formats.decode(wavContents.openAsync())!!
 
