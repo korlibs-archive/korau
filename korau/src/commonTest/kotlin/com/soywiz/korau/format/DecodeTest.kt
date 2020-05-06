@@ -5,13 +5,14 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korio.stream.*
 import com.soywiz.korio.util.checksum.*
 import com.soywiz.korio.util.encoding.*
+import doIOTest
 import kotlin.test.*
 
 class DecodeTest {
     val formats = AudioFormats(WAV)
 
     @kotlin.test.Test
-    fun wav() = suspendTestNoBrowser {
+    fun wav() = suspendTest({ doIOTest }) {
         val wavContents = resourcesVfs["wav1.wav"].read()
         assertEquals(44144, wavContents.size, "wavContents.size")
         assertEquals(0x901751CE.toInt(), wavContents.checksum(CRC32), "wavContents.crc32")
@@ -26,7 +27,7 @@ class DecodeTest {
     }
 
     @kotlin.test.Test
-    fun wav24() = suspendTestNoBrowser {
+    fun wav24() = suspendTest({ doIOTest }) {
         val wavContents = resourcesVfs["wav24.wav"].read()
         val wavData = formats.decode(wavContents.openAsync())!!
 
@@ -38,7 +39,7 @@ class DecodeTest {
     }
 
     @kotlin.test.Test
-    fun wav8bit() = suspendTestNoBrowser {
+    fun wav8bit() = suspendTest({ doIOTest }) {
         val wavContents = resourcesVfs["wav8bit.wav"].read()
         val wavData = formats.decode(wavContents.openAsync())!!
 
