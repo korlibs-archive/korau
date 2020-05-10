@@ -1,6 +1,5 @@
 package com.soywiz.korau.format.mp3
 
-import com.soywiz.kmem.*
 import com.soywiz.korau.format.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.stream.*
@@ -13,12 +12,15 @@ open class MP3Decoder() : AudioFormat("mp3") {
     override fun toString(): String = "NativeMp3DecoderFormat"
 }
 
+private suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream = MP3DecodeStream(s) ?: error("Can't create MP3 stream")
+
+/*
 private suspend fun createJavaMp3DecoderStream(s: AsyncStream): AudioStream = createJavaMp3DecoderStream(s.readAll())
 
 // @TODO: Use AsyncStream and read frame chunks
 private suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
     val sdata = idata.openAsync()
-    var data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file [2]")
+    val data = JavaMp3Decoder.init(idata) ?: error("Not an mp3 file [2]")
     val samples = ShortArray(data.samplesBuffer.size / 2)
     val deque = AudioSamplesDeque(data.nchannels)
     var samplesPos = 0L
@@ -86,3 +88,4 @@ private suspend fun createJavaMp3DecoderStream(idata: ByteArray): AudioStream {
         }
     }
 }
+*/

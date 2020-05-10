@@ -35,13 +35,13 @@ open class MP3Base : AudioFormat("mp3") {
         val filePositions: DoubleArrayList,
         val rate: Int = 44100
     ) {
-        val lengthTime: TimeSpan get() = microseconds[microseconds.size - 1].microseconds
+        val lengthTime: TimeSpan get() = microseconds.getAt(microseconds.size - 1).microseconds
         val lengthSamples: Long get() = (lengthTime.seconds * rate).toLong()
 
         fun locate(time: TimeSpan): Long {
             val searchMicro = time.microseconds
             val result = microseconds.binarySearch(searchMicro)
-            return filePositions[result.nearIndex].toLong()
+            return filePositions.getAt(result.nearIndex).toLong()
         }
 
         fun locateSample(sample: Long): Long {
@@ -125,9 +125,9 @@ open class MP3Base : AudioFormat("mp3") {
 				val flag_extended_header = id3v2_flags.extract(6)
 				val flag_experimental_ind = id3v2_flags.extract(5)
 				val flag_footer_present = id3v2_flags.extract(4)
-				val z0 = b.readU8();
-				val z1 = b.readU8();
-				val z2 = b.readU8();
+				val z0 = b.readU8()
+				val z1 = b.readU8()
+				val z2 = b.readU8()
 				val z3 = b.readU8()
 				if (((z0 and 0x80) == 0) && ((z1 and 0x80) == 0) && ((z2 and 0x80) == 0) && ((z3 and 0x80) == 0)) {
 					val header_size = 10

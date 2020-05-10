@@ -1,5 +1,6 @@
 package com.soywiz.korau.format.mp3
 
+/*
 import com.soywiz.kmem.*
 import com.soywiz.korio.lang.*
 import com.soywiz.korio.stream.*
@@ -1907,3 +1908,4 @@ object JavaMp3Decoder {
         }
     }
 }
+*/
