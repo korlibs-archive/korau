@@ -18,6 +18,7 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
     override val audioFormats: AudioFormats = AudioFormats(MP3Decoder) + defaultAudioFormats
 
     open class MyThread(val block: MyThread.() -> Unit) : Thread() {
+        @Volatile
         var running = true
         override fun run() = block()
     }
