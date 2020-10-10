@@ -55,6 +55,12 @@ dependencies {
     add("jvmMainApi", "net.java.dev.jna:jna:$jnaVersion")
     add("jvmMainApi", "net.java.dev.jna:jna-platform:$jnaVersion")
 
+    afterEvaluate {
+        if (configurations.findByName("androidMainApi") != null) {
+            add("androidMainApi", "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
+        }
+    }
+
     //jvmMainApi "org.jogamp.gluegen:gluegen-rt-main:2.3.2"
     //jvmMainApi "org.jogamp.joal:joal:2.3.2"
     //jvmMainApi "org.jogamp.joal:joal:2.3.2:natives-windows-amd64"
