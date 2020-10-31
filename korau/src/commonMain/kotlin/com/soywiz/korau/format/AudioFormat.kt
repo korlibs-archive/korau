@@ -38,13 +38,14 @@ open class AudioFormat(vararg exts: String) {
 }
 
 open class AudioDecodingProps(
-    val exactTimings: Boolean? = null
-    //, val readInMemory: Boolean = true
+    val exactTimings: Boolean? = null,
+    val readInMemory: Boolean = true,
 ) {
-    var readInMemory: Boolean = true
+    //var readInMemory: Boolean = true
 
     companion object {
         val DEFAULT = AudioDecodingProps()
+        val FAST = AudioDecodingProps(false, false)
     }
 }
 
@@ -91,7 +92,7 @@ class AudioFormats : AudioFormat() {
 		//println(formats)
 		for (format in formats) {
 			try {
-				if (format.tryReadInfo(data.duplicate(), props) == null) continue
+				if (format.tryReadInfo(data.duplicate(), AudioDecodingProps.FAST) == null) continue
 				return format.decodeStream(data.duplicate(), props) ?: continue
 			} catch (e: Throwable) {
 				e.printStackTrace()
