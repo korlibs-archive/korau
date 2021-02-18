@@ -51,7 +51,7 @@ kotlin {
 dependencies {
 	commonMainApi("com.soywiz.korlibs.korio:korio:$korioVersion")
 
-    def jnaVersion = "5.5.0"
+    def jnaVersion = "5.7.0"
     add("jvmMainApi", "net.java.dev.jna:jna:$jnaVersion")
     add("jvmMainApi", "net.java.dev.jna:jna-platform:$jnaVersion")
 
