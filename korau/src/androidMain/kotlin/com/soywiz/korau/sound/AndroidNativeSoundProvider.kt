@@ -21,7 +21,7 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
         val MAX_CHANNELS = 16
     }
 
-	override val target: String = "android"
+    override val target: String = "android"
 
     override val audioFormats: AudioFormats = AudioFormats(MP3Decoder) + defaultAudioFormats
 
@@ -29,12 +29,12 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
     val audioSessionId by lazy { audioManager!!.generateAudioSessionId() }
     //val audioSessionId get() = audioManager!!.generateAudioSessionId()
 
-    private val threadPool = Pool {
-        com.soywiz.klogger.Console.info("Creating AudioThread[$it]")
-        AudioThread(this).also { it.isDaemon = true }.also { it.start() }
+    private val threadPool = Pool { id ->
+        //Console.info("Creating AudioThread[$id]")
+        AudioThread(this, id = id).also { it.isDaemon = true }.also { it.start() }
     }
 
-    class AudioThread(val provider: AndroidNativeSoundProvider, var freq: Int = 44100) : Thread() {
+    class AudioThread(val provider: AndroidNativeSoundProvider, var freq: Int = 44100, val id: Int = -1) : Thread() {
         var props: SoundProps = DummySoundProps
         val deque = AudioSamplesDeque(2)
         @Volatile
@@ -43,52 +43,92 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
         override fun run() {
             val bufferSamples = 4096
 
-            val at = AudioTrack(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    //.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-                    .build(),
-                AudioFormat.Builder()
-                    .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
-                    .setSampleRate(freq)
-                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .build(),
-                2 * 2 * bufferSamples,
-                AudioTrack.MODE_STREAM,
-                provider.audioSessionId
-            )
-            if (at.getState() == AudioTrack.STATE_INITIALIZED) {
-                at.play()
+            val at = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                AudioTrack(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        //.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                        .build(),
+                    AudioFormat.Builder()
+                        .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
+                        .setSampleRate(freq)
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .build(),
+                    2 * 2 * bufferSamples,
+                    AudioTrack.MODE_STREAM,
+                    provider.audioSessionId
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    freq,
+                    AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    2 * 2 * bufferSamples,
+                    AudioTrack.MODE_STREAM
+                )
             }
-            try {
-                val temp = AudioSamplesInterleaved(2, bufferSamples)
-                while (running) {
-                    val readCount = deque.read(temp)
-                    if (readCount > 0) {
-                        //println("AUDIO CHUNK: $readCount : ${temp.data.toList()}")
-                        if (at.getState() == AudioTrack.STATE_INITIALIZED) {
-                            at.setPlaybackRate(freq)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                at.playbackParams.speed = props.pitch.toFloat()
-                            }
-                            at.setVolume(props.volume.toFloat())
-                            at.write(temp.data, 0, readCount * 2, AudioTrack.WRITE_BLOCKING)
-                        }
-                    } else {
-                        Thread.sleep(10L)
-                    }
-                }
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            } finally {
+            if (at.state == AudioTrack.STATE_UNINITIALIZED) {
+                System.err.println("Audio track was not initialized correctly freq=$freq, bufferSamples=$bufferSamples")
+            }
+            //if (at.state == AudioTrack.STATE_INITIALIZED) at.play()
+            while (running) {
                 try {
-                    at.stop()
-                    at.release()
+                    val temp = AudioSamplesInterleaved(2, bufferSamples)
+                    //val tempEmpty = ShortArray(1024)
+                    var paused = true
+                    while (running) {
+                        val readCount = deque.read(temp)
+                        if (at.state == AudioTrack.STATE_UNINITIALIZED) {
+                            Thread.sleep(50L)
+                            continue
+                        }
+                        if (readCount > 0) {
+                            if (paused) {
+                                //println("[KORAU] Resume $id")
+                                paused = false
+                                at.play()
+                            }
+                            //println("AUDIO CHUNK: $readCount : ${temp.data.toList()}")
+                            if (at.state == AudioTrack.STATE_INITIALIZED) {
+                                at.playbackRate = freq
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    at.playbackParams.speed = props.pitch.toFloat()
+                                }
+                                val vol = props.volume.toFloat()
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                                    at.setVolume(vol)
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    at.setStereoVolume(vol, vol)
+                                }
+                                at.write(temp.data, 0, readCount * 2)
+                            }
+                        } else {
+                            //at.write(tempEmpty, 0, tempEmpty.size)
+                            if (!paused) {
+                                //println("[KORAU] Stop $id")
+                                //at.flush()
+                                at.stop()
+                                paused = true
+                            }
+                            Thread.sleep(2L)
+                        }
+                    }
                 } catch (e: Throwable) {
                     e.printStackTrace()
+                } finally {
+                    //println("[KORAU] Completed $id")
+                    try {
+                        at.stop()
+                    } catch (e: Throwable) {
+                        e.printStackTrace()
+                    }
                 }
             }
+            at.release()
         }
     }
 
@@ -99,11 +139,10 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput {
         ensureAudioManager(coroutineContext)
 
-		return object : PlatformAudioOutput(coroutineContext, freq) {
+        return object : PlatformAudioOutput(coroutineContext, freq) {
             private var started = false
             private var thread: AudioThread? = null
             private val threadDeque get() = thread?.deque
@@ -125,6 +164,7 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
                     thread = threadPool.alloc()
                     thread?.props = this
                     thread?.freq = freq
+                    threadDeque?.clear()
                 }
             }
             override fun stop() {
@@ -136,79 +176,5 @@ class AndroidNativeSoundProvider : NativeSoundProvider() {
                 thread = null
             }
         }
-	}
-
-    /*
-    override suspend fun createNonStreamingSound(data: AudioData, name: String): Sound {
-        ensureAudioManager(coroutineContext)
-        val audioManager = this.audioManager!!
-        val ctx = coroutineContext
-        return object : Sound(ctx) {
-            val sound = this
-
-            override fun play(coroutineContext: CoroutineContext, params: PlaybackParameters): SoundChannel {
-                val samplesData = data.samplesInterleaved.data
-                val totalShorts = data.totalSamples * data.channels
-
-                val at = AudioTrack(
-                    AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN).build(),
-                    AudioFormat.Builder().setChannelMask(AudioFormat.CHANNEL_IN_STEREO).setSampleRate(data.rate).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build(),
-                    totalShorts * 2,
-                    AudioTrack.MODE_STATIC,
-                    audioSessionId
-                )
-
-                at.write(samplesData, 0, totalShorts, AudioTrack.WRITE_NON_BLOCKING)
-                //at.write(samplesData, 0, totalShorts, AudioTrack.WRITE_BLOCKING)
-                //at.write(data.samplesInterleaved.data, 0, data.totalSamples * data.channels)
-                //println("AudioTrack.PLAY")
-
-                return object : SoundChannel(sound) {
-                    fun setProps() {
-                        at.setVolume(volume.toFloat())
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            at.playbackParams.speed = pitch.toFloat()
-                        }
-                    }
-
-                    init {
-                        launchImmediately(coroutineContext) {
-                            while (at.getState() != AudioTrack.STATE_INITIALIZED) {
-                                delay(1.milliseconds)
-                            }
-                            setProps()
-                            at.play()
-                            try {
-                                while (at.getPlayState() != AudioTrack.PLAYSTATE_STOPPED) {
-                                    setProps()
-                                    delay(64.milliseconds)
-                                }
-                            } finally {
-                                //println("AudioTrack.STOP+RELEASE")
-                                at.stop()
-                                at.release()
-                            }
-                        }
-                    }
-
-                    override fun resume() {
-                        at.play()
-                    }
-
-                    override fun pause() {
-                        at.pause()
-                    }
-
-                    override fun stop() {
-                        at.stop()
-                    }
-                }.apply {
-                    this.copySoundPropsFrom(params)
-                }
-            }
-
-            override suspend fun decode(): AudioData = data
-        }
     }
-     */
 }

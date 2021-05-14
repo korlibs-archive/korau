@@ -15,6 +15,32 @@ import kotlin.coroutines.coroutineContext as coroutineContextKt
 
 expect val nativeSoundProvider: NativeSoundProvider
 
+open class LazyNativeSoundProvider(val prepareInit: () -> Unit = {}, val gen: () -> NativeSoundProvider) : NativeSoundProvider() {
+    val parent by lazy { gen().also { it.initOnce() } }
+
+    override val target: String get() = parent.target
+
+    override fun createAudioStream(coroutineContext: CoroutineContext, freq: Int): PlatformAudioOutput = parent.createAudioStream(coroutineContext, freq)
+
+    override fun init() = prepareInit()
+
+    override suspend fun createSound(data: ByteArray, streaming: Boolean, props: AudioDecodingProps, name: String): Sound =
+        parent.createSound(data, streaming, props, name)
+
+    override val audioFormats: AudioFormats
+        get() = parent.audioFormats
+
+    override suspend fun createSound(vfs: Vfs, path: String, streaming: Boolean, props: AudioDecodingProps): Sound =
+        parent.createSound(vfs, path, streaming, props)
+
+    override suspend fun createNonStreamingSound(data: AudioData, name: String): Sound = parent.createNonStreamingSound(data, name)
+
+    override suspend fun createSound(data: AudioData, formats: AudioFormats, streaming: Boolean, name: String): Sound =
+        parent.createSound(data, formats, streaming, name)
+
+    override fun dispose() = parent.dispose()
+}
+
 open class NativeSoundProvider : Disposable {
 	open val target: String = "unknown"
 
@@ -268,6 +294,9 @@ abstract class Sound(val creationCoroutineContext: CoroutineContext) : SoundProp
     override var pitch: Double = 1.0
 	open val length: TimeSpan = 0.seconds
     open val nchannels: Int get() = 1
+
+    fun playNoCancel(times: PlaybackTimes, startTime: TimeSpan = 0.seconds): SoundChannel = play(creationCoroutineContext + SupervisorJob(), times, startTime)
+    fun playNoCancelForever(startTime: TimeSpan = 0.seconds): SoundChannel = play(creationCoroutineContext + SupervisorJob(), infinitePlaybackTimes, startTime)
 
     open fun play(coroutineContext: CoroutineContext, params: PlaybackParameters = PlaybackParameters.DEFAULT): SoundChannel = TODO()
     fun play(coroutineContext: CoroutineContext, times: PlaybackTimes, startTime: TimeSpan = 0.seconds): SoundChannel = play(coroutineContext, PlaybackParameters(times, startTime))
