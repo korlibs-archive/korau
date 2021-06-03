@@ -5,17 +5,9 @@
 <!-- BADGES -->
 <p align="center">
 	<a href="https://github.com/korlibs/korau/actions"><img alt="Build Status" src="https://github.com/korlibs/korau/workflows/CI/badge.svg" /></a>
-	<a href="https://bintray.com/korlibs/korlibs/korau"><img alt="Maven Version" src="https://img.shields.io/bintray/v/korlibs/korlibs/korau.svg?style=flat&label=maven" /></a>
+    <a href="https://search.maven.org/artifact/com.soywiz.korlibs.korau/korau"><img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.soywiz.korlibs.korau/korau"></a>
 	<a href="https://discord.korge.org/"><img alt="Discord" src="https://img.shields.io/discord/728582275884908604?logo=discord" /></a>
 </p>
 <!-- /BADGES -->
 
-<!-- SUPPORT -->
-<h2 align="center">Support korau</h2>
-<p align="center">
-If you like korau, or want your company logo here, please consider <a href="https://github.com/sponsors/soywiz">becoming a sponsor ★</a>,<br />
-in addition to ensure the continuity of the project, you will get exclusive content.
-</p>
-<!-- /SUPPORT -->
-
-[All KOR libraries](https://github.com/korlibs/)
+### Full Documentation: <https://korlibs.soywiz.com/korau/>
